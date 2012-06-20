@@ -178,7 +178,7 @@ assigning tags to tag groups directly in tag table
 		
 			<option value="" selected><?php _e('no change', 'tag-groups') ?></option>
 		
-			<option value="0" ><?php _e('no change', 'tag-groups') ?></option>
+			<option value="0" ><?php _e('not assigned', 'tag-groups') ?></option>
 
 			<?php for ($i = 1; $i <= $number_of_tag_groups; $i++) :?>
 
@@ -213,7 +213,7 @@ assigning tags to tag groups upon new tag creation
 	<div class="form-field"><label for="term-group"><?php _e('Tag Group', 'tag-groups') ?></label>
 	
 	<select id="term-group" name="term-group">
-		<option value="0" selected ><?php _e('no change', 'tag-groups') ?></option>
+		<option value="0" selected ><?php _e('not assigned', 'tag-groups') ?></option>
 
 		<?php for ($i = 1; $i <= $number_of_tag_groups; $i++) :?>
 
@@ -243,7 +243,7 @@ assigning tags to tag groups on single tag view
 		<th scope="row" valign="top"><label for="tag_widget"><?php _e('Tag group') ?></label></th>
 		<td>
 		<select id="term-group" name="term-group">
-			<option value="0" <?php if ($tag->term_group == 0) echo 'selected'; ?> ><?php _e('no change', 'tag-groups') ?></option>
+			<option value="0" <?php if ($tag->term_group == 0) echo 'selected'; ?> ><?php _e('not assigned', 'tag-groups') ?></option>
 
 		<?php for ($i = 1; $i <= $number_of_tag_groups; $i++) :?>
 
@@ -273,7 +273,7 @@ If it doesn't exist: create the default group with ID 0 that will only show up o
 
 	if ($tag_group_labels === '') {
 
-		$tag_group_labels[0] = __('no change', 'tag-groups');
+		$tag_group_labels[0] = __('not assigned', 'tag-groups');
 
 		$tag_group_ids[0] = 0;
 
