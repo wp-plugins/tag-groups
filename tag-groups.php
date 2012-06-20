@@ -4,12 +4,12 @@ Plugin Name: Tag Groups
 Plugin URI: http://www.christoph-amthor.de/plugins/tag-groups/
 Description: Assign tags to groups and display them in a tabbed tag cloud
 Author: Christoph Amthor
-Version: 0.1
+Version: 0.2
 Author URI: http://www.christoph-amthor.de
 License: GNU GENERAL PUBLIC LICENSE, Version 3
 */
 
-define("TAG_GROUPS_VERSION", "0.1");
+define("TAG_GROUPS_VERSION", "0.2");
 
 define("TAG_GROUPS_BUILT_IN_THEMES", "ui-gray,ui-lightness,ui-darkness");
 
@@ -30,11 +30,28 @@ add_action( 'admin_enqueue_scripts', 'add_tag_groups_admin_js_css' );
 
 add_action( 'wp_head', 'tag_group_custom_js' );
 
+// register_activation_hook();
+
+// register_deactivation_hook();
 
 
 function register_group_tag_settings() {
 
 	add_action( 'edit_tag_form_fields', 'tag_input_metabox' );
+	
+	add_action( 'post_tag_add_form_fields', 'create_new_tag' );
+	
+	add_filter( 'manage_edit-post_tag_columns', 'add_post_tag_columns' );
+	
+	add_filter( 'manage_post_tag_custom_column', 'add_post_tag_column_content', 10, 3 );
+
+	add_action( 'quick_edit_custom_box', 'quick_edit_tag', 10, 3 );
+	
+	add_action( 'create_term', 'update_edit_term_group' );
+		
+	add_action( 'edit_term', 'update_edit_term_group' );
+	
+	tag_groups_init();
 
 }
 
@@ -92,11 +109,129 @@ function register_tag_label_page() {
 }
 
 
+function add_post_tag_columns($columns) {
+// thanks to http://coderrr.com/add-columns-to-a-taxonomy-terms-table/		
+		
+	$columns['term_group'] = __('Tag Group', 'tag-groups');
+	
+	return $columns;
+ 		
+}
+
+	
+function add_post_tag_column_content($empty = '', $empty = '', $term_id) {
+// thanks to http://coderrr.com/add-columns-to-a-taxonomy-terms-table/
+
+	$tag_group_labels = get_option( 'tag_group_labels', $tag_group_labels );
+
+	$tag_group_ids = get_option( 'tag_group_ids', $tag_group_ids );
+
+	$tag = get_tag($term_id);
+	
+	$i = array_search($tag->term_group, $tag_group_ids); 
+
+	return $tag_group_labels[$i];
+
+}
+
+
+function update_edit_term_group($term_id) {
+/*
+get the $_POSTed value and save it in the table
+*/
+		
+	global $wpdb;
+		
+	if (isset($_POST['term-group'])) {
+
+		if ($_POST['term-group'] == '') return;
+
+		$term_group = (int) $_POST['term-group'];
+		
+		$term_id = (int) $term_id;
+
+		$result = $wpdb->update($wpdb->terms, array('term_group' => $term_group), array('term_id' => $term_id));
+		
+	}
+		
+}
+
+
+function quick_edit_tag() {
+/*
+assigning tags to tag groups directly in tag table
+*/
+
+ 	$tag_group_labels = get_option( 'tag_group_labels', $tag_group_labels );
+
+	$tag_group_ids = get_option( 'tag_group_ids', $tag_group_ids );
+
+	$number_of_tag_groups = count($tag_group_labels) - 1;
+
+	?>
+
+		<fieldset><div class="inline-edit-col">
+		
+		<label><span class="title"><?php _e( 'Group' , 'tag-groups') ?></span><span class="input-text-wrap">
+		
+		<select id="term-group" name="term-group" class="ptitle">
+		
+			<option value="" selected><?php _e('no change', 'tag-groups') ?></option>
+		
+			<option value="0" ><?php _e('no change', 'tag-groups') ?></option>
+
+			<?php for ($i = 1; $i <= $number_of_tag_groups; $i++) :?>
+
+			<option value="<?php echo $tag_group_ids[$i]; ?>" ><?php echo $tag_group_labels[$i] ?></option>
+
+		<?php endfor; ?>
+
+		</select>
+		
+		</span></label>
+		
+		</div></fieldset>
+		
+	<?php
+	
+}
+
+
+function create_new_tag($tag) {
+/*
+assigning tags to tag groups upon new tag creation
+*/
+
+ 	$tag_group_labels = get_option( 'tag_group_labels', $tag_group_labels );
+
+	$tag_group_ids = get_option( 'tag_group_ids', $tag_group_ids );
+
+	$number_of_tag_groups = count($tag_group_labels) - 1;
+
+	?>
+
+	<div class="form-field"><label for="term-group"><?php _e('Tag Group', 'tag-groups') ?></label>
+	
+	<select id="term-group" name="term-group">
+		<option value="0" selected ><?php _e('no change', 'tag-groups') ?></option>
+
+		<?php for ($i = 1; $i <= $number_of_tag_groups; $i++) :?>
+
+			<option value="<?php echo $tag_group_ids[$i]; ?>"><?php echo $tag_group_labels[$i] ?></option>
+
+		<?php endfor; ?>
+
+		</select>
+	</div>
+
+	<?php
+}
+
+
 function tag_input_metabox($tag) {
 /*
-assigning tags to tag groups
+assigning tags to tag groups on single tag view
 */
-	tag_groups_init();
 
  	$tag_group_labels = get_option( 'tag_group_labels', $tag_group_labels );
 
@@ -107,21 +242,22 @@ assigning tags to tag groups
 	<tr class="form-field">
 		<th scope="row" valign="top"><label for="tag_widget"><?php _e('Tag group') ?></label></th>
 		<td>
-		<select id="term_group" name="term_group">
-			<option value="0" <?php if ($tag->term_group == 0) echo 'selected'; ?> ><?php _e('not assigned') ?></option>
+		<select id="term-group" name="term-group">
+			<option value="0" <?php if ($tag->term_group == 0) echo 'selected'; ?> ><?php _e('no change', 'tag-groups') ?></option>
 
 		<?php for ($i = 1; $i <= $number_of_tag_groups; $i++) :?>
 
 			<option value="<?php echo $tag_group_ids[$i]; ?>"
 
-			<?php if ($tag->term_group == $i) echo 'selected'; ?> ><?php echo $tag_group_labels[$i] ?></option>
+			<?php if ($tag->term_group == $tag_group_ids[$i]) echo 'selected'; ?> ><?php echo $tag_group_labels[$i] ?></option>
 
 		<?php endfor; ?>
 
 		</select>
-		<p><a href="edit.php?page=tag-groups"><?php _e('Edit tag groups') ?></a>. (<?php _e('Clicking will leave this page without saving.') ?>)</p>
+		<p><a href="edit.php?page=tag-groups"><?php _e('Edit tag groups') ?></a>. (<?php _e('Clicking will leave this page without saving.', 'tag-groups') ?>)</p>
 		</td>
 	</tr>
+
 <?php
 }
 
@@ -137,7 +273,7 @@ If it doesn't exist: create the default group with ID 0 that will only show up o
 
 	if ($tag_group_labels === '') {
 
-		$tag_group_labels[0] = __('not assigned');
+		$tag_group_labels[0] = __('no change', 'tag-groups');
 
 		$tag_group_ids[0] = 0;
 
@@ -178,8 +314,6 @@ sub-menu on the admin backend; creating, editing and deleting tag groups
 	$number_of_tag_groups = count($tag_group_labels) - 1;
 
 	if ($max_tag_group_id < 0) $max_tag_group_id = 0;
-
-	tag_groups_init();
 	
 	$default_themes = explode(',', TAG_GROUPS_BUILT_IN_THEMES);
 
@@ -209,13 +343,13 @@ sub-menu on the admin backend; creating, editing and deleting tag groups
 		if ($label == '') : ?>
 	
 			<div class="updated fade"><p>
-			<?php _e('The label cannot be empty. Please correct it or go back.') ?>
+			<?php _e('The label cannot be empty. Please correct it or go back.', 'tag-groups') ?>
 			</p></div><br clear="all" /><?php
 	
 		elseif ((is_array($tag_group_labels)) && (in_array($label, $tag_group_labels))) : ?>
 	
 			<div class="updated fade"><p>
-			<?php _e( 'A tag group with the label \''.$label.'\' already exists, or the label has not changed. Please choose another one or go back.' ) ?>
+			<?php _e( 'A tag group with the label \''.$label.'\' already exists, or the label has not changed. Please choose another one or go back.', 'tag-groups' ) ?>
 			</p></div><br clear="all" /> <?php
 	
 		else:
@@ -243,7 +377,7 @@ sub-menu on the admin backend; creating, editing and deleting tag groups
 			update_option( 'max_tag_group_id', $max_tag_group_id ); ?>
 
 			<div class="updated fade"><p>
-			<?php _e( 'The tag group with the label \''.$label.'\' has been saved!' ) ?>
+			<?php _e( 'The tag group with the label \''.$label.'\' has been saved!', 'tag-groups' ) ?>
 			</p></div><br clear="all" />
 
 			<?php
@@ -314,7 +448,7 @@ sub-menu on the admin backend; creating, editing and deleting tag groups
 		
 		?>
 		<div class="updated fade"><p>
-			<?php _e('All groups are deleted and assignments reset.'); ?>
+			<?php _e('All groups are deleted and assignments reset.', 'tag-groups'); ?>
 		</p></div><br clear="all" />
 		<input class='button-primary' type='button' name='ok' value='<?php _e('OK'); ?>' id='ok' onclick="location.href='edit.php?page=tag-groups'"/>
 		<?php
@@ -328,7 +462,7 @@ sub-menu on the admin backend; creating, editing and deleting tag groups
 			<li><label for="label"><?php _e('Label') ?>: </label>
 			<input id="label" maxlength="45" size="45" name="label" value="<?php echo $label ?>" /></li>   
 		</ul>
-		<input class='button-primary' type='submit' name='Save' value='<?php _e('Create Group'); ?>' id='submitbutton' />
+		<input class='button-primary' type='submit' name='Save' value='<?php _e('Create Group', 'tag-groups'); ?>' id='submitbutton' />
 		<input class='button-primary' type='button' name='Cancel' value='<?php _e('Cancel'); ?>' id='cancel' onclick="location.href='edit.php?page=tag-groups'"/>
 		</form>
 	<?php break;
@@ -341,7 +475,7 @@ sub-menu on the admin backend; creating, editing and deleting tag groups
 			<li><label for="label"><?php _e('Label') ?>: </label>
 			<input id="label" maxlength="45" size="45" name="label" value="<?php echo $tag_group_labels[$tag_groups_id] ?>" /></li>   
 		</ul>
-		<input class='button-primary' type='submit' name='Save' value='<?php _e('Save Group'); ?>' id='submitbutton' />
+		<input class='button-primary' type='submit' name='Save' value='<?php _e('Save Group', 'tag-groups'); ?>' id='submitbutton' />
 		<input class='button-primary' type='button' name='Cancel' value='<?php _e('Cancel'); ?>' id='cancel' onclick="location.href='edit.php?page=tag-groups'"/>
 		</form>
 	<?php break;
@@ -371,7 +505,7 @@ sub-menu on the admin backend; creating, editing and deleting tag groups
 		update_option( 'max_tag_group_id', $max_tag_group_id ); ?>
 		
 		<div class="updated fade"><p>
-			<?php _e('A tag group with the id '.$id.' and the label \''.$label.'\' has been deleted.'); ?>
+			<?php _e('A tag group with the id '.$id.' and the label \''.$label.'\' has been deleted.', 'tag-groups'); ?>
 		</p></div><br clear="all" />
 		<input class='button-primary' type='button' name='ok' value='<?php _e('OK'); ?>' id='ok' onclick="location.href='edit.php?page=tag-groups'"/>
 	<?php break;
@@ -401,26 +535,26 @@ sub-menu on the admin backend; creating, editing and deleting tag groups
 
 	
 	default: ?>
-		<p>On this page you can define tag groups. Tags can be assigned to these groups on the page where you edit single tags.</p>
-		<h3>List</h3>
+		<p><?PHP _e('On this page you can define tag groups. Tags can be assigned to these groups on the page where you edit single tags.', 'tag-groups') ?></p>
+		<h3><?php _e('List', 'tag-groups') ?></h3>
 		<form method="POST" action="<?php echo $_SERVER['REQUEST_URI']; ?>">
 		<table class="widefat">
 		<thead>
 		<tr>
-			<th><?php _e('ID') ?></th>
-			<th><?php _e('Label displayed on the frontend') ?></th>
-			<th><?php _e('Number of assigned tags') ?></th>
-			<th><?php _e('Action') ?></th>
-			<th><?php _e('Change sort order') ?></th>
+			<th><?php _e('ID', 'tag-groups') ?></th>
+			<th><?php _e('Label displayed on the frontend', 'tag-groups') ?></th>
+			<th><?php _e('Number of assigned tags', 'tag-groups') ?></th>
+			<th><?php _e('Action', 'tag-groups') ?></th>
+			<th><?php _e('Change sort order', 'tag-groups') ?></th>
 		</tr>
 		</thead>
 		<tfoot>
 		<tr>
-			<th><?php _e('ID') ?></th>
-			<th><?php _e('Label displayed on the frontend') ?></th>
-			<th><?php _e('Number of assigned tags') ?></th>
-			<th><?php _e('Action') ?></th>
-			<th><?php _e('Change sort order') ?></th>
+			<th><?php _e('ID', 'tag-groups') ?></th>
+			<th><?php _e('Label displayed on the frontend', 'tag-groups') ?></th>
+			<th><?php _e('Number of assigned tags', 'tag-groups') ?></th>
+			<th><?php _e('Action', 'tag-groups') ?></th>
+			<th><?php _e('Change sort order', 'tag-groups') ?></th>
 		</tr>
 		</tfoot>
 		<tbody>
@@ -431,7 +565,7 @@ sub-menu on the admin backend; creating, editing and deleting tag groups
 			 <td><?php echo $tag_group_ids[$i]; ?></td>
 			 <td><?php echo $tag_group_labels[$i] ?></td>
 			 <td><?php echo group_tags_number_assigned($tag_group_ids[$i]) ?></td>
-			 <td><a href="edit.php?page=tag-groups&action=edit&id=<?php echo $i; ?>"><?php _e('Edit') ?></a>, <a href="#" onclick="answer = confirm('Do you really want to delete the tag group \'<?php echo $tag_group_labels[$i] ?>\'?'); if( answer ) {window.location ='edit.php?page=tag-groups&action=delete&id=<?php echo $i; ?>'}"><?php _e('Delete') ?></a></td>
+			 <td><a href="edit.php?page=tag-groups&action=edit&id=<?php echo $i; ?>"><?php _e('Edit') ?></a>, <a href="#" onclick="answer = confirm('<?PHP _e('Do you really want to delete the tag group', 'tag-groups') ?> \'<?php echo $tag_group_labels[$i] ?>\'?'); if( answer ) {window.location ='edit.php?page=tag-groups&action=delete&id=<?php echo $i; ?>'}"><?php _e('Delete') ?></a></td>
 			 <td>
 				 <div style="overflow:hidden; position:relative;height:15px;width:27px;clear:both;">
 				 <?php if ($i > 1) :?>
@@ -467,8 +601,8 @@ sub-menu on the admin backend; creating, editing and deleting tag groups
 		
 		<p>&nbsp;</p>
 		<form method="POST" action="<?php echo $_SERVER['REQUEST_URI']; ?>">
-		<h3><?php _e('Theme') ?></h3>
-		<p><?php _e('Here you can choose a theme for the tag cloud. The path is relative to the <i>uploads</i> folder of your Wordpress installation. Leave empty if you don\'t use any.</p><p>New themes can be created with the <a href="http://jqueryui.com/themeroller/" target="_blank">jQuery UI ThemeRoller</a>. Make sure that before download you open the "Advanced Theme Settings" and enter as "CSS Scope" <b>.tab-groups-cloud</b> (including the dot) and as "Theme Folder Name" the name that you wish to enter below (for example "my-theme" - avoid spaces and exotic characters). Then you unpack the downloaded zip file and open the css folder. Inside it you will find a folder with the chosen Theme Folder Name - copy it to your <i>uploads</i> folder and enter its name below.') ?></p>
+		<h3><?php _e('Theme', 'tag-groups') ?></h3>
+		<p><?php _e('Here you can choose a theme for the tag cloud. The path is relative to the <i>uploads</i> folder of your Wordpress installation. Leave empty if you don\'t use any.</p><p>New themes can be created with the <a href="http://jqueryui.com/themeroller/" target="_blank">jQuery UI ThemeRoller</a>. Make sure that before download you open the "Advanced Theme Settings" and enter as "CSS Scope" <b>.tab-groups-cloud</b> (including the dot) and as "Theme Folder Name" the name that you wish to enter below (for example "my-theme" - avoid spaces and exotic characters). Then you unpack the downloaded zip file and open the css folder. Inside it you will find a folder with the chosen Theme Folder Name - copy it to your <i>uploads</i> folder and enter its name below.', 'tag-groups') ?></p>
 
 		<ul>
 
@@ -486,18 +620,18 @@ sub-menu on the admin backend; creating, editing and deleting tag groups
 
 		<p>&nbsp;</p>
 		<form method="POST" action="<?php echo $_SERVER['REQUEST_URI']; ?>">
-		<h3><?php _e('Delete Groups') ?></h3>
-		<p><?php _e('Use this button to delete all tag groups and assignments. Your tags will not be changed. Check the checkbox to confirm.') ?></p>
+		<h3><?php _e('Delete Groups', 'tag-groups') ?></h3>
+		<p><?php _e('Use this button to delete all tag groups and assignments. Your tags will not be changed. Check the checkbox to confirm.', 'tag-groups') ?></p>
 		<input type="checkbox" id="ok" name="ok" value="yes">
 		<input type="hidden" id="action" name="action" value="reset">
 		<input class='button-primary' type='submit' name='delete' value='<?php _e('Delete Groups'); ?>' id='submitbutton' />
 		</form>
 
 		<p>&nbsp;</p>
-		<h3><?php _e('Displaying the Tag Cloud') ?></h3>
+		<h3><?php _e('Displaying the Tag Cloud', 'tag-groups') ?></h3>
 		<h4>a) <?php _e('Shortcode') ?></h4>
 		<p>[tag_groups_cloud]</p>
-		<p><b><?php _e('Parameters') ?>:</b> (example: [tag_groups_cloud smallest=9 largest=30 include=1,2,10]
+		<p><b><?php _e('Parameters', 'tag-groups') ?>:</b> (example: [tag_groups_cloud smallest=9 largest=30 include=1,2,10]
 		<?php _e('<ul>
 		<li><b>smallest=x</b> Font-size in pt of the smallest tags. Default: 12</li>
 		<li><b>largest=x</b> Font-size in pt of the largest tags. Default: 22</li>
@@ -507,9 +641,10 @@ sub-menu on the admin backend; creating, editing and deleting tag groups
 		<li><b>div_id=abc</b> Define an id for the enclosing '.htmlentities('<div>').' Default: tab-groups-cloud</li>
 		<li><b>div_class=abc</b> Define a class for the enclosing '.htmlentities('<div>').'. Default: tab-groups-cloud</li>
 		<li><b>ul_class=abc</b> Define a class for the '.htmlentities('<ul>').' that generates the tabs with the group labels. Default: empty</li>
-		</ul>') ?></p>
+		<li><b>show_tabs=1 or =0</b> Whether to show the tabs. Default: 1</li>
+		</ul>', 'tag-groups') ?></p>
 		<h4>b) PHP</h4>
-		<p><?php _e('example: '); echo htmlentities("<?php if (function_exists(tag_groups_cloud)) echo tag_groups_cloud(array( 'include' => '1,2,5,6' )); ?>") ?></p>
+		<p><?php _e('example: ', 'tag-groups'); echo htmlentities("<?php if (function_exists(tag_groups_cloud)) echo tag_groups_cloud(array( 'include' => '1,2,5,6' )); ?>") ?></p>
 		<p>&nbsp;</p>
 		<p>&nbsp;</p>
 		<h4><a href="http://www.christoph-amthor.de/plugins/tag-groups/" target="_blank">Tag Groups</a>, Version: <?php echo TAG_GROUPS_VERSION ?></h4>
@@ -544,7 +679,8 @@ Rendering of the tag cloud, usually by a shortcode [tag_groups_cloud xyz=1 ...]
 		'div_id' => 'tab-groups-cloud',
 		'div_class' => 'tab-groups-cloud',
 		'ul_class' => '',
-	), $atts ) );
+		'show_tabs' => '1',
+		), $atts ) );
 
 	if ($smallest < 1) $smallest = 1;
 	
@@ -570,19 +706,24 @@ Rendering of the tag cloud, usually by a shortcode [tag_groups_cloud xyz=1 ...]
 
 	$html = '<div'.$div_id_output.$div_class_output.'>';
 
-	$html .= '<ul'.$ul_class_output.'>';
 
-	for ($i = 1; $i <= $number_of_tag_groups; $i++) {
+	if ($show_tabs == '1') {
 
-		if (($include == '') || (in_array($tag_group_ids[$i],$include_groups))) {
-
-			$html .= '<li><a href="#tabs-'.$i.'" >'.$tag_group_labels[$i].'</a></li>';
-
+		$html .= '<ul'.$ul_class_output.'>';
+	
+		for ($i = 1; $i <= $number_of_tag_groups; $i++) {
+	
+			if (($include == '') || (in_array($tag_group_ids[$i],$include_groups))) {
+	
+				$html .= '<li><a href="#tabs-'.$i.'" >'.$tag_group_labels[$i].'</a></li>';
+	
+			}
+	
 		}
+	
+		$html .= '</ul>';
 
 	}
-
-	$html .= '</ul>';
 
 	for ($i = 1; $i <= $number_of_tag_groups; $i++) {
 	
