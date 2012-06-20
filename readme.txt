@@ -37,11 +37,13 @@ No questions yet.
 
 = 0.2 =
 FEATURES
+
 * Introduced an option to show a tag cloud without tabs - useful when displaying tags of just one group.
 * Tag groups are now visible as new column in the tag list.
 * Tag groups can now be assigned upon tag creation and changed directly in the tag list.
 
 BUG FIXES
+
 * Showing wrong tag group in single tag view.
 
 = 0.1 =
