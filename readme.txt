@@ -4,7 +4,7 @@ Donate link: https://flattr.com/profile/notes
 Tags: tags, term_group, tag cloud
 Requires at least: 2.9
 Tested up to: 3.4
-Stable tag: 0.2
+Stable tag: 0.2.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -34,6 +34,12 @@ No questions yet.
 3. Tag group (custom theme)
 
 == Changelog ==
+
+= 0.2.1 =
+
+BUG FIXES
+
+* Wrong label introduced in last version.
 
 = 0.2 =
 FEATURES

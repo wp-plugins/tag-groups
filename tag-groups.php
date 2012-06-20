@@ -4,7 +4,7 @@ Plugin Name: Tag Groups
 Plugin URI: http://www.christoph-amthor.de/plugins/tag-groups/
 Description: Assign tags to groups and display them in a tabbed tag cloud
 Author: Christoph Amthor
-Version: 0.2
+Version: 0.2.1
 Author URI: http://www.christoph-amthor.de
 License: GNU GENERAL PUBLIC LICENSE, Version 3
 */
