@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Tag Groups
-Plugin URI: http://www.christoph-amthor.de/plugins/tag-groups/
+Plugin URI: http://www.christoph-amthor.de/software/tag-groups/
 Description: Assign tags to groups and display them in a tabbed tag cloud
 Author: Christoph Amthor
 Version: 0.2.1
@@ -61,9 +61,9 @@ function add_tag_groups_admin_js_css() {
 adds css to backend
 */
 
-	wp_register_style( 'tag-groups-style2', plugins_url('css/style.css', __FILE__) );
+	wp_register_style( 'tag-groups-css-backend', plugins_url('css/style.css', __FILE__) );
 	
-	wp_enqueue_style( 'tag-groups-style2' );
+	wp_enqueue_style( 'tag-groups-css-backend' );
 
 }
 
@@ -82,16 +82,16 @@ adds js and css to frontend
 
 	if (in_array($theme, $default_themes)) {
 
-		wp_register_style( 'tag-groups-style1', plugins_url('css/'.$theme.'/jquery-ui-1.8.21.custom.css', __FILE__) );
+		wp_register_style( 'tag-groups-css-frontend', plugins_url('css/'.$theme.'/jquery-ui-1.8.21.custom.css', __FILE__) );
 
 		
 	} else {
 
-		wp_register_style( 'tag-groups-style1', get_bloginfo('wpurl').'/wp-content/uploads/'.$theme.'/jquery-ui-1.8.21.custom.css' );
+		wp_register_style( 'tag-groups-css-frontend', get_bloginfo('wpurl').'/wp-content/uploads/'.$theme.'/jquery-ui-1.8.21.custom.css' );
 	
 	}
 	
-	wp_enqueue_style( 'tag-groups-style1' );
+	wp_enqueue_style( 'tag-groups-css-frontend' );
 
 	wp_enqueue_script('jquery');
 
@@ -647,7 +647,7 @@ sub-menu on the admin backend; creating, editing and deleting tag groups
 		<p><?php _e('example: ', 'tag-groups'); echo htmlentities("<?php if (function_exists(tag_groups_cloud)) echo tag_groups_cloud(array( 'include' => '1,2,5,6' )); ?>") ?></p>
 		<p>&nbsp;</p>
 		<p>&nbsp;</p>
-		<h4><a href="http://www.christoph-amthor.de/plugins/tag-groups/" target="_blank">Tag Groups</a>, Version: <?php echo TAG_GROUPS_VERSION ?></h4>
+		<h4><a href="http://www.christoph-amthor.de/plugins/tag-groups/" target="_blank">Tag Groups</a>, Version: <?php echo TAG_GROUPS_VERSION ?> - <a href="https://flattr.com/profile/notes" target="_blank">micro-donation</a></h4>
 	
 	<?php }	?>
 
