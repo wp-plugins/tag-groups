@@ -4,7 +4,7 @@ Donate link: https://flattr.com/thing/721303/Tag-Groups-plugin
 Tags: tags, term_group, tag cloud, tag-cloud
 Requires at least: 2.9
 Tested up to: 3.4
-Stable tag: 0.2.1
+Stable tag: 0.3
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -18,8 +18,7 @@ Possible applications are:
 * Display your tags in any order, independently from their names or slugs.
 * Choose which tags to display in different sections of your blog.
 
-
-Please find more information [here](http://www.christoph-amthor.de/plugins/tag-groups/ "plugin website").
+Please find more information [here](http://www.christoph-amthor.de/software/tag-groups/ "plugin website").
 
 == Installation ==
 
@@ -41,7 +40,18 @@ No questions yet.
 
 == Changelog ==
 
-* removed obsolete JS
+= 0.3 =
+
+FEATURES
+
+* support for WPML string translation of tag group labels
+
+BUG FIXES
+
+* incomplete deletion of tag groups
+* no display of unused tags
+* wrong counting of tags
+* obsolete JS
 
 = 0.2.1 =
 
@@ -50,6 +60,7 @@ BUG FIXES
 * Wrong label introduced in last version.
 
 = 0.2 =
+
 FEATURES
 
 * Introduced an option to show a tag cloud without tabs - useful when displaying tags of just one group.
