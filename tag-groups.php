@@ -1,15 +1,15 @@
 <?php
 /*
 Plugin Name: Tag Groups
-Plugin URI: http://www.christoph-amthor.de/plugins/tag-groups/
+Plugin URI: http://www.christoph-amthor.de/software/tag-groups/
 Description: Assign tags to groups and display them in a tabbed tag cloud
 Author: Christoph Amthor
-Version: 0.2.1
+Version: 0.3
 Author URI: http://www.christoph-amthor.de
 License: GNU GENERAL PUBLIC LICENSE, Version 3
 */
 
-define("TAG_GROUPS_VERSION", "0.2.1");
+define("TAG_GROUPS_VERSION", "0.3");
 
 define("TAG_GROUPS_BUILT_IN_THEMES", "ui-gray,ui-lightness,ui-darkness");
 
@@ -61,9 +61,9 @@ function add_tag_groups_admin_js_css() {
 adds css to backend
 */
 
-	wp_register_style( 'tag-groups-style2', plugins_url('css/style.css', __FILE__) );
+	wp_register_style( 'tag-groups-css-backend', plugins_url('css/style.css', __FILE__) );
 	
-	wp_enqueue_style( 'tag-groups-style2' );
+	wp_enqueue_style( 'tag-groups-css-backend' );
 
 }
 
@@ -82,16 +82,16 @@ adds js and css to frontend
 
 	if (in_array($theme, $default_themes)) {
 
-		wp_register_style( 'tag-groups-style1', plugins_url('css/'.$theme.'/jquery-ui-1.8.21.custom.css', __FILE__) );
+		wp_register_style( 'tag-groups-css-frontend', plugins_url('css/'.$theme.'/jquery-ui-1.8.21.custom.css', __FILE__) );
 
 		
 	} else {
 
-		wp_register_style( 'tag-groups-style1', get_bloginfo('wpurl').'/wp-content/uploads/'.$theme.'/jquery-ui-1.8.21.custom.css' );
+		wp_register_style( 'tag-groups-css-frontend', get_bloginfo('wpurl').'/wp-content/uploads/'.$theme.'/jquery-ui-1.8.21.custom.css' );
 	
 	}
 	
-	wp_enqueue_style( 'tag-groups-style1' );
+	wp_enqueue_style( 'tag-groups-css-frontend' );
 
 	wp_enqueue_script('jquery');
 
@@ -122,6 +122,10 @@ function add_post_tag_columns($columns) {
 function add_post_tag_column_content($empty = '', $empty = '', $term_id) {
 // thanks to http://coderrr.com/add-columns-to-a-taxonomy-terms-table/
 
+	$tag_group_labels = array();
+
+	$tag_group_ids = array();
+
 	$tag_group_labels = get_option( 'tag_group_labels', $tag_group_labels );
 
 	$tag_group_ids = get_option( 'tag_group_ids', $tag_group_ids );
@@ -139,21 +143,32 @@ function update_edit_term_group($term_id) {
 /*
 get the $_POSTed value and save it in the table
 */
-		
-	global $wpdb;
-		
-	if (isset($_POST['term-group'])) {
 
-		if ($_POST['term-group'] == '') return;
+	// prevent infinite loops when the hook edit_term is called again from the function wp_update_term
+	global $update_edit_term_group_called;
+	
+	if ($update_edit_term_group_called > 0) return;
 
-		$term_group = (int) $_POST['term-group'];
-		
+	$update_edit_term_group_called++;
+	
+	if (current_user_can('edit_posts')) {
+
 		$term_id = (int) $term_id;
+		
+		$term = array();
 
-		$result = $wpdb->update($wpdb->terms, array('term_group' => $term_group), array('term_id' => $term_id));
+		if (isset($_POST['term-group']) && ($_POST['term-group'] != '')) $term['term_group'] = (int) $_POST['term-group'];
+
+		if (isset($_POST['name']) && ($_POST['name'] != '')) $term['name'] = trim(sanitize_text_field($_POST['name']));
+
+		if (isset($_POST['slug']) && ($_POST['slug'] != '')) $term['slug'] = trim(sanitize_title($_POST['slug']));
+
+		if (isset($_POST['description']) && ($_POST['description'] != '')) $term['description'] = trim(sanitize_text_field($_POST['description']));
 		
-	}
+		wp_update_term( $term_id, 'post_tag', $term );
 		
+	} else wp_die( __( 'Cheatin&#8217; uh?' ) );
+
 }
 
 
@@ -161,6 +176,10 @@ function quick_edit_tag() {
 /*
 assigning tags to tag groups directly in tag table
 */
+
+	$tag_group_labels = array();
+
+	$tag_group_ids = array();
 
  	$tag_group_labels = get_option( 'tag_group_labels', $tag_group_labels );
 
@@ -182,7 +201,7 @@ assigning tags to tag groups directly in tag table
 
 			<?php for ($i = 1; $i <= $number_of_tag_groups; $i++) :?>
 
-			<option value="<?php echo $tag_group_ids[$i]; ?>" ><?php echo $tag_group_labels[$i] ?></option>
+			<option value="<?php echo $tag_group_ids[$i]; ?>" ><?php echo $tag_group_labels[$i]; ?></option>
 
 		<?php endfor; ?>
 
@@ -217,7 +236,7 @@ assigning tags to tag groups upon new tag creation
 
 		<?php for ($i = 1; $i <= $number_of_tag_groups; $i++) :?>
 
-			<option value="<?php echo $tag_group_ids[$i]; ?>"><?php echo $tag_group_labels[$i] ?></option>
+			<option value="<?php echo $tag_group_ids[$i]; ?>"><?php echo $tag_group_labels[$i]; ?></option>
 
 		<?php endfor; ?>
 
@@ -249,7 +268,7 @@ assigning tags to tag groups on single tag view
 
 			<option value="<?php echo $tag_group_ids[$i]; ?>"
 
-			<?php if ($tag->term_group == $tag_group_ids[$i]) echo 'selected'; ?> ><?php echo $tag_group_labels[$i] ?></option>
+			<?php if ($tag->term_group == $tag_group_ids[$i]) echo 'selected'; ?> ><?php echo $tag_group_labels[$i]; ?></option>
 
 		<?php endfor; ?>
 
@@ -266,6 +285,7 @@ function tag_groups_init() {
 /*
 If it doesn't exist: create the default group with ID 0 that will only show up on tag pages as "unassigned".
 */
+	$tag_group_labels = array();
 
 	$tag_group_labels = get_option( 'tag_group_labels', $tag_group_labels );
 
@@ -327,7 +347,7 @@ sub-menu on the admin backend; creating, editing and deleting tag groups
 
 	if (isset($_REQUEST['action'])) $action = $_REQUEST['action'];
 
-	if (isset($_GET['id'])) $tag_groups_id = $_GET['id'];
+	if (isset($_GET['id'])) (int) $tag_groups_id = $_GET['id'];
 	
 	if (isset($_POST['theme-name'])) $theme_name = trim(sanitize_text_field($_POST['theme-name']));
 	
@@ -355,16 +375,25 @@ sub-menu on the admin backend; creating, editing and deleting tag groups
 		else:
 	
 			if (isset($tag_groups_id) && $tag_groups_id!='0' && $tag_groups_id!='') {
+			
+			// update
 		
+				unregister_string_wpml( $tag_group_labels[$tag_groups_id] );
+				
 				$tag_group_labels[$tag_groups_id] = $label;
 				
+				register_string_wpml( 'Group Label ID '.$tag_groups_id, $tag_group_labels[$tag_groups_id] );
+				
 			} else {
-		
+			//new
+
 				$max_tag_group_id++;
 
 				$number_of_tag_groups++;
 
 				$tag_group_labels[$number_of_tag_groups] = $label;
+				
+				register_string_wpml( 'Group Label ID '.$number_of_tag_groups, $label );
 
 				$tag_group_ids[$number_of_tag_groups] = $max_tag_group_id;
 				
@@ -460,7 +489,7 @@ sub-menu on the admin backend; creating, editing and deleting tag groups
 		<form method="POST" action="<?php echo $_SERVER['REQUEST_URI']; ?>">
 		<ul>
 			<li><label for="label"><?php _e('Label') ?>: </label>
-			<input id="label" maxlength="45" size="45" name="label" value="<?php echo $label ?>" /></li>   
+			<input id="label" maxlength="100" size="70" name="label" value="<?php echo $label ?>" /></li>   
 		</ul>
 		<input class='button-primary' type='submit' name='Save' value='<?php _e('Create Group', 'tag-groups'); ?>' id='submitbutton' />
 		<input class='button-primary' type='button' name='Cancel' value='<?php _e('Cancel'); ?>' id='cancel' onclick="location.href='edit.php?page=tag-groups'"/>
@@ -473,22 +502,42 @@ sub-menu on the admin backend; creating, editing and deleting tag groups
 		<form method="POST" action="<?php echo $_SERVER['REQUEST_URI']; ?>">
 		<ul>
 			<li><label for="label"><?php _e('Label') ?>: </label>
-			<input id="label" maxlength="45" size="45" name="label" value="<?php echo $tag_group_labels[$tag_groups_id] ?>" /></li>   
+			<input id="label" maxlength="100" size="70" name="label" value="<?php echo $tag_group_labels[$tag_groups_id] ?>" /></li>   
 		</ul>
 		<input class='button-primary' type='submit' name='Save' value='<?php _e('Save Group', 'tag-groups'); ?>' id='submitbutton' />
 		<input class='button-primary' type='button' name='Cancel' value='<?php _e('Cancel'); ?>' id='cancel' onclick="location.href='edit.php?page=tag-groups'"/>
 		</form>
+
 	<?php break;
-	
+
+	case 'wpml':
+
+		for ($i = 1; $i <= $number_of_tag_groups; $i++) {
+
+			register_string_wpml( 'Group Label ID '.$i, $tag_group_labels[$i] );
+
+		} ?>
+		
+		<div class="updated fade"><p>
+			<?php _e('All labels were registered.', 'tag-groups'); ?>
+		</p></div><br clear="all" />
+		<input class='button-primary' type='button' name='ok' value='<?php _e('OK'); ?>' id='ok' onclick="location.href='edit.php?page=tag-groups'"/>
+
+	<?php break;
+
 	case 'delete':
+
+		if (($tag_groups_id < 1) || ($tag_groups_id > $max_tag_group_id)) break;
 
 		$label = $tag_group_labels[$tag_groups_id];
 
 		$id = $tag_group_ids[$tag_groups_id];
 		
-		unset($tag_group_labels[$tag_groups_id]);
+		array_splice($tag_group_labels, $tag_groups_id, 1);
 
-		unset($tag_group_ids[$tag_groups_id]);
+		array_splice($tag_group_ids, $tag_groups_id, 1);
+		
+		unregister_string_wpml('Group Label ID '.$id);
 
 		$max = 0;
 		foreach($tag_group_ids as $check_id) {	
@@ -618,6 +667,16 @@ sub-menu on the admin backend; creating, editing and deleting tag groups
 		<input class='button-primary' type='submit' name='Save' value='<?php _e('Save Theme'); ?>' id='submitbutton' />
 		</form>
 
+		<?php if (function_exists('icl_register_string')) :?>
+			<p>&nbsp;</p>
+			<form method="POST" action="<?php echo $_SERVER['REQUEST_URI']; ?>">
+			<h3><?php _e('Register group labels with WPML', 'tag-groups') ?></h3>
+			<p><?php _e('Use this button to register all existing group labels with WPML for string translation. This is only necessary if labels have existed before you installed WPML.', 'tag-groups') ?></p>
+			<input type="hidden" id="action" name="action" value="wpml">
+			<input class='button-primary' type='submit' name='register' value='<?php _e('Register Labels'); ?>' id='submitbutton' />
+			</form>
+		<?php endif; ?>
+
 		<p>&nbsp;</p>
 		<form method="POST" action="<?php echo $_SERVER['REQUEST_URI']; ?>">
 		<h3><?php _e('Delete Groups', 'tag-groups') ?></h3>
@@ -636,7 +695,7 @@ sub-menu on the admin backend; creating, editing and deleting tag groups
 		<li><b>smallest=x</b> Font-size in pt of the smallest tags. Default: 12</li>
 		<li><b>largest=x</b> Font-size in pt of the largest tags. Default: 22</li>
 		<li><b>amount=x</b> Maximum amount of tags in one cloud. Default: 40</li>
-		<li><b>show_empty=1 or =0</b> Whether to show also tags that are not assigned to any post. Default: 0</li>
+		<li><b>hide_empty=1 or =0</b> Whether to show also tags that are not assigned to any post. Default: 1 (true)</li>
 		<li><b>include=x,y,...</b> IDs of tag groups (left column in table above) that will be considered in the tag cloud. Empty or not used means that all tag groups will be used. Default: empty</li>
 		<li><b>div_id=abc</b> Define an id for the enclosing '.htmlentities('<div>').' Default: tab-groups-cloud</li>
 		<li><b>div_class=abc</b> Define a class for the enclosing '.htmlentities('<div>').'. Default: tab-groups-cloud</li>
@@ -647,7 +706,7 @@ sub-menu on the admin backend; creating, editing and deleting tag groups
 		<p><?php _e('example: ', 'tag-groups'); echo htmlentities("<?php if (function_exists(tag_groups_cloud)) echo tag_groups_cloud(array( 'include' => '1,2,5,6' )); ?>") ?></p>
 		<p>&nbsp;</p>
 		<p>&nbsp;</p>
-		<h4><a href="http://www.christoph-amthor.de/plugins/tag-groups/" target="_blank">Tag Groups</a>, Version: <?php echo TAG_GROUPS_VERSION ?></h4>
+		<h4><a href="http://www.christoph-amthor.de/plugins/tag-groups/" target="_blank">Tag Groups</a>, Version: <?php echo TAG_GROUPS_VERSION ?> - <a href="https://flattr.com/thing/721303/Tag-Groups-plugin" target="_blank">Micro-donation for the author.</a></h4>
 	
 	<?php }	?>
 
@@ -663,6 +722,8 @@ Rendering of the tag cloud, usually by a shortcode [tag_groups_cloud xyz=1 ...]
 */
 
 	$tag_group_labels = array();
+	
+	$tag_group_ids = array();
 
 	$tag_group_labels = get_option( 'tag_group_labels', $tag_group_labels );
 
@@ -674,7 +735,7 @@ Rendering of the tag cloud, usually by a shortcode [tag_groups_cloud xyz=1 ...]
 		'smallest' => 12,
 		'largest' => 22,
 		'amount' => 40,
-		'show_empty' => 0,
+		'hide_empty' => true,
 		'include' => '',
 		'div_id' => 'tab-groups-cloud',
 		'div_class' => 'tab-groups-cloud',
@@ -694,8 +755,7 @@ Rendering of the tag cloud, usually by a shortcode [tag_groups_cloud xyz=1 ...]
 	
 	}
 
-	$posttags = get_tags();
-
+	$posttags = get_tags(array('hide_empty' => $hide_empty));
 
 	$div_id_output = ($div_id) ? ' id="'.$div_id.'"' : '';
 
@@ -715,7 +775,7 @@ Rendering of the tag cloud, usually by a shortcode [tag_groups_cloud xyz=1 ...]
 	
 			if (($include == '') || (in_array($tag_group_ids[$i],$include_groups))) {
 	
-				$html .= '<li><a href="#tabs-'.$i.'" >'.$tag_group_labels[$i].'</a></li>';
+				$html .= '<li><a href="#tabs-'.$i.'" >'.translate_string_wpml('tag-groups', 'Group Label ID '.$tag_group_ids[$i], $tag_group_labels[$i]).'</a></li>';
 	
 			}
 	
@@ -757,7 +817,6 @@ Rendering of the tag cloud, usually by a shortcode [tag_groups_cloud xyz=1 ...]
 
 	}
 
-
 					$count_amount = 0;
 
 					foreach($posttags as $tag) {
@@ -766,14 +825,10 @@ Rendering of the tag cloud, usually by a shortcode [tag_groups_cloud xyz=1 ...]
 
 			    		if ($tag->term_group == $tag_group_ids[$i]) {
 
-			    			if (($tag->count > 0) || ($show_empty == 1)) {
-
-			    				$tag_link = get_tag_link($tag->term_id);
-				    			$html .= '<a href="'.$tag_link.'" title="'.$tag->name.', '.$tag->count.'"  class="'.$tag->slug.'"><span style="font-size:'.font_size($tag->count,$min,$max,$smallest,$largest).'px">'.$tag->name.'</span></a>&nbsp; ';
-				    			$count_amount++;
-				    		
-							}
-				    	
+							$tag_link = get_tag_link($tag->term_id);
+							$html .= '<a href="'.$tag_link.'" title="'.htmlentities($tag->description).' ('.$tag->count.')"  class="'.$tag->slug.'"><span style="font-size:'.font_size($tag->count,$min,$max,$smallest,$largest).'px">'.$tag->name.'</span></a>&nbsp; ';
+							$count_amount++;
+						
 						}
 					
 					}
@@ -792,7 +847,7 @@ Rendering of the tag cloud, usually by a shortcode [tag_groups_cloud xyz=1 ...]
 
 function tag_groups_unassign($id) {
 
-	$posttags = get_tags();
+	$posttags = get_tags(array('hide_empty' => false));
 	
 	foreach($posttags as $tag) {
 
@@ -810,7 +865,7 @@ function tag_groups_unassign($id) {
 
 function group_tags_number_assigned($id) {
 
-	$posttags = get_tags();
+	$posttags = get_tags(array('hide_empty' => false));
 	
 	$number = 0;
 
@@ -859,7 +914,28 @@ calculates the font size for the cloud tag ($min, $max and $size with same unit)
 	return $size;
 
 }
- 
+
+
+function register_string_wpml($name, $value) {
+
+	if (function_exists('icl_register_string')) icl_register_string('tag-groups', $name, $value);
+
+}
+
+
+function unregister_string_wpml($name) {
+
+	if (function_exists('icl_unregister_string')) icl_unregister_string('tag-groups', $name);
+
+}
+
+
+function translate_string_wpml($context, $name, $string) {
+
+	if (function_exists('icl_t')) return icl_t($context, $name, $string); else return $string;
+
+}
+
  
 function swap(&$ary,$element1,$element2) {
 /*
@@ -873,6 +949,5 @@ swaps the position in an array - needed for changing the order of list items
 	$ary[$element2]=$temp;
 
 }
-
 
 ?>
