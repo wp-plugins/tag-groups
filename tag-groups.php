@@ -681,7 +681,8 @@ sub-menu on the admin backend; creating, editing and deleting tag groups
 		<form method="POST" action="<?php echo $_SERVER['REQUEST_URI']; ?>">
 		<h3><?php _e('Delete Groups', 'tag-groups') ?></h3>
 		<p><?php _e('Use this button to delete all tag groups and assignments. Your tags will not be changed. Check the checkbox to confirm.', 'tag-groups') ?></p>
-		<input type="checkbox" id="ok" name="ok" value="yes">
+		<input type="checkbox" id="ok" name="ok" value="yes" />
+		<label><?php _e('I know what I\'m doing.') ?></label>
 		<input type="hidden" id="action" name="action" value="reset">
 		<input class='button-primary' type='submit' name='delete' value='<?php _e('Delete Groups'); ?>' id='submitbutton' />
 		</form>
@@ -695,7 +696,7 @@ sub-menu on the admin backend; creating, editing and deleting tag groups
 		<li><b>smallest=x</b> Font-size in pt of the smallest tags. Default: 12</li>
 		<li><b>largest=x</b> Font-size in pt of the largest tags. Default: 22</li>
 		<li><b>amount=x</b> Maximum amount of tags in one cloud. Default: 40</li>
-		<li><b>hide_empty=1 or =0</b> Whether to show also tags that are not assigned to any post. Default: 1 (true)</li>
+		<li><b>hide_empty=1 or =0</b> Whether to hide or show also tags that are not assigned to any post. Default: 1 (hide empty)</li>
 		<li><b>include=x,y,...</b> IDs of tag groups (left column in table above) that will be considered in the tag cloud. Empty or not used means that all tag groups will be used. Default: empty</li>
 		<li><b>div_id=abc</b> Define an id for the enclosing '.htmlentities('<div>').' Default: tab-groups-cloud</li>
 		<li><b>div_class=abc</b> Define a class for the enclosing '.htmlentities('<div>').'. Default: tab-groups-cloud</li>
@@ -706,7 +707,9 @@ sub-menu on the admin backend; creating, editing and deleting tag groups
 		<p><?php _e('example: ', 'tag-groups'); echo htmlentities("<?php if (function_exists(tag_groups_cloud)) echo tag_groups_cloud(array( 'include' => '1,2,5,6' )); ?>") ?></p>
 		<p>&nbsp;</p>
 		<p>&nbsp;</p>
-		<h4><a href="http://www.christoph-amthor.de/plugins/tag-groups/" target="_blank">Tag Groups</a>, Version: <?php echo TAG_GROUPS_VERSION ?> - <a href="https://flattr.com/thing/721303/Tag-Groups-plugin" target="_blank">Micro-donation for the author.</a></h4>
+		<h4><a href="http://www.christoph-amthor.de/plugins/tag-groups/" target="_blank">Tag Groups</a>, Version: <?php echo TAG_GROUPS_VERSION ?></h4>
+		<h4><a href="http://flattr.com/thing/721303/Tag-Groups-plugin" target="_blank">
+<img src="<?php echo plugins_url('images/flattr-badge-large.png', __FILE__) ?>" alt="Flattr this" title="Support through micro-donation" border="0" /></a></h4>
 	
 	<?php }	?>
 
@@ -775,7 +778,7 @@ Rendering of the tag cloud, usually by a shortcode [tag_groups_cloud xyz=1 ...]
 	
 			if (($include == '') || (in_array($tag_group_ids[$i],$include_groups))) {
 	
-				$html .= '<li><a href="#tabs-'.$i.'" >'.translate_string_wpml('tag-groups', 'Group Label ID '.$tag_group_ids[$i], $tag_group_labels[$i]).'</a></li>';
+				$html .= '<li><a href="#tabs-'.$i.'" >'.translate_string_wpml('Group Label ID '.$tag_group_ids[$i], $tag_group_labels[$i]).'</a></li>';
 	
 			}
 	
@@ -930,9 +933,9 @@ function unregister_string_wpml($name) {
 }
 
 
-function translate_string_wpml($context, $name, $string) {
+function translate_string_wpml($name, $string) {
 
-	if (function_exists('icl_t')) return icl_t($context, $name, $string); else return $string;
+	if (function_exists('icl_t')) return icl_t('tag-groups', $name, $string); else return $string;
 
 }
 
