@@ -693,14 +693,14 @@ creates the sub-menu with its page on the admin backend and handles the main act
 		<p><?php _e('These will not work if you change the parameter div_id for the cloud.', 'tag-groups') ?></p>
 		<ul>
 			<li><input type="checkbox" name="mouseover" value="1" <?php if ($tag_group_mouseover) echo 'checked'; ?> >&nbsp;<?php _e('Tabs triggered by hovering mouse pointer (without clicking).', 'tag-groups' ) ?></li>
-			<li><input type="checkbox" name="collapsible" value="1" <?php if ($tag_group_collapsible) echo 'checked'; ?> >&nbsp;<?php _e('Collapse tabs (toggle open/close).', 'tag-groups' ) ?></li>
+			<li><input type="checkbox" name="collapsible" value="1" <?php if ($tag_group_collapsible) echo 'checked'; ?> >&nbsp;<?php _e('Collapsible tabs (toggle open/close).', 'tag-groups' ) ?></li>
 		</ul>
 		</td>
 		</tr>
 		</table>
 
 		<input type="hidden" id="action" name="action" value="theme">
-		<input class='button-primary' type='submit' name='Save' value='<?php _e('Save Theme', 'tag-groups'); ?>' id='submitbutton' />
+		<input class='button-primary' type='submit' name='Save' value='<?php _e('Save Theme Options', 'tag-groups'); ?>' id='submitbutton' />
 		</form>
 
 		<?php if (function_exists('icl_register_string')) :?>
@@ -1014,11 +1014,16 @@ good idea to purge the cache after changing the theme options - else your visito
 */
 
 	if (function_exists('w3tc_pgcache_flush')) {
-		w3tc_pgcache_flush();
+
+		$plugin_totalcacheadmin->flush_pgcache();
+		$plugin_totalcacheadmin->flush_minify();
+
 	} 
 
 	if (function_exists('wp_cache_clear_cache')) {
+
 		wp_cache_clear_cache();
+
 	} 
 
 }
