@@ -40,6 +40,12 @@ No questions yet.
 
 == Changelog ==
 
+= ? =
+
+FEATURES
+
+* tabs on tag cloud: support for mousover and collapsible
+
 = 0.3 =
 
 FEATURES

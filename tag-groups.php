@@ -73,7 +73,7 @@ function add_tag_groups_js_css() {
 adds js and css to frontend
 */
 
-	$theme = get_option( 'tag_group_theme', $tag_group_theme );
+	$theme = get_option( 'tag_group_theme', TAG_GROUPS_STANDARD_THEME );
 
 	$default_themes = explode(',', TAG_GROUPS_BUILT_IN_THEMES);
 
@@ -122,13 +122,9 @@ function add_post_tag_columns($columns) {
 function add_post_tag_column_content($empty = '', $empty = '', $term_id) {
 // thanks to http://coderrr.com/add-columns-to-a-taxonomy-terms-table/
 
-	$tag_group_labels = array();
+	$tag_group_labels = get_option( 'tag_group_labels', array() );
 
-	$tag_group_ids = array();
-
-	$tag_group_labels = get_option( 'tag_group_labels', $tag_group_labels );
-
-	$tag_group_ids = get_option( 'tag_group_ids', $tag_group_ids );
+	$tag_group_ids = get_option( 'tag_group_ids', array() );
 
 	$tag = get_tag($term_id);
 	
@@ -144,12 +140,13 @@ function update_edit_term_group($term_id) {
 get the $_POSTed value and save it in the table
 */
 
-	// prevent infinite loops when the hook edit_term is called again from the function wp_update_term
+	// next lines to prevent infinite loops when the hook edit_term is called again from the function wp_update_term
 	global $update_edit_term_group_called;
 	
 	if ($update_edit_term_group_called > 0) return;
 
 	$update_edit_term_group_called++;
+
 	
 	if (current_user_can('edit_posts')) {
 
@@ -177,13 +174,9 @@ function quick_edit_tag() {
 assigning tags to tag groups directly in tag table
 */
 
-	$tag_group_labels = array();
+ 	$tag_group_labels = get_option( 'tag_group_labels', array() );
 
-	$tag_group_ids = array();
-
- 	$tag_group_labels = get_option( 'tag_group_labels', $tag_group_labels );
-
-	$tag_group_ids = get_option( 'tag_group_ids', $tag_group_ids );
+	$tag_group_ids = get_option( 'tag_group_ids', array() );
 
 	$number_of_tag_groups = count($tag_group_labels) - 1;
 
@@ -221,9 +214,9 @@ function create_new_tag($tag) {
 assigning tags to tag groups upon new tag creation
 */
 
- 	$tag_group_labels = get_option( 'tag_group_labels', $tag_group_labels );
+ 	$tag_group_labels = get_option( 'tag_group_labels', array() );
 
-	$tag_group_ids = get_option( 'tag_group_ids', $tag_group_ids );
+	$tag_group_ids = get_option( 'tag_group_ids', array() );
 
 	$number_of_tag_groups = count($tag_group_labels) - 1;
 
@@ -252,9 +245,9 @@ function tag_input_metabox($tag) {
 assigning tags to tag groups on single tag view
 */
 
- 	$tag_group_labels = get_option( 'tag_group_labels', $tag_group_labels );
+ 	$tag_group_labels = get_option( 'tag_group_labels', array() );
 
-	$tag_group_ids = get_option( 'tag_group_ids', $tag_group_ids );
+	$tag_group_ids = get_option( 'tag_group_ids', array() );
 
 	$number_of_tag_groups = count($tag_group_labels) - 1; ?>
 	
@@ -285,9 +278,8 @@ function tag_groups_init() {
 /*
 If it doesn't exist: create the default group with ID 0 that will only show up on tag pages as "unassigned".
 */
-	$tag_group_labels = array();
 
-	$tag_group_labels = get_option( 'tag_group_labels', $tag_group_labels );
+	$tag_group_labels = get_option( 'tag_group_labels', array() );
 
 	$number_of_tag_groups = count($tag_group_labels) - 1;
 
@@ -307,7 +299,7 @@ If it doesn't exist: create the default group with ID 0 that will only show up o
 
 		update_option( 'max_tag_group_id', $max_tag_group_id );
 
-		$tag_group_theme = get_option( 'tag_group_theme', $tag_group_theme );
+		$tag_group_theme = get_option( 'tag_group_theme', TAG_GROUPS_STANDARD_THEME );
 
 		if ($tag_group_theme == '') $tag_group_theme = TAG_GROUPS_STANDARD_THEME;
 
@@ -317,19 +309,20 @@ If it doesn't exist: create the default group with ID 0 that will only show up o
 
 function tag_groups() {
 /*
-sub-menu on the admin backend; creating, editing and deleting tag groups
+creates the sub-menu with its page on the admin backend and handles the main actions that you perform with tag groups and themes
 */
-	$tag_group_labels = array();
 
-	$tag_group_ids = array();
+	$tag_group_labels = get_option( 'tag_group_labels', array());
 
-	$tag_group_labels = get_option( 'tag_group_labels', $tag_group_labels );
+	$tag_group_ids = get_option( 'tag_group_ids', array() );
 
-	$tag_group_ids = get_option( 'tag_group_ids', $tag_group_ids );
-
-	$max_tag_group_id = get_option( 'max_tag_group_id', $max_tag_group_id );
+	$max_tag_group_id = get_option( 'max_tag_group_id', 0 );
 	
-	$tag_group_theme = get_option( 'tag_group_theme', $tag_group_theme );
+	$tag_group_theme = get_option( 'tag_group_theme', TAG_GROUPS_STANDARD_THEME );
+	
+	$tag_group_mouseover = get_option( 'tag_group_mouseover', '' );
+
+	$tag_group_collapsible = get_option( 'tag_group_collapsible', '' );
 
 	$number_of_tag_groups = count($tag_group_labels) - 1;
 
@@ -412,9 +405,9 @@ sub-menu on the admin backend; creating, editing and deleting tag groups
 			<?php
 			$action = '';
 
-			$tag_group_labels = get_option( 'tag_group_labels', $tag_group_labels );
+			$tag_group_labels = get_option( 'tag_group_labels', array() );
 
-			$tag_group_ids = get_option( 'tag_group_ids', $tag_group_ids );
+			$tag_group_ids = get_option( 'tag_group_ids', array() );
 
 			$number_of_tag_groups = count($tag_group_labels) - 1;	
 
@@ -564,18 +557,19 @@ sub-menu on the admin backend; creating, editing and deleting tag groups
 		if ($theme == 'own') $theme = $theme_name;
 
 		update_option( 'tag_group_theme', $theme );
+		
+		$mouseover = ($_POST['mouseover'] && $_POST['mouseover'] == '1') ? true : false;
+
+		$collapsible = ($_POST['collapsible'] && $_POST['collapsible'] == '1') ? true : false;
+		
+		update_option( 'tag_group_mouseover', $mouseover );
+
+		update_option( 'tag_group_collapsible', $collapsible );
+		
+		clearCache;
 
 		?> <div class="updated fade"><p>
-
-			<?php if ($theme != '') {
-
-				_e('Your tag cloud theme has been updated to: '.$theme);
-				
-			} else {
-
-				_e('Your tag cloud has no pre-defined theme.');
-
-			} ?>
+		<?php _e('Your tag cloud theme settings have been updated'); ?>
 		</p></div><br clear="all" />
 		<input class='button-primary' type='button' name='ok' value='<?php _e('OK'); ?>' id='ok' onclick="location.href='edit.php?page=tag-groups'"/>
 		<?php
@@ -653,6 +647,9 @@ sub-menu on the admin backend; creating, editing and deleting tag groups
 		<h3><?php _e('Theme', 'tag-groups') ?></h3>
 		<p><?php _e('Here you can choose a theme for the tag cloud. The path is relative to the <i>uploads</i> folder of your Wordpress installation. Leave empty if you don\'t use any.</p><p>New themes can be created with the <a href="http://jqueryui.com/themeroller/" target="_blank">jQuery UI ThemeRoller</a>. Make sure that before download you open the "Advanced Theme Settings" and enter as "CSS Scope" <b>.tab-groups-cloud</b> (including the dot) and as "Theme Folder Name" the name that you wish to enter below (for example "my-theme" - avoid spaces and exotic characters). Then you unpack the downloaded zip file and open the css folder. Inside it you will find a folder with the chosen Theme Folder Name - copy it to your <i>uploads</i> folder and enter its name below.', 'tag-groups') ?></p>
 
+		<table>
+		<tr>
+		<td style="padding-right:50px;">
 		<ul>
 
 		<?php foreach($default_themes as $theme) : ?>
@@ -662,8 +659,20 @@ sub-menu on the admin backend; creating, editing and deleting tag groups
 		<?php endforeach; ?>		
 
 		<li><input type="radio" name="theme" value="own" <?php if (!in_array($tag_group_theme, $default_themes)) echo 'checked' ?> />&nbsp;own: /wp-content/uploads/<input type="text" id="theme-name" name="theme-name" value="<?php if (!in_array($tag_group_theme, $default_themes)) echo $tag_group_theme ?>"></li>
-		<input type="hidden" id="action" name="action" value="theme">
 		</ul>
+		</td>
+
+		<td>
+		<h4>Further options</h4>
+		<ul>
+			<li><input type="checkbox" name="mouseover" value="1" <?php if ($tag_group_mouseover) echo 'checked'; ?> >&nbsp;<?php _e('Open tabs on mouse over (without clicking).') ?></li>
+			<li><input type="checkbox" name="collapsible" value="1" <?php if ($tag_group_collapsible) echo 'checked'; ?> >&nbsp;<?php _e('Collapse tabs (toggle open/close).') ?></li>
+		</ul>
+		</td>
+		</tr>
+		</table>
+
+		<input type="hidden" id="action" name="action" value="theme">
 		<input class='button-primary' type='submit' name='Save' value='<?php _e('Save Theme'); ?>' id='submitbutton' />
 		</form>
 
@@ -724,13 +733,9 @@ function tag_groups_cloud( $atts ) {
 Rendering of the tag cloud, usually by a shortcode [tag_groups_cloud xyz=1 ...]
 */
 
-	$tag_group_labels = array();
-	
-	$tag_group_ids = array();
+	$tag_group_labels = get_option( 'tag_group_labels', array() );
 
-	$tag_group_labels = get_option( 'tag_group_labels', $tag_group_labels );
-
-	$tag_group_ids = get_option( 'tag_group_ids', $tag_group_ids );
+	$tag_group_ids = get_option( 'tag_group_ids', array() );
 
 	$number_of_tag_groups = count($tag_group_labels) - 1;
 	
@@ -884,13 +889,34 @@ function group_tags_number_assigned($id) {
 
 
 function tag_group_custom_js() {
+/*
+jquery needs some script in the html - opportunity to facilitate some options
+*/
+
+	if ( get_option( 'tag_group_mouseover', '' ) ) $mouseover = 'event: "mouseover"';
+
+	if ( get_option( 'tag_group_collapsible', '' ) ) $collapsible = 'collapsible: true';
+
+	if ( !$mouseover && !$collapsible ) {
+
+		$options = '';
+
+	} else {
+
+		$options = $collapsible ? $mouseover . ",\n" . $collapsible : $mouseover;
+
+		$options = $mouseover ? $options : $collapsible;
+
+		$options = "{\n" . $options . "\n}";
+
+	}
 
 	echo '
 	<!-- begin Tag Groups plugin -->
 	<script type="text/javascript">
 		jQuery(function() {
 	
-			jQuery( "#tab-groups-cloud" ).tabs();
+			jQuery( "#tab-groups-cloud" ).tabs(' . $options . ');
 
 		});
 	</script>
@@ -904,6 +930,7 @@ function font_size($count, $min, $max, $smallest, $largest) {
 /*
 calculates the font size for the cloud tag ($min, $max and $size with same unit)
 */
+
 	if ($max > $min) {
 
 		$size = round(($count - $min) * ($largest - $smallest) / ($max - $min) + $smallest);
@@ -950,6 +977,22 @@ swaps the position in an array - needed for changing the order of list items
 	$ary[$element1]=$ary[$element2];
 
 	$ary[$element2]=$temp;
+
+}
+
+
+function clearCache()  {
+/*
+good idea to purge the cache after changing the theme options - else your visitors won't see the change for a while
+*/
+
+	if (function_exists('w3tc_pgcache_flush')) {
+		w3tc_pgcache_flush();
+	} 
+
+	if (function_exists('wp_cache_clear_cache')) {
+		wp_cache_clear_cache();
+	} 
 
 }
 
