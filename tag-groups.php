@@ -252,7 +252,7 @@ assigning tags to tag groups on single tag view
 	$number_of_tag_groups = count($tag_group_labels) - 1; ?>
 	
 	<tr class="form-field">
-		<th scope="row" valign="top"><label for="tag_widget"><?php _e('Tag group') ?></label></th>
+		<th scope="row" valign="top"><label for="tag_widget"><?php _e('Tag group' , 'tag-groups') ?></label></th>
 		<td>
 		<select id="term-group" name="term-group">
 			<option value="0" <?php if ($tag->term_group == 0) echo 'selected'; ?> ><?php _e('not assigned', 'tag-groups') ?></option>
@@ -266,7 +266,7 @@ assigning tags to tag groups on single tag view
 		<?php endfor; ?>
 
 		</select>
-		<p><a href="edit.php?page=tag-groups"><?php _e('Edit tag groups') ?></a>. (<?php _e('Clicking will leave this page without saving.', 'tag-groups') ?>)</p>
+		<p><a href="edit.php?page=tag-groups"><?php _e('Edit tag groups' , 'tag-groups') ?></a>. (<?php _e('Clicking will leave this page without saving.', 'tag-groups') ?>)</p>
 		</td>
 	</tr>
 
@@ -478,10 +478,10 @@ creates the sub-menu with its page on the admin backend and handles the main act
 	
 	case 'new': ?>
 	
-		<h3><?php _e('Create a new tag group') ?></h3>
+		<h3><?php _e('Create a new tag group', 'tag-groups' ) ?></h3>
 		<form method="POST" action="<?php echo $_SERVER['REQUEST_URI']; ?>">
 		<ul>
-			<li><label for="label"><?php _e('Label') ?>: </label>
+			<li><label for="label"><?php _e('Label' , 'tag-groups') ?>: </label>
 			<input id="label" maxlength="100" size="70" name="label" value="<?php echo $label ?>" /></li>   
 		</ul>
 		<input class='button-primary' type='submit' name='Save' value='<?php _e('Create Group', 'tag-groups'); ?>' id='submitbutton' />
@@ -491,13 +491,13 @@ creates the sub-menu with its page on the admin backend and handles the main act
 	
 	case 'edit': ?>
 	
-		<h3><?php _e('Edit the label of an existing tag group') ?></h3>
+		<h3><?php _e('Edit the label of an existing tag group', 'tag-groups' ) ?></h3>
 		<form method="POST" action="<?php echo $_SERVER['REQUEST_URI']; ?>">
 		<ul>
-			<li><label for="label"><?php _e('Label') ?>: </label>
+			<li><label for="label"><?php _e('Label', 'tag-groups' ) ?>: </label>
 			<input id="label" maxlength="100" size="70" name="label" value="<?php echo $tag_group_labels[$tag_groups_id] ?>" /></li>   
 		</ul>
-		<input class='button-primary' type='submit' name='Save' value='<?php _e('Save Group', 'tag-groups'); ?>' id='submitbutton' />
+		<input class='button-primary' type='submit' name='Save' value='<?php _e('Save Group', 'tag-groups' ); ?>' id='submitbutton' />
 		<input class='button-primary' type='button' name='Cancel' value='<?php _e('Cancel'); ?>' id='cancel' onclick="location.href='edit.php?page=tag-groups'"/>
 		</form>
 
@@ -512,7 +512,7 @@ creates the sub-menu with its page on the admin backend and handles the main act
 		} ?>
 		
 		<div class="updated fade"><p>
-			<?php _e('All labels were registered.', 'tag-groups'); ?>
+			<?php _e('All labels were registered.', 'tag-groups' ); ?>
 		</p></div><br clear="all" />
 		<input class='button-primary' type='button' name='ok' value='<?php _e('OK'); ?>' id='ok' onclick="location.href='edit.php?page=tag-groups'"/>
 
@@ -547,7 +547,7 @@ creates the sub-menu with its page on the admin backend and handles the main act
 		update_option( 'max_tag_group_id', $max_tag_group_id ); ?>
 		
 		<div class="updated fade"><p>
-			<?php _e('A tag group with the id '.$id.' and the label \''.$label.'\' has been deleted.', 'tag-groups'); ?>
+			<?php printf(__('A tag group with the id %i and the label \'%s\' has been deleted.', 'tag-groups'), $id, $label); ?>
 		</p></div><br clear="all" />
 		<input class='button-primary' type='button' name='ok' value='<?php _e('OK'); ?>' id='ok' onclick="location.href='edit.php?page=tag-groups'"/>
 	<?php break;
@@ -569,7 +569,7 @@ creates the sub-menu with its page on the admin backend and handles the main act
 		clearCache;
 
 		?> <div class="updated fade"><p>
-		<?php _e('Your tag cloud theme settings have been updated'); ?>
+		<?php _e('Your tag cloud theme settings have been updated', 'tag-groups' ); ?>
 		</p></div><br clear="all" />
 		<input class='button-primary' type='button' name='ok' value='<?php _e('OK'); ?>' id='ok' onclick="location.href='edit.php?page=tag-groups'"/>
 		<?php
@@ -665,15 +665,15 @@ creates the sub-menu with its page on the admin backend and handles the main act
 		<td>
 		<h4>Further options</h4>
 		<ul>
-			<li><input type="checkbox" name="mouseover" value="1" <?php if ($tag_group_mouseover) echo 'checked'; ?> >&nbsp;<?php _e('Open tabs on mouse over (without clicking).') ?></li>
-			<li><input type="checkbox" name="collapsible" value="1" <?php if ($tag_group_collapsible) echo 'checked'; ?> >&nbsp;<?php _e('Collapse tabs (toggle open/close).') ?></li>
+			<li><input type="checkbox" name="mouseover" value="1" <?php if ($tag_group_mouseover) echo 'checked'; ?> >&nbsp;<?php _e('Open tabs on mouse over (without clicking).', 'tag-groups' ) ?></li>
+			<li><input type="checkbox" name="collapsible" value="1" <?php if ($tag_group_collapsible) echo 'checked'; ?> >&nbsp;<?php _e('Collapse tabs (toggle open/close).', 'tag-groups' ) ?></li>
 		</ul>
 		</td>
 		</tr>
 		</table>
 
 		<input type="hidden" id="action" name="action" value="theme">
-		<input class='button-primary' type='submit' name='Save' value='<?php _e('Save Theme'); ?>' id='submitbutton' />
+		<input class='button-primary' type='submit' name='Save' value='<?php _e('Save Theme', 'tag-groups'); ?>' id='submitbutton' />
 		</form>
 
 		<?php if (function_exists('icl_register_string')) :?>
@@ -682,7 +682,7 @@ creates the sub-menu with its page on the admin backend and handles the main act
 			<h3><?php _e('Register group labels with WPML', 'tag-groups') ?></h3>
 			<p><?php _e('Use this button to register all existing group labels with WPML for string translation. This is only necessary if labels have existed before you installed WPML.', 'tag-groups') ?></p>
 			<input type="hidden" id="action" name="action" value="wpml">
-			<input class='button-primary' type='submit' name='register' value='<?php _e('Register Labels'); ?>' id='submitbutton' />
+			<input class='button-primary' type='submit' name='register' value='<?php _e('Register Labels', 'tag-groups' ); ?>' id='submitbutton' />
 			</form>
 		<?php endif; ?>
 
@@ -691,9 +691,9 @@ creates the sub-menu with its page on the admin backend and handles the main act
 		<h3><?php _e('Delete Groups', 'tag-groups') ?></h3>
 		<p><?php _e('Use this button to delete all tag groups and assignments. Your tags will not be changed. Check the checkbox to confirm.', 'tag-groups') ?></p>
 		<input type="checkbox" id="ok" name="ok" value="yes" />
-		<label><?php _e('I know what I\'m doing.') ?></label>
+		<label><?php _e('I know what I am doing.', 'tag-groups') ?></label>
 		<input type="hidden" id="action" name="action" value="reset">
-		<input class='button-primary' type='submit' name='delete' value='<?php _e('Delete Groups'); ?>' id='submitbutton' />
+		<input class='button-primary' type='submit' name='delete' value='<?php _e('Delete Groups', 'tag-groups' ); ?>' id='submitbutton' />
 		</form>
 
 		<p>&nbsp;</p>
