@@ -4,12 +4,12 @@ Plugin Name: Tag Groups
 Plugin URI: http://www.christoph-amthor.de/software/tag-groups/
 Description: Assign tags to groups and display them in a tabbed tag cloud
 Author: Christoph Amthor
-Version: 0.3
+Version: 0.4
 Author URI: http://www.christoph-amthor.de
 License: GNU GENERAL PUBLIC LICENSE, Version 3
 */
 
-define("TAG_GROUPS_VERSION", "0.3");
+define("TAG_GROUPS_VERSION", "0.4");
 
 define("TAG_GROUPS_BUILT_IN_THEMES", "ui-gray,ui-lightness,ui-darkness");
 
@@ -51,10 +51,23 @@ function register_group_tag_settings() {
 		
 	add_action( 'edit_term', 'update_edit_term_group' );
 	
+	$plugin = plugin_basename(__FILE__);
+
+	add_filter("plugin_action_links_$plugin", 'tag_groups_plugin_settings_link' );
+	
 	tag_groups_init();
 
 }
 
+function tag_groups_plugin_settings_link($links) {
+
+  $settings_link = '<a href="edit.php?page=tag-groups">Settings</a>'; 
+  array_unshift($links, $settings_link); 
+
+  return $links; 
+
+}
+ 
 
 function add_tag_groups_admin_js_css() {
 /*
@@ -75,11 +88,23 @@ adds js and css to frontend
 
 	$theme = get_option( 'tag_group_theme', TAG_GROUPS_STANDARD_THEME );
 
-	$default_themes = explode(',', TAG_GROUPS_BUILT_IN_THEMES);
+	$default_themes = explode( ',', TAG_GROUPS_BUILT_IN_THEMES );
+	
+	$tag_group_enqueue_jquery = get_option( 'tag_group_enqueue_jquery', true );
 
+
+	if ($tag_group_enqueue_jquery) {
+
+		wp_enqueue_script('jquery');
+
+		wp_enqueue_script('jquery-ui-core');
+
+		wp_enqueue_script('jquery-ui-tabs');
+
+	}
 
 	if ($theme == '' ) return;
-
+	
 	if (in_array($theme, $default_themes)) {
 
 		wp_register_style( 'tag-groups-css-frontend', plugins_url('css/'.$theme.'/jquery-ui-1.8.21.custom.css', __FILE__) );
@@ -90,14 +115,8 @@ adds js and css to frontend
 		wp_register_style( 'tag-groups-css-frontend', get_bloginfo('wpurl').'/wp-content/uploads/'.$theme.'/jquery-ui-1.8.21.custom.css' );
 	
 	}
-	
+
 	wp_enqueue_style( 'tag-groups-css-frontend' );
-
-	wp_enqueue_script('jquery');
-
-	wp_enqueue_script('jquery-ui-core');
-
-	wp_enqueue_script('jquery-ui-tabs');
 
 }
 
@@ -323,6 +342,8 @@ creates the sub-menu with its page on the admin backend and handles the main act
 	$tag_group_mouseover = get_option( 'tag_group_mouseover', '' );
 
 	$tag_group_collapsible = get_option( 'tag_group_collapsible', '' );
+	
+	$tag_group_enqueue_jquery = get_option( 'tag_group_enqueue_jquery', true );
 
 	$number_of_tag_groups = count($tag_group_labels) - 1;
 
@@ -565,6 +586,10 @@ creates the sub-menu with its page on the admin backend and handles the main act
 		update_option( 'tag_group_mouseover', $mouseover );
 
 		update_option( 'tag_group_collapsible', $collapsible );
+
+		$tag_group_enqueue_jquery = ($_POST['enqueue-jquery'] && $_POST['enqueue-jquery'] == '1') ? true : false;
+		
+		update_option( 'tag_group_enqueue_jquery', $tag_group_enqueue_jquery );
 		
 		clearCache;
 
@@ -645,27 +670,29 @@ creates the sub-menu with its page on the admin backend and handles the main act
 		<p>&nbsp;</p>
 		<form method="POST" action="<?php echo $_SERVER['REQUEST_URI']; ?>">
 		<h3><?php _e('Theme', 'tag-groups') ?></h3>
-		<p><?php _e('Here you can choose a theme for the tag cloud. The path is relative to the <i>uploads</i> folder of your Wordpress installation. Leave empty if you don\'t use any.</p><p>New themes can be created with the <a href="http://jqueryui.com/themeroller/" target="_blank">jQuery UI ThemeRoller</a>. Make sure that before download you open the "Advanced Theme Settings" and enter as "CSS Scope" <b>.tab-groups-cloud</b> (including the dot) and as "Theme Folder Name" the name that you wish to enter below (for example "my-theme" - avoid spaces and exotic characters). Then you unpack the downloaded zip file and open the css folder. Inside it you will find a folder with the chosen Theme Folder Name - copy it to your <i>uploads</i> folder and enter its name below.', 'tag-groups') ?></p>
+		<p><?php _e('Here you can choose a theme for the tag cloud. The path is relative to the <i>uploads</i> folder of your Wordpress installation. Leave empty if you don\'t use any.</p><p>New themes can be created with the <a href="http://jqueryui.com/themeroller/" target="_blank">jQuery UI ThemeRoller</a>. Make sure that before download you open the "Advanced Theme Settings" and enter as "CSS Scope" <b>.tag-groups-cloud-tabs</b> (including the dot) and as "Theme Folder Name" the name that you wish to enter below (for example "my-theme" - avoid spaces and exotic characters). Then you unpack the downloaded zip file and open the css folder. Inside it you will find a folder with the chosen Theme Folder Name - copy it to your <i>uploads</i> folder and enter its name below.', 'tag-groups') ?></p>
 
 		<table>
 		<tr>
-		<td style="padding-right:50px;">
+		<td style="width:400px; padding-right:50px;">
 		<ul>
-
-		<?php foreach($default_themes as $theme) : ?>
-
-			<li><input type="radio" name="theme" value="<?php echo $theme ?>" <?php if ($tag_group_theme == 'ui-gray') echo 'checked'; ?> >&nbsp;<?php echo $theme ?></li>
-
-		<?php endforeach; ?>		
-
-		<li><input type="radio" name="theme" value="own" <?php if (!in_array($tag_group_theme, $default_themes)) echo 'checked' ?> />&nbsp;own: /wp-content/uploads/<input type="text" id="theme-name" name="theme-name" value="<?php if (!in_array($tag_group_theme, $default_themes)) echo $tag_group_theme ?>"></li>
+	
+			<?php foreach($default_themes as $theme) : ?>
+	
+				<li><input type="radio" name="theme" value="<?php echo $theme ?>" <?php if ($tag_group_theme == $theme) echo 'checked'; ?> />&nbsp;<?php echo $theme ?></li>
+	
+			<?php endforeach; ?>
+	
+			<li><input type="radio" name="theme" value="own" <?php if (!in_array($tag_group_theme, $default_themes)) echo 'checked' ?> />&nbsp;own: /wp-content/uploads/<input type="text" id="theme-name" name="theme-name" value="<?php if (!in_array($tag_group_theme, $default_themes)) echo $tag_group_theme ?>" /></li>
+			<li><input type="checkbox" name="enqueue-jquery" value="1" <?php if ($tag_group_enqueue_jquery) echo 'checked' ?> />&nbsp;<?php _e('Use jQuery.  (Default is on. Other plugins might override this setting.)', 'tag-groups' ) ?></li>
 		</ul>
 		</td>
 
 		<td>
 		<h4>Further options</h4>
+		<p><?php _e('These will not work if you change the parameter div_id for the cloud.', 'tag-groups') ?></p>
 		<ul>
-			<li><input type="checkbox" name="mouseover" value="1" <?php if ($tag_group_mouseover) echo 'checked'; ?> >&nbsp;<?php _e('Open tabs on mouse over (without clicking).', 'tag-groups' ) ?></li>
+			<li><input type="checkbox" name="mouseover" value="1" <?php if ($tag_group_mouseover) echo 'checked'; ?> >&nbsp;<?php _e('Tabs triggered by hovering mouse pointer (without clicking).', 'tag-groups' ) ?></li>
 			<li><input type="checkbox" name="collapsible" value="1" <?php if ($tag_group_collapsible) echo 'checked'; ?> >&nbsp;<?php _e('Collapse tabs (toggle open/close).', 'tag-groups' ) ?></li>
 		</ul>
 		</td>
@@ -707,8 +734,8 @@ creates the sub-menu with its page on the admin backend and handles the main act
 		<li><b>amount=x</b> Maximum amount of tags in one cloud. Default: 40</li>
 		<li><b>hide_empty=1 or =0</b> Whether to hide or show also tags that are not assigned to any post. Default: 1 (hide empty)</li>
 		<li><b>include=x,y,...</b> IDs of tag groups (left column in table above) that will be considered in the tag cloud. Empty or not used means that all tag groups will be used. Default: empty</li>
-		<li><b>div_id=abc</b> Define an id for the enclosing '.htmlentities('<div>').' Default: tab-groups-cloud</li>
-		<li><b>div_class=abc</b> Define a class for the enclosing '.htmlentities('<div>').'. Default: tab-groups-cloud</li>
+		<li><b>div_id=abc</b> Define an id for the enclosing '.htmlentities('<div>').' Default: tag-groups-cloud-tabs</li>
+		<li><b>div_class=abc</b> Define a class for the enclosing '.htmlentities('<div>').'. Default: tag-groups-cloud</li>
 		<li><b>ul_class=abc</b> Define a class for the '.htmlentities('<ul>').' that generates the tabs with the group labels. Default: empty</li>
 		<li><b>show_tabs=1 or =0</b> Whether to show the tabs. Default: 1</li>
 		</ul>', 'tag-groups') ?></p>
@@ -745,8 +772,8 @@ Rendering of the tag cloud, usually by a shortcode [tag_groups_cloud xyz=1 ...]
 		'amount' => 40,
 		'hide_empty' => true,
 		'include' => '',
-		'div_id' => 'tab-groups-cloud',
-		'div_class' => 'tab-groups-cloud',
+		'div_id' => 'tag-groups-cloud-tabs',
+		'div_class' => 'tag-groups-cloud-tabs',
 		'ul_class' => '',
 		'show_tabs' => '1',
 		), $atts ) );
@@ -916,7 +943,7 @@ jquery needs some script in the html - opportunity to facilitate some options
 	<script type="text/javascript">
 		jQuery(function() {
 	
-			jQuery( "#tab-groups-cloud" ).tabs(' . $options . ');
+			jQuery( "#tag-groups-cloud-tabs" ).tabs(' . $options . ');
 
 		});
 	</script>

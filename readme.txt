@@ -1,10 +1,10 @@
 === Tag Groups ===
 Contributors: camthor
 Donate link: https://flattr.com/thing/721303/Tag-Groups-plugin
-Tags: tags, term_group, tag cloud, tag-cloud
+Tags: tag, tags, term_group, tag cloud, tag-cloud, WPML
 Requires at least: 2.9
 Tested up to: 3.4
-Stable tag: 0.3
+Stable tag: 0.4
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -40,11 +40,16 @@ No questions yet.
 
 == Changelog ==
 
-= ? =
+= 0.4 =
 
 FEATURES
 
 * tabs on tag cloud: support for mousover and collapsible
+* optionally not enqueuing jQuery for custom themes
+
+BUG FIXES
+
+* problem saving themes
 
 = 0.3 =
 
