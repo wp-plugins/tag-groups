@@ -302,9 +302,9 @@ If it doesn't exist: create the default group with ID 0 that will only show up o
 
 	$number_of_tag_groups = count($tag_group_labels) - 1;
 
-	if ($tag_group_labels === '') {
+	if ((!isset($tag_group_labels)) || ($tag_group_labels[0] == '')) {
 
-		$tag_group_labels[0] = __('not assigned', 'tag-groups');
+		$tag_group_labels[0] = 'not assigned';
 
 		$tag_group_ids[0] = 0;
 
@@ -735,7 +735,7 @@ creates the sub-menu with its page on the admin backend and handles the main act
 		<li><b>hide_empty=1 or =0</b> Whether to hide or show also tags that are not assigned to any post. Default: 1 (hide empty)</li>
 		<li><b>include=x,y,...</b> IDs of tag groups (left column in table above) that will be considered in the tag cloud. Empty or not used means that all tag groups will be used. Default: empty</li>
 		<li><b>div_id=abc</b> Define an id for the enclosing '.htmlentities('<div>').' Default: tag-groups-cloud-tabs</li>
-		<li><b>div_class=abc</b> Define a class for the enclosing '.htmlentities('<div>').'. Default: tag-groups-cloud</li>
+		<li><b>div_class=abc</b> Define a class for the enclosing '.htmlentities('<div>').'. Default: tag-groups-cloud-tabs</li>
 		<li><b>ul_class=abc</b> Define a class for the '.htmlentities('<ul>').' that generates the tabs with the group labels. Default: empty</li>
 		<li><b>show_tabs=1 or =0</b> Whether to show the tabs. Default: 1</li>
 		</ul>', 'tag-groups') ?></p>

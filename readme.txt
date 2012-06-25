@@ -93,4 +93,4 @@ Nothing yet.
 
 == Other Notes ==
 
-Styling created by jQuery UI who also provided the Javascript that is used for the tabs to do their magic. Find their license in the package.
+Styling created by jQuery UI who also provided the JavaScript that is used for the tabs to do their magic. Find their license in the package.
