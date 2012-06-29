@@ -4,12 +4,12 @@ Plugin Name: Tag Groups
 Plugin URI: http://www.christoph-amthor.de/software/tag-groups/
 Description: Assign tags to groups and display them in a tabbed tag cloud
 Author: Christoph Amthor
-Version: 0.4.1
+Version: 0.5
 Author URI: http://www.christoph-amthor.de
 License: GNU GENERAL PUBLIC LICENSE, Version 3
 */
 
-define("TAG_GROUPS_VERSION", "0.4.1");
+define("TAG_GROUPS_VERSION", "0.5");
 
 define("TAG_GROUPS_BUILT_IN_THEMES", "ui-gray,ui-lightness,ui-darkness");
 
@@ -55,11 +55,19 @@ function register_group_tag_settings() {
 
 	add_filter("plugin_action_links_$plugin", 'tag_groups_plugin_settings_link' );
 	
+	add_action('admin_footer', 'tag_groups_quick_edit_javascript');
+
+	add_filter('tag_row_actions', 'tag_groups_expand_quick_edit_link', 10, 2);
+
 	tag_groups_init();
 
 }
 
+
 function tag_groups_plugin_settings_link($links) {
+/*
+adds Settings link to plugin list
+*/
 
   $settings_link = '<a href="edit.php?page=tag-groups">Settings</a>'; 
   array_unshift($links, $settings_link); 
@@ -129,7 +137,11 @@ function register_tag_label_page() {
 
 
 function add_post_tag_columns($columns) {
-// thanks to http://coderrr.com/add-columns-to-a-taxonomy-terms-table/		
+// thanks to http://coderrr.com/add-columns-to-a-taxonomy-terms-table/
+
+/*
+adds a custom column
+*/
 		
 	$columns['term_group'] = __('Tag Group', 'tag-groups');
 	
@@ -140,6 +152,10 @@ function add_post_tag_columns($columns) {
 	
 function add_post_tag_column_content($empty = '', $empty = '', $term_id) {
 // thanks to http://coderrr.com/add-columns-to-a-taxonomy-terms-table/
+
+/*
+adds data into custom column for each row
+*/
 
 	$tag_group_labels = get_option( 'tag_group_labels', array() );
 
@@ -159,27 +175,40 @@ function update_edit_term_group($term_id) {
 get the $_POSTed value and save it in the table
 */
 
-	// next lines to prevent infinite loops when the hook edit_term is called again from the function wp_update_term
+	// next two lines to prevent infinite loops when the hook edit_term is called again from the function wp_update_term
+
 	global $update_edit_term_group_called;
-	
+
 	if ($update_edit_term_group_called > 0) return;
 
 	$update_edit_term_group_called++;
-
 	
 	if (current_user_can('edit_posts')) {
 
 		$term_id = (int) $term_id;
 		
 		$term = array();
+		
 
-		if (isset($_POST['term-group']) && ($_POST['term-group'] != '')) $term['term_group'] = (int) $_POST['term-group'];
+		if ( isset($_POST['term-group-option']) ) {
 
-		if (isset($_POST['name']) && ($_POST['name'] != '')) $term['name'] = trim(sanitize_text_field($_POST['name']));
+			if ( !isset($_POST['tag-groups-option-nonce']) || ! wp_verify_nonce($_POST['tag-groups-option-nonce'], 'tag-groups-option') ) die("Security check");
 
-		if (isset($_POST['slug']) && ($_POST['slug'] != '')) $term['slug'] = trim(sanitize_title($_POST['slug']));
+			$term['term_group'] = (int) $_POST['term-group-option'];
 
-		if (isset($_POST['description']) && ($_POST['description'] != '')) $term['description'] = trim(sanitize_text_field($_POST['description']));
+		} elseif ( isset($_POST['term-group']) ) {
+
+			if ( !isset($_POST['tag-groups-nonce']) || ! wp_verify_nonce($_POST['tag-groups-nonce'], 'tag-groups') ) die("Security check");
+
+			$term['term_group'] = (int) $_POST['term-group'];
+
+		}
+
+		if ( isset($_POST['name']) && ($_POST['name'] != '') ) $term['name'] = trim(sanitize_text_field($_POST['name']));
+
+		if ( isset($_POST['slug']) && ($_POST['slug'] != '') ) $term['slug'] = trim(sanitize_title($_POST['slug']));
+
+		if ( isset($_POST['description']) && ($_POST['description'] != '') ) $term['description'] = trim(sanitize_text_field($_POST['description']));
 		
 		wp_update_term( $term_id, 'post_tag', $term );
 		
@@ -187,11 +216,78 @@ get the $_POSTed value and save it in the table
 
 }
 
+ 
+function tag_groups_quick_edit_javascript() {
+// thanks to http://shibashake.com/wordpress-theme/expand-the-wordpress-quick-edit-menu
+
+/*
+adds JS function that selects right tag group for given element opened for quick edit
+*/
+
+	$screen = get_current_screen();
+	
+	if ( $screen->taxonomy != 'post_tag' ) return;
+ 
+	?>
+	<script type="text/javascript">
+	<!--
+	function set_inline_tag_group_selected(tag_group_Selected, nonce) {
+		inlineEditTax.revert();
+		var tag_group_Input = document.getElementById('term-group-option');
+		var nonceInput = document.getElementById('tag-groups-option-nonce');
+		nonceInput.value = nonce;
+		for (i = 0; i < tag_group_Input.options.length; i++) {
+			if (tag_group_Input.options[i].value == tag_group_Selected) { 
+				tag_group_Input.options[i].setAttribute("selected", "selected");
+			} else { tag_group_Input.options[i].removeAttribute("selected");}
+		}
+	}
+
+	//-->
+	</script>
+	<?php
+}
+
+
+function tag_groups_expand_quick_edit_link($actions, $tag) {
+// thanks to http://shibashake.com/wordpress-theme/expand-the-wordpress-quick-edit-menu
+
+/*
+modifies Quick Edit link to call JS when clicked
+*/
+
+	$screen = get_current_screen();
+	
+	if ( $screen->taxonomy != 'post_tag' ) return $actions;
+ 
+	$tag_group_ids = get_option( 'tag_group_ids', array() );
+
+	$tag_group_id = array_search($tag->term_group, $tag_group_ids); 
+	
+	$nonce = wp_create_nonce('tag-groups-option');
+	
+	$actions['inline hide-if-no-js'] = '<a href="#" class="editinline" title="';
+
+	$actions['inline hide-if-no-js'] .= esc_attr( __( 'Edit this item inline' ) ) . '" ';
+
+	$actions['inline hide-if-no-js'] .= " onclick=\"set_inline_tag_group_selected('{$tag_group_id}', '{$nonce}')\">"; 
+
+	$actions['inline hide-if-no-js'] .= __( 'Quick&nbsp;Edit' );
+
+	$actions['inline hide-if-no-js'] .= '</a>';
+
+	return $actions;	
+}
+
 
 function quick_edit_tag() {
 /*
 assigning tags to tag groups directly in tag table
 */
+
+	$screen = get_current_screen();
+	
+	if ( $screen->taxonomy != 'post_tag' ) return;
 
  	$tag_group_labels = get_option( 'tag_group_labels', array() );
 
@@ -205,9 +301,7 @@ assigning tags to tag groups directly in tag table
 		
 		<label><span class="title"><?php _e( 'Group' , 'tag-groups') ?></span><span class="input-text-wrap">
 		
-		<select id="term-group" name="term-group" class="ptitle">
-		
-			<option value="" selected><?php _e('no change', 'tag-groups') ?></option>
+		<select id="term-group-option" name="term-group-option" class="ptitle">
 		
 			<option value="0" ><?php _e('not assigned', 'tag-groups') ?></option>
 
@@ -218,11 +312,12 @@ assigning tags to tag groups directly in tag table
 		<?php endfor; ?>
 
 		</select>
-		
+
+		<input type="hidden" name="tag-groups-option-nonce" id="tag-groups-option-nonce" value="" />
+
 		</span></label>
 		
 		</div></fieldset>
-		
 	<?php
 	
 }
@@ -252,7 +347,8 @@ assigning tags to tag groups upon new tag creation
 
 		<?php endfor; ?>
 
-		</select>
+		</select>		
+	<input type="hidden" name="tag-groups-nonce" id="tag-groups-nonce" value="<?php echo wp_create_nonce('tag-groups') ?>" />
 	</div>
 
 	<?php
@@ -285,6 +381,7 @@ assigning tags to tag groups on single tag view
 		<?php endfor; ?>
 
 		</select>
+		<input type="hidden" name="tag-groups-nonce" id="tag-groups-nonce" value="<?php echo wp_create_nonce('tag-groups') ?>" />
 		<p><a href="edit.php?page=tag-groups"><?php _e('Edit tag groups' , 'tag-groups') ?></a>. (<?php _e('Clicking will leave this page without saving.', 'tag-groups') ?>)</p>
 		</td>
 	</tr>
@@ -387,9 +484,12 @@ creates the sub-menu with its page on the admin backend and handles the main act
 			</p></div><br clear="all" /> <?php
 	
 		else:
+
+			if ( !isset($_POST['tag-groups-settings-nonce']) || ! wp_verify_nonce($_POST['tag-groups-settings-nonce'], 'tag-groups-settings') ) die("Security check");
+	
 	
 			if (isset($tag_groups_id) && $tag_groups_id!='0' && $tag_groups_id!='') {
-			
+
 			// update
 		
 				unregister_string_wpml( $tag_group_labels[$tag_groups_id] );
@@ -474,7 +574,9 @@ creates the sub-menu with its page on the admin backend and handles the main act
 	switch ($action) {
 	
 	case 'reset':
-		
+
+		if ( !isset($_POST['tag-groups-reset-nonce']) || ! wp_verify_nonce($_POST['tag-groups-reset-nonce'], 'tag-groups-reset') ) die("Security check");
+
  		unset($tag_group_labels);
 
  		unset($tag_group_ids);
@@ -501,6 +603,7 @@ creates the sub-menu with its page on the admin backend and handles the main act
 	
 		<h3><?php _e('Create a new tag group', 'tag-groups' ) ?></h3>
 		<form method="POST" action="<?php echo $_SERVER['REQUEST_URI']; ?>">
+		<input type="hidden" name="tag-groups-settings-nonce" id="tag-groups-settings-nonce" value="<?php echo wp_create_nonce('tag-groups-settings') ?>" />
 		<ul>
 			<li><label for="label"><?php _e('Label' , 'tag-groups') ?>: </label>
 			<input id="label" maxlength="100" size="70" name="label" value="<?php echo $label ?>" /></li>   
@@ -514,6 +617,7 @@ creates the sub-menu with its page on the admin backend and handles the main act
 	
 		<h3><?php _e('Edit the label of an existing tag group', 'tag-groups' ) ?></h3>
 		<form method="POST" action="<?php echo $_SERVER['REQUEST_URI']; ?>">
+		<input type="hidden" name="tag-groups-settings-nonce" id="tag-groups-settings-nonce" value="<?php echo wp_create_nonce('tag-groups-settings') ?>" />
 		<ul>
 			<li><label for="label"><?php _e('Label', 'tag-groups' ) ?>: </label>
 			<input id="label" maxlength="100" size="70" name="label" value="<?php echo $tag_group_labels[$tag_groups_id] ?>" /></li>   
@@ -546,7 +650,9 @@ creates the sub-menu with its page on the admin backend and handles the main act
 		$label = $tag_group_labels[$tag_groups_id];
 
 		$id = $tag_group_ids[$tag_groups_id];
-		
+
+		if ( !isset($_GET['tag-groups-delete-nonce']) || ! wp_verify_nonce($_GET['tag-groups-delete-nonce'], 'tag-groups-delete-'.$tag_groups_id) ) die("Security check");
+
 		array_splice($tag_group_labels, $tag_groups_id, 1);
 
 		array_splice($tag_group_ids, $tag_groups_id, 1);
@@ -577,6 +683,8 @@ creates the sub-menu with its page on the admin backend and handles the main act
 
 		if ($theme == 'own') $theme = $theme_name;
 
+		if ( !isset($_POST['tag-groups-settings-nonce']) || ! wp_verify_nonce($_POST['tag-groups-settings-nonce'], 'tag-groups-settings') ) die("Security check");
+
 		update_option( 'tag_group_theme', $theme );
 		
 		$mouseover = ($_POST['mouseover'] && $_POST['mouseover'] == '1') ? true : false;
@@ -594,7 +702,7 @@ creates the sub-menu with its page on the admin backend and handles the main act
 		clearCache;
 
 		?> <div class="updated fade"><p>
-		<?php _e('Your tag cloud theme settings have been updated', 'tag-groups' ); ?>
+		<?php _e('Your tag cloud theme settings have been saved', 'tag-groups' ); ?>
 		</p></div><br clear="all" />
 		<input class='button-primary' type='button' name='ok' value='<?php _e('OK'); ?>' id='ok' onclick="location.href='edit.php?page=tag-groups'"/>
 		<?php
@@ -605,7 +713,6 @@ creates the sub-menu with its page on the admin backend and handles the main act
 	default: ?>
 		<p><?PHP _e('On this page you can define tag groups. Tags can be assigned to these groups on the page where you edit single tags.', 'tag-groups') ?></p>
 		<h3><?php _e('List', 'tag-groups') ?></h3>
-		<form method="POST" action="<?php echo $_SERVER['REQUEST_URI']; ?>">
 		<table class="widefat">
 		<thead>
 		<tr>
@@ -633,11 +740,11 @@ creates the sub-menu with its page on the admin backend and handles the main act
 			 <td><?php echo $tag_group_ids[$i]; ?></td>
 			 <td><?php echo $tag_group_labels[$i] ?></td>
 			 <td><?php echo group_tags_number_assigned($tag_group_ids[$i]) ?></td>
-			 <td><a href="edit.php?page=tag-groups&action=edit&id=<?php echo $i; ?>"><?php _e('Edit') ?></a>, <a href="#" onclick="answer = confirm('<?PHP _e('Do you really want to delete the tag group', 'tag-groups') ?> \'<?php echo $tag_group_labels[$i] ?>\'?'); if( answer ) {window.location ='edit.php?page=tag-groups&action=delete&id=<?php echo $i; ?>'}"><?php _e('Delete') ?></a></td>
+			 <td><a href="edit.php?page=tag-groups&action=edit&id=<?php echo $i; ?>"><?php _e('Edit') ?></a>, <a href="#" onclick="answer = confirm('<?PHP _e('Do you really want to delete the tag group', 'tag-groups') ?> \'<?php echo $tag_group_labels[$i] ?>\'?'); if( answer ) {window.location ='edit.php?page=tag-groups&action=delete&id=<?php echo $i ?>&tag-groups-delete-nonce=<?php echo wp_create_nonce('tag-groups-delete-'.$i) ?>'}"><?php _e('Delete') ?></a></td>
 			 <td>
 				 <div style="overflow:hidden; position:relative;height:15px;width:27px;clear:both;">
 				 <?php if ($i > 1) :?>
-				 	<a href="edit.php?page=tag-groups&action=up&id=<?php echo $i; ?>">
+				 	<a href="edit.php?page=tag-groups&action=up&id=<?php echo $i ?>">
 				 	<div class="tag-groups-up"></div>
 				 	</a>
 				<?php endif; ?>
@@ -645,7 +752,7 @@ creates the sub-menu with its page on the admin backend and handles the main act
 
 				 <div style="overflow:hidden; position:relative;height:15px;width:27px;clear:both;">
 				<?php if ($i < $number_of_tag_groups) :?>
-				 	<a href="edit.php?page=tag-groups&action=down&id=<?php echo $i; ?>">
+				 	<a href="edit.php?page=tag-groups&action=down&id=<?php echo $i ?>">
 				 	<div class="tag-groups-down"></div>
 				 	</a>
 				<?php endif; ?>
@@ -664,11 +771,12 @@ creates the sub-menu with its page on the admin backend and handles the main act
 		</tr>
 		</tbody>
 		</table>
-		</form>
+
 		
 		
 		<p>&nbsp;</p>
 		<form method="POST" action="<?php echo $_SERVER['REQUEST_URI']; ?>">
+		<input type="hidden" name="tag-groups-settings-nonce" id="tag-groups-settings-nonce" value="<?php echo wp_create_nonce('tag-groups-settings') ?>" />
 		<h3><?php _e('Theme', 'tag-groups') ?></h3>
 		<p><?php _e('Here you can choose a theme for the tag cloud. The path is relative to the <i>uploads</i> folder of your Wordpress installation. Leave empty if you don\'t use any.</p><p>New themes can be created with the <a href="http://jqueryui.com/themeroller/" target="_blank">jQuery UI ThemeRoller</a>. Make sure that before download you open the "Advanced Theme Settings" and enter as "CSS Scope" <b>.tag-groups-cloud-tabs</b> (including the dot) and as "Theme Folder Name" the name that you wish to enter below (for example "my-theme" - avoid spaces and exotic characters). Then you unpack the downloaded zip file and open the css folder. Inside it you will find a folder with the chosen Theme Folder Name - copy it to your <i>uploads</i> folder and enter its name below.', 'tag-groups') ?></p>
 
@@ -715,6 +823,7 @@ creates the sub-menu with its page on the admin backend and handles the main act
 
 		<p>&nbsp;</p>
 		<form method="POST" action="<?php echo $_SERVER['REQUEST_URI']; ?>">
+		<input type="hidden" name="tag-groups-reset-nonce" id="tag-groups-reset-nonce" value="<?php echo wp_create_nonce('tag-groups-reset') ?>" />
 		<h3><?php _e('Delete Groups', 'tag-groups') ?></h3>
 		<p><?php _e('Use this button to delete all tag groups and assignments. Your tags will not be changed. Check the checkbox to confirm.', 'tag-groups') ?></p>
 		<input type="checkbox" id="ok" name="ok" value="yes" />

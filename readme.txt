@@ -4,7 +4,7 @@ Donate link: https://flattr.com/thing/721303/Tag-Groups-plugin
 Tags: tag, tags, term_group, tag cloud, tag-cloud, WPML
 Requires at least: 2.9
 Tested up to: 3.4.1
-Stable tag: 0.4.1
+Stable tag: 0.5
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -39,6 +39,18 @@ No questions yet.
 3. Tag cloud (custom theme)
 
 == Changelog ==
+
+= 0.5 =
+
+FEATURES
+
+* improved inline editing in tag list (still problems with Opera browser)
+* hardened security with 'nonce'
+
+BUG FIXES
+
+* with WPML installed, inline editing of tag groups showed up at posts
+
 
 = 0.4.1 =
 
