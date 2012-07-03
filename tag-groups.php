@@ -4,12 +4,12 @@ Plugin Name: Tag Groups
 Plugin URI: http://www.christoph-amthor.de/software/tag-groups/
 Description: Assign tags to groups and display them in a tabbed tag cloud
 Author: Christoph Amthor
-Version: 0.5
+Version: 0.5.1
 Author URI: http://www.christoph-amthor.de
 License: GNU GENERAL PUBLIC LICENSE, Version 3
 */
 
-define("TAG_GROUPS_VERSION", "0.5");
+define("TAG_GROUPS_VERSION", "0.5.1");
 
 define("TAG_GROUPS_BUILT_IN_THEMES", "ui-gray,ui-lightness,ui-darkness");
 
@@ -180,7 +180,11 @@ get the $_POSTed value and save it in the table
 	global $update_edit_term_group_called;
 
 	if ($update_edit_term_group_called > 0) return;
+	
+	$screen = get_current_screen();
 
+	if ( ($screen->taxonomy != 'post_tag') && (!isset($_POST['new-tag-created']))) return;
+	
 	$update_edit_term_group_called++;
 	
 	if (current_user_can('edit_posts')) {
@@ -204,11 +208,11 @@ get the $_POSTed value and save it in the table
 
 		}
 
-		if ( isset($_POST['name']) && ($_POST['name'] != '') ) $term['name'] = trim(sanitize_text_field($_POST['name']));
+		if ( isset($_POST['name']) && ($_POST['name'] != '') ) $term['name'] = stripslashes(sanitize_text_field($_POST['name']));
 
-		if ( isset($_POST['slug']) && ($_POST['slug'] != '') ) $term['slug'] = trim(sanitize_title($_POST['slug']));
+		if ( isset($_POST['slug']) && ($_POST['slug'] != '') ) $term['slug'] = sanitize_title($_POST['slug']);
 
-		if ( isset($_POST['description']) && ($_POST['description'] != '') ) $term['description'] = trim(sanitize_text_field($_POST['description']));
+		if ( isset($_POST['description']) && ($_POST['description'] != '') ) $term['description'] = stripslashes(sanitize_text_field($_POST['description']));
 		
 		wp_update_term( $term_id, 'post_tag', $term );
 		
@@ -349,6 +353,7 @@ assigning tags to tag groups upon new tag creation
 
 		</select>		
 	<input type="hidden" name="tag-groups-nonce" id="tag-groups-nonce" value="<?php echo wp_create_nonce('tag-groups') ?>" />
+	<input type="hidden" name="new-tag-created" id="new-tag-created" value="1" />
 	</div>
 
 	<?php
@@ -456,20 +461,20 @@ creates the sub-menu with its page on the admin backend and handles the main act
 	
 	<?php
 
-	if (isset($_REQUEST['action'])) $action = $_REQUEST['action'];
+	if (isset($_REQUEST['action'])) $action = $_REQUEST['action']; else $action = '';
 
-	if (isset($_GET['id'])) (int) $tag_groups_id = $_GET['id'];
+	if (isset($_GET['id'])) (int) $tag_groups_id = $_GET['id']; else $tag_groups_id = 0;
 	
-	if (isset($_POST['theme-name'])) $theme_name = trim(sanitize_text_field($_POST['theme-name']));
+	if (isset($_POST['theme-name'])) $theme_name = stripslashes(sanitize_text_field($_POST['theme-name'])); else $theme_name = '';
 	
-	if (isset($_POST['theme'])) $theme = trim(sanitize_text_field($_POST['theme']));
+	if (isset($_POST['theme'])) $theme = stripslashes(sanitize_text_field($_POST['theme'])); else $theme = '';
 
-	if (isset($_POST['ok'])) $ok = $_POST['ok'];
+	if (isset($_POST['ok'])) $ok = $_POST['ok']; else $ok = '';
 	
 	// save a new label
 	if (isset($_POST['label'])) {
 	
-		$label = trim(sanitize_text_field($_POST['label']));
+		$label = stripslashes(sanitize_text_field($_POST['label']));
 		
 		if ($label == '') : ?>
 	
@@ -740,7 +745,7 @@ creates the sub-menu with its page on the admin backend and handles the main act
 			 <td><?php echo $tag_group_ids[$i]; ?></td>
 			 <td><?php echo $tag_group_labels[$i] ?></td>
 			 <td><?php echo group_tags_number_assigned($tag_group_ids[$i]) ?></td>
-			 <td><a href="edit.php?page=tag-groups&action=edit&id=<?php echo $i; ?>"><?php _e('Edit') ?></a>, <a href="#" onclick="answer = confirm('<?PHP _e('Do you really want to delete the tag group', 'tag-groups') ?> \'<?php echo $tag_group_labels[$i] ?>\'?'); if( answer ) {window.location ='edit.php?page=tag-groups&action=delete&id=<?php echo $i ?>&tag-groups-delete-nonce=<?php echo wp_create_nonce('tag-groups-delete-'.$i) ?>'}"><?php _e('Delete') ?></a></td>
+			 <td><a href="edit.php?page=tag-groups&action=edit&id=<?php echo $i; ?>"><?php _e('Edit') ?></a>, <a href="#" onclick="var answer = confirm('<?PHP _e('Do you really want to delete the tag group', 'tag-groups') ?> \'<?php echo esc_js($tag_group_labels[$i]) ?>\'?'); if( answer ) {window.location ='edit.php?page=tag-groups&action=delete&id=<?php echo $i ?>&tag-groups-delete-nonce=<?php echo wp_create_nonce('tag-groups-delete-'.$i) ?>'}"><?php _e('Delete') ?></a></td>
 			 <td>
 				 <div style="overflow:hidden; position:relative;height:15px;width:27px;clear:both;">
 				 <?php if ($i > 1) :?>
