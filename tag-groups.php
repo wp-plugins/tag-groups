@@ -18,53 +18,53 @@ define("TAG_GROUPS_STANDARD_THEME", "ui-gray");
 
 
 
-add_action( 'admin_init', 'register_group_tag_settings' );
+add_action( 'admin_init', 'tg_register_settings' );
 
-add_action( 'admin_menu', 'register_tag_label_page' );
+add_action( 'admin_menu', 'tg_register_tag_label_page' );
 
 add_shortcode( 'tag_groups_cloud', 'tag_groups_cloud' );
 
-add_action( 'wp_enqueue_scripts', 'add_tag_groups_js_css' );
+add_action( 'wp_enqueue_scripts', 'tg_add_js_css' );
 
-add_action( 'admin_enqueue_scripts', 'add_tag_groups_admin_js_css' );
+add_action( 'admin_enqueue_scripts', 'tg_add_admin_js_css' );
 
-add_action( 'wp_head', 'tag_group_custom_js' );
+add_action( 'wp_head', 'tg_custom_js' );
 
 // register_activation_hook();
 
 // register_deactivation_hook();
 
 
-function register_group_tag_settings() {
+function tg_register_settings() {
 
-	add_action( 'edit_tag_form_fields', 'tag_input_metabox' );
+	add_action( 'edit_tag_form_fields', 'tg_tag_input_metabox' );
 	
-	add_action( 'post_tag_add_form_fields', 'create_new_tag' );
+	add_action( 'post_tag_add_form_fields', 'tg_create_new_tag' );
 	
-	add_filter( 'manage_edit-post_tag_columns', 'add_post_tag_columns' );
+	add_filter( 'manage_edit-post_tag_columns', 'tg_add_post_tag_columns' );
 	
-	add_filter( 'manage_post_tag_custom_column', 'add_post_tag_column_content', 10, 3 );
+	add_filter( 'manage_post_tag_custom_column', 'tg_add_post_tag_column_content', 10, 3 );
 
-	add_action( 'quick_edit_custom_box', 'quick_edit_tag', 10, 3 );
+	add_action( 'quick_edit_custom_box', 'tg_quick_edit_tag', 10, 3 );
 	
-	add_action( 'create_term', 'update_edit_term_group' );
+	add_action( 'create_term', 'tg_update_edit_term_group' );
 		
-	add_action( 'edit_term', 'update_edit_term_group' );
+	add_action( 'edit_term', 'tg_update_edit_term_group' );
 	
 	$plugin = plugin_basename(__FILE__);
 
-	add_filter("plugin_action_links_$plugin", 'tag_groups_plugin_settings_link' );
+	add_filter("plugin_action_links_$plugin", 'tg_plugin_settings_link' );
 	
-	add_action('admin_footer', 'tag_groups_quick_edit_javascript');
+	add_action('admin_footer', 'tg_quick_edit_javascript');
 
-	add_filter('tag_row_actions', 'tag_groups_expand_quick_edit_link', 10, 2);
+	add_filter('tag_row_actions', 'tg_expand_quick_edit_link', 10, 2);
 
-	tag_groups_init();
+	tg_init();
 
 }
 
 
-function tag_groups_plugin_settings_link($links) {
+function tg_plugin_settings_link($links) {
 /*
 adds Settings link to plugin list
 */
@@ -77,7 +77,7 @@ adds Settings link to plugin list
 }
  
 
-function add_tag_groups_admin_js_css() {
+function tg_add_admin_js_css() {
 /*
 adds css to backend
 */
@@ -89,7 +89,7 @@ adds css to backend
 }
 
 
-function add_tag_groups_js_css() {
+function tg_add_js_css() {
 /*
 adds js and css to frontend
 */
@@ -129,14 +129,14 @@ adds js and css to frontend
 }
 
 
-function register_tag_label_page() {
+function tg_register_tag_label_page() {
 
-	add_posts_page('Tag Groups', 'Tag Groups', 'manage_options', 'tag-groups', 'tag_groups');
+	add_posts_page('Tag Groups', 'Tag Groups', 'manage_options', 'tag-groups', 'tg_settings_page');
 
 }
 
 
-function add_post_tag_columns($columns) {
+function tg_add_post_tag_columns($columns) {
 // thanks to http://coderrr.com/add-columns-to-a-taxonomy-terms-table/
 
 /*
@@ -150,7 +150,7 @@ adds a custom column
 }
 
 	
-function add_post_tag_column_content($empty = '', $empty = '', $term_id) {
+function tg_add_post_tag_column_content($empty = '', $empty = '', $term_id) {
 // thanks to http://coderrr.com/add-columns-to-a-taxonomy-terms-table/
 
 /*
@@ -170,22 +170,22 @@ adds data into custom column for each row
 }
 
 
-function update_edit_term_group($term_id) {
+function tg_update_edit_term_group($term_id) {
 /*
 get the $_POSTed value and save it in the table
 */
 
 	// next two lines to prevent infinite loops when the hook edit_term is called again from the function wp_update_term
 
-	global $update_edit_term_group_called;
+	global $tg_update_edit_term_group_called;
 
-	if ($update_edit_term_group_called > 0) return;
+	if ($tg_update_edit_term_group_called > 0) return;
 	
 	$screen = get_current_screen();
 
 	if ( ($screen->taxonomy != 'post_tag') && (!isset($_POST['new-tag-created']))) return;
 	
-	$update_edit_term_group_called++;
+	$tg_update_edit_term_group_called++;
 	
 	if (current_user_can('edit_posts')) {
 
@@ -221,7 +221,7 @@ get the $_POSTed value and save it in the table
 }
 
  
-function tag_groups_quick_edit_javascript() {
+function tg_quick_edit_javascript() {
 // thanks to http://shibashake.com/wordpress-theme/expand-the-wordpress-quick-edit-menu
 
 /*
@@ -253,7 +253,7 @@ adds JS function that selects right tag group for given element opened for quick
 }
 
 
-function tag_groups_expand_quick_edit_link($actions, $tag) {
+function tg_expand_quick_edit_link($actions, $tag) {
 // thanks to http://shibashake.com/wordpress-theme/expand-the-wordpress-quick-edit-menu
 
 /*
@@ -284,7 +284,7 @@ modifies Quick Edit link to call JS when clicked
 }
 
 
-function quick_edit_tag() {
+function tg_quick_edit_tag() {
 /*
 assigning tags to tag groups directly in tag table
 */
@@ -327,7 +327,7 @@ assigning tags to tag groups directly in tag table
 }
 
 
-function create_new_tag($tag) {
+function tg_create_new_tag($tag) {
 /*
 assigning tags to tag groups upon new tag creation
 */
@@ -360,7 +360,7 @@ assigning tags to tag groups upon new tag creation
 }
 
 
-function tag_input_metabox($tag) {
+function tg_tag_input_metabox($tag) {
 /*
 assigning tags to tag groups on single tag view
 */
@@ -395,7 +395,7 @@ assigning tags to tag groups on single tag view
 }
 
 
-function tag_groups_init() {
+function tg_init() {
 /*
 If it doesn't exist: create the default group with ID 0 that will only show up on tag pages as "unassigned".
 */
@@ -428,7 +428,7 @@ If it doesn't exist: create the default group with ID 0 that will only show up o
 }
 
 
-function tag_groups() {
+function tg_settings_page() {
 /*
 creates the sub-menu with its page on the admin backend and handles the main actions that you perform with tag groups and themes
 */
@@ -497,11 +497,11 @@ creates the sub-menu with its page on the admin backend and handles the main act
 
 			// update
 		
-				unregister_string_wpml( $tag_group_labels[$tag_groups_id] );
+				tg_unregister_string_wpml( $tag_group_labels[$tag_groups_id] );
 				
 				$tag_group_labels[$tag_groups_id] = $label;
 				
-				register_string_wpml( 'Group Label ID '.$tag_groups_id, $tag_group_labels[$tag_groups_id] );
+				tg_register_string_wpml( 'Group Label ID '.$tag_groups_id, $tag_group_labels[$tag_groups_id] );
 				
 			} else {
 			//new
@@ -512,7 +512,7 @@ creates the sub-menu with its page on the admin backend and handles the main act
 
 				$tag_group_labels[$number_of_tag_groups] = $label;
 				
-				register_string_wpml( 'Group Label ID '.$number_of_tag_groups, $label );
+				tg_register_string_wpml( 'Group Label ID '.$number_of_tag_groups, $label );
 
 				$tag_group_ids[$number_of_tag_groups] = $max_tag_group_id;
 				
@@ -544,9 +544,9 @@ creates the sub-menu with its page on the admin backend and handles the main act
 	// change order - move up
 	if (($action == 'up') && ($tag_groups_id > 1)) {
 	
-		swap($tag_group_labels,$tag_groups_id-1,$tag_groups_id);
+		tg_swap($tag_group_labels,$tag_groups_id-1,$tag_groups_id);
 
-		swap($tag_group_ids,$tag_groups_id-1,$tag_groups_id);
+		tg_swap($tag_group_ids,$tag_groups_id-1,$tag_groups_id);
 
 		update_option( 'tag_group_labels', $tag_group_labels );
 
@@ -559,9 +559,9 @@ creates the sub-menu with its page on the admin backend and handles the main act
 	// change order - move down
 	if (($action == 'down') && ($tag_groups_id < $number_of_tag_groups)) {
 
-		swap($tag_group_labels,$tag_groups_id,$tag_groups_id+1);
+		tg_swap($tag_group_labels,$tag_groups_id,$tag_groups_id+1);
 
-		swap($tag_group_ids,$tag_groups_id,$tag_groups_id+1);
+		tg_swap($tag_group_ids,$tag_groups_id,$tag_groups_id+1);
 
 		update_option( 'tag_group_labels', $tag_group_labels );
 
@@ -594,7 +594,7 @@ creates the sub-menu with its page on the admin backend and handles the main act
 	
 		update_option( 'max_tag_group_id', $max_tag_group_id );
 
-		tag_groups_unassign(0);
+		tg_unassign(0);
 		
 		?>
 		<div class="updated fade"><p>
@@ -637,7 +637,7 @@ creates the sub-menu with its page on the admin backend and handles the main act
 
 		for ($i = 1; $i <= $number_of_tag_groups; $i++) {
 
-			register_string_wpml( 'Group Label ID '.$i, $tag_group_labels[$i] );
+			tg_register_string_wpml( 'Group Label ID '.$i, $tag_group_labels[$i] );
 
 		} ?>
 		
@@ -662,7 +662,7 @@ creates the sub-menu with its page on the admin backend and handles the main act
 
 		array_splice($tag_group_ids, $tag_groups_id, 1);
 		
-		unregister_string_wpml('Group Label ID '.$id);
+		tg_unregister_string_wpml('Group Label ID '.$id);
 
 		$max = 0;
 		foreach($tag_group_ids as $check_id) {	
@@ -670,7 +670,7 @@ creates the sub-menu with its page on the admin backend and handles the main act
 		}
 		$max_tag_group_id = $max;
 
-		tag_groups_unassign($tag_groups_id);
+		tg_unassign($tag_groups_id);
 
 		update_option( 'tag_group_labels', $tag_group_labels );
 
@@ -704,7 +704,7 @@ creates the sub-menu with its page on the admin backend and handles the main act
 		
 		update_option( 'tag_group_enqueue_jquery', $tag_group_enqueue_jquery );
 		
-		clearCache;
+		tg_clear_cache;
 
 		?> <div class="updated fade"><p>
 		<?php _e('Your tag cloud theme settings have been saved', 'tag-groups' ); ?>
@@ -744,7 +744,7 @@ creates the sub-menu with its page on the admin backend and handles the main act
 		   <tr>
 			 <td><?php echo $tag_group_ids[$i]; ?></td>
 			 <td><?php echo $tag_group_labels[$i] ?></td>
-			 <td><?php echo group_tags_number_assigned($tag_group_ids[$i]) ?></td>
+			 <td><?php echo tg_number_assigned($tag_group_ids[$i]) ?></td>
 			 <td><a href="edit.php?page=tag-groups&action=edit&id=<?php echo $i; ?>"><?php _e('Edit') ?></a>, <a href="#" onclick="var answer = confirm('<?PHP _e('Do you really want to delete the tag group', 'tag-groups') ?> \'<?php echo esc_js($tag_group_labels[$i]) ?>\'?'); if( answer ) {window.location ='edit.php?page=tag-groups&action=delete&id=<?php echo $i ?>&tag-groups-delete-nonce=<?php echo wp_create_nonce('tag-groups-delete-'.$i) ?>'}"><?php _e('Delete') ?></a></td>
 			 <td>
 				 <div style="overflow:hidden; position:relative;height:15px;width:27px;clear:both;">
@@ -928,7 +928,7 @@ Rendering of the tag cloud, usually by a shortcode [tag_groups_cloud xyz=1 ...],
 
 			if (($include == '') || (in_array($tag_group_ids[$i],$include_groups))) {
 			
-				$output[$i]['name'] = translate_string_wpml('Group Label ID '.$tag_group_ids[$i], $tag_group_labels[$i]);
+				$output[$i]['name'] = tg_translate_string_wpml('Group Label ID '.$tag_group_ids[$i], $tag_group_labels[$i]);
 
 				$output[$i]['term_group'] = $tag_group_ids[$i];
 
@@ -975,7 +975,7 @@ Rendering of the tag cloud, usually by a shortcode [tag_groups_cloud xyz=1 ...],
 
 							$output[$i]['tags'][$count_amount]['name'] = $tag->name;
 
-							$output[$i]['tags'][$count_amount]['font_size'] = font_size($tag->count,$min,$max,$smallest,$largest);
+							$output[$i]['tags'][$count_amount]['tg_font_size'] = tg_font_size($tag->count,$min,$max,$smallest,$largest);
 															
 							$count_amount++;
 						
@@ -1006,7 +1006,7 @@ Rendering of the tag cloud, usually by a shortcode [tag_groups_cloud xyz=1 ...],
 		
 				if (($include == '') || (in_array($tag_group_ids[$i],$include_groups))) {
 		
-					$html .= '<li><a href="#tabs-'.$i.'" >'.translate_string_wpml('Group Label ID '.$tag_group_ids[$i], $tag_group_labels[$i]).'</a></li>';
+					$html .= '<li><a href="#tabs-'.$i.'" >'.tg_translate_string_wpml('Group Label ID '.$tag_group_ids[$i], $tag_group_labels[$i]).'</a></li>';
 		
 				}
 		
@@ -1057,7 +1057,7 @@ Rendering of the tag cloud, usually by a shortcode [tag_groups_cloud xyz=1 ...],
 	
 								$tag_link = get_tag_link($tag->term_id);
 								
-								$html .= '<a href="'.$tag_link.'" title="'.htmlentities($tag->description).' ('.$tag->count.')"  class="'.$tag->slug.'"><span style="font-size:'.font_size($tag->count,$min,$max,$smallest,$largest).'px">'.$tag->name.'</span></a>&nbsp; ';
+								$html .= '<a href="'.$tag_link.'" title="'.htmlentities($tag->description).' ('.$tag->count.')"  class="'.$tag->slug.'"><span style="font-size:'.tg_font_size($tag->count,$min,$max,$smallest,$largest).'px">'.$tag->name.'</span></a>&nbsp; ';
 								
 								$count_amount++;
 							
@@ -1078,7 +1078,7 @@ Rendering of the tag cloud, usually by a shortcode [tag_groups_cloud xyz=1 ...],
 }
 
 
-function tag_groups_unassign($id) {
+function tg_unassign($id) {
 
 	$posttags = get_tags(array('hide_empty' => false));
 	
@@ -1096,7 +1096,7 @@ function tag_groups_unassign($id) {
 }
 
 
-function group_tags_number_assigned($id) {
+function tg_number_assigned($id) {
 
 	$posttags = get_tags(array('hide_empty' => false));
 	
@@ -1113,7 +1113,7 @@ function group_tags_number_assigned($id) {
 }
 
 
-function tag_group_custom_js() {
+function tg_custom_js() {
 /*
 jquery needs some script in the html - opportunity to facilitate some options
 */
@@ -1150,8 +1150,23 @@ jquery needs some script in the html - opportunity to facilitate some options
 
 }
 
+function post_in_tag_group($post_id, $tag_group_id) {
+/*
+checks if the post with $post_id has a tag that is in the tag group with $tag_group_id
+*/
 
-function font_size($count, $min, $max, $smallest, $largest) {
+	$tags = get_the_tags($post_id);
+	
+	foreach( $tags as $tag ) {
+
+		if ($tag->term_group == $tag_group_id) return true;
+	}
+	
+	return false;
+}
+
+
+function tg_font_size($count, $min, $max, $smallest, $largest) {
 /*
 calculates the font size for the cloud tag ($min, $max and $size with same unit)
 */
@@ -1171,28 +1186,28 @@ calculates the font size for the cloud tag ($min, $max and $size with same unit)
 }
 
 
-function register_string_wpml($name, $value) {
+function tg_register_string_wpml($name, $value) {
 
 	if (function_exists('icl_register_string')) icl_register_string('tag-groups', $name, $value);
 
 }
 
 
-function unregister_string_wpml($name) {
+function tg_unregister_string_wpml($name) {
 
 	if (function_exists('icl_unregister_string')) icl_unregister_string('tag-groups', $name);
 
 }
 
 
-function translate_string_wpml($name, $string) {
+function tg_translate_string_wpml($name, $string) {
 
 	if (function_exists('icl_t')) return icl_t('tag-groups', $name, $string); else return $string;
 
 }
 
  
-function swap(&$ary,$element1,$element2) {
+function tg_swap(&$ary,$element1,$element2) {
 /*
 swaps the position in an array - needed for changing the order of list items
 */
@@ -1206,7 +1221,7 @@ swaps the position in an array - needed for changing the order of list items
 }
 
 
-function clearCache()  {
+function tg_clear_cache()  {
 /*
 good idea to purge the cache after changing the theme options - else your visitors won't see the change for a while
 */
