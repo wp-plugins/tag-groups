@@ -4,12 +4,12 @@ Plugin Name: Tag Groups
 Plugin URI: http://www.christoph-amthor.de/software/tag-groups/
 Description: Assign tags to groups and display them in a tabbed tag cloud
 Author: Christoph Amthor
-Version: 0.6
+Version: 0.6.1
 Author URI: http://www.christoph-amthor.de
 License: GNU GENERAL PUBLIC LICENSE, Version 3
 */
 
-define("TAG_GROUPS_VERSION", "0.6");
+define("TAG_GROUPS_VERSION", "0.6.1");
 
 define("TAG_GROUPS_BUILT_IN_THEMES", "ui-gray,ui-lightness,ui-darkness");
 
@@ -857,8 +857,8 @@ creates the sub-menu with its page on the admin backend and handles the main act
 		</ul>', 'tag-groups') ?></p>
 		<h4>b) PHP</h4>
 		<p><?php _e('By default the function <b>tag_groups_cloud</b> returns the html for a tabbed tag cloud.', 'tag-groups') ?></p>
-		<p><?php _e('Example: ', 'tag-groups'); echo htmlentities("<?php if ( function_exists( tag_groups_cloud ) ) echo tag_groups_cloud( array( 'include' => '1,2,5,6' ) ); ?>") ?></p>
-		<p><?php _e('If the optional second parameter is set to \'true\', the function will return a multidimensional array containing tag groups and tags. Example: ', 'tag-groups'); echo htmlentities("<?php if ( function_exists( tag_groups_cloud ) ) print_r( tag_groups_cloud( array( 'orderby' => 'count', 'order' => 'DESC' ), true ) ); ?>") ?></p>		
+		<p><?php _e('Example: ', 'tag-groups'); echo htmlentities("<?php if ( function_exists( 'tag_groups_cloud' ) ) echo tag_groups_cloud( array( 'include' => '1,2,5,6' ) ); ?>") ?></p>
+		<p><?php _e('If the optional second parameter is set to \'true\', the function will return a multidimensional array containing tag groups and tags. Example: ', 'tag-groups'); echo htmlentities("<?php if ( function_exists( 'tag_groups_cloud' ) ) print_r( tag_groups_cloud( array( 'orderby' => 'count', 'order' => 'DESC' ), true ) ); ?>") ?></p>		
 		<p>&nbsp;</p>
 		<p>&nbsp;</p>
 		<h4><a href="http://www.christoph-amthor.de/plugins/tag-groups/" target="_blank">Tag Groups</a>, Version: <?php echo TAG_GROUPS_VERSION ?></h4>
