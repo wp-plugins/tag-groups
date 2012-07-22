@@ -965,6 +965,8 @@ Rendering of the tag cloud, usually by a shortcode [tag_groups_cloud xyz=1 ...],
 
 						if ($tag->term_group == $tag_group_ids[$i]) {
 							
+							$output[$i]['tags'][$count_amount]['term_id'] = $tag->term_id;
+							
 							$output[$i]['tags'][$count_amount]['link'] = get_tag_link($tag->term_id);
 
 							$output[$i]['tags'][$count_amount]['description'] = $tag->description;
