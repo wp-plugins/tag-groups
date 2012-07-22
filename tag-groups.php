@@ -4,12 +4,12 @@ Plugin Name: Tag Groups
 Plugin URI: http://www.christoph-amthor.de/software/tag-groups/
 Description: Assign tags to groups and display them in a tabbed tag cloud
 Author: Christoph Amthor
-Version: 0.5.1
+Version: 0.6
 Author URI: http://www.christoph-amthor.de
 License: GNU GENERAL PUBLIC LICENSE, Version 3
 */
 
-define("TAG_GROUPS_VERSION", "0.5.1");
+define("TAG_GROUPS_VERSION", "0.6");
 
 define("TAG_GROUPS_BUILT_IN_THEMES", "ui-gray,ui-lightness,ui-darkness");
 
@@ -845,6 +845,8 @@ creates the sub-menu with its page on the admin backend and handles the main act
 		<?php _e('<ul>
 		<li><b>smallest=x</b> Font-size in pt of the smallest tags. Default: 12</li>
 		<li><b>largest=x</b> Font-size in pt of the largest tags. Default: 22</li>
+		<li><b>orderby=abc</b> Which field to use for sorting, e.g. count. Default: name</li>
+		<li><b>order=ASC or =DESC</b> Whether to sort the tags in ascending or descending order. Default: ASC</li>
 		<li><b>amount=x</b> Maximum amount of tags in one cloud. Default: 40</li>
 		<li><b>hide_empty=1 or =0</b> Whether to hide or show also tags that are not assigned to any post. Default: 1 (hide empty)</li>
 		<li><b>include=x,y,...</b> IDs of tag groups (left column in table above) that will be considered in the tag cloud. Empty or not used means that all tag groups will be used. Default: empty</li>
@@ -854,7 +856,9 @@ creates the sub-menu with its page on the admin backend and handles the main act
 		<li><b>show_tabs=1 or =0</b> Whether to show the tabs. Default: 1</li>
 		</ul>', 'tag-groups') ?></p>
 		<h4>b) PHP</h4>
-		<p><?php _e('example: ', 'tag-groups'); echo htmlentities("<?php if (function_exists(tag_groups_cloud)) echo tag_groups_cloud(array( 'include' => '1,2,5,6' )); ?>") ?></p>
+		<p><?php _e('By default the function <b>tag_groups_cloud</b> returns the html for a tabbed tag cloud.', 'tag-groups') ?></p>
+		<p><?php _e('Example: ', 'tag-groups'); echo htmlentities("<?php if ( function_exists( tag_groups_cloud ) ) echo tag_groups_cloud( array( 'include' => '1,2,5,6' ) ); ?>") ?></p>
+		<p><?php _e('If the optional second parameter is set to \'true\', the function will return a multidimensional array containing tag groups and tags. Example: ', 'tag-groups'); echo htmlentities("<?php if ( function_exists( tag_groups_cloud ) ) print_r( tag_groups_cloud( array( 'order' => 'count' ), true ) ); ?>") ?></p>		
 		<p>&nbsp;</p>
 		<p>&nbsp;</p>
 		<h4><a href="http://www.christoph-amthor.de/plugins/tag-groups/" target="_blank">Tag Groups</a>, Version: <?php echo TAG_GROUPS_VERSION ?></h4>
@@ -869,9 +873,9 @@ creates the sub-menu with its page on the admin backend and handles the main act
 }
 
 
-function tag_groups_cloud( $atts ) {
+function tag_groups_cloud( $atts = array(), $return_array = false ) {
 /*
-Rendering of the tag cloud, usually by a shortcode [tag_groups_cloud xyz=1 ...]
+Rendering of the tag cloud, usually by a shortcode [tag_groups_cloud xyz=1 ...], or returning array
 */
 
 	$tag_group_labels = get_option( 'tag_group_labels', array() );
@@ -890,6 +894,8 @@ Rendering of the tag cloud, usually by a shortcode [tag_groups_cloud xyz=1 ...]
 		'div_class' => 'tag-groups-cloud-tabs',
 		'ul_class' => '',
 		'show_tabs' => '1',
+		'orderby' => 'name',
+		'order' => 'ASC'
 		), $atts ) );
 
 	if ($smallest < 1) $smallest = 1;
@@ -904,7 +910,7 @@ Rendering of the tag cloud, usually by a shortcode [tag_groups_cloud xyz=1 ...]
 	
 	}
 
-	$posttags = get_tags(array('hide_empty' => $hide_empty));
+	$posttags = get_tags(array('hide_empty' => $hide_empty, 'orderby' => $orderby, 'order' => $order));
 
 	$div_id_output = ($div_id) ? ' id="'.$div_id.'"' : '';
 
@@ -913,84 +919,162 @@ Rendering of the tag cloud, usually by a shortcode [tag_groups_cloud xyz=1 ...]
 	$ul_class_output = ($ul_class) ? ' class="'.$ul_class.'"' : '';
 
 
-	$html = '<div'.$div_id_output.$div_class_output.'>';
-
-
-	if ($show_tabs == '1') {
-
-		$html .= '<ul'.$ul_class_output.'>';
+	if ($return_array) {
+	//return as array
+	
+		$output = array ();
 	
 		for ($i = 1; $i <= $number_of_tag_groups; $i++) {
-	
+
 			if (($include == '') || (in_array($tag_group_ids[$i],$include_groups))) {
-	
-				$html .= '<li><a href="#tabs-'.$i.'" >'.translate_string_wpml('Group Label ID '.$tag_group_ids[$i], $tag_group_labels[$i]).'</a></li>';
-	
-			}
-	
-		}
-	
-		$html .= '</ul>';
+			
+				$output[$i]['name'] = translate_string_wpml('Group Label ID '.$tag_group_ids[$i], $tag_group_labels[$i]);
 
-	}
-
-	for ($i = 1; $i <= $number_of_tag_groups; $i++) {
-	
-		if (($include == '') || (in_array($tag_group_ids[$i],$include_groups))) {
-		
-			$html .= '<div id="tabs-'.$i.'">';
+				$output[$i]['term_group'] = $tag_group_ids[$i];
 
 				if ($posttags) {
 
-
-	// find minimum and maximum of quantity of posts for each tag
-	$count_amount = 0;
-
-	$max = 0;
-
-	$min = 9999999;
-	
-	foreach($posttags as $tag) {
-
-		if ($count_amount > $amount) break;
-
-   		if ($tag->term_group == $tag_group_ids[$i]) {
-
-			if ($tag->count > $max) $max = $tag->count;
-	 
-			if ($tag->count < $min) $min = $tag->count;
-			
-			$count_amount++;
-
-		}
-
-	}
+					// find minimum and maximum of quantity of posts for each tag
+					$count_amount = 0;
+				
+					$max = 0;
+				
+					$min = 9999999;
+					
+					foreach($posttags as $tag) {
+				
+						if ($count_amount >= $amount) break;
+				
+						if ($tag->term_group == $tag_group_ids[$i]) {
+				
+							if ($tag->count > $max) $max = $tag->count;
+					 
+							if ($tag->count < $min) $min = $tag->count;
+							
+							$count_amount++;
+				
+						}
+				
+					}
 
 					$count_amount = 0;
 
 					foreach($posttags as $tag) {
 
-						if ($count_amount > $amount) break;
+						if ($count_amount >= $amount) break;
 
-			    		if ($tag->term_group == $tag_group_ids[$i]) {
+						if ($tag->term_group == $tag_group_ids[$i]) {
+							
+							$output[$i]['tags'][$count_amount]['link'] = get_tag_link($tag->term_id);
 
-							$tag_link = get_tag_link($tag->term_id);
-							$html .= '<a href="'.$tag_link.'" title="'.htmlentities($tag->description).' ('.$tag->count.')"  class="'.$tag->slug.'"><span style="font-size:'.font_size($tag->count,$min,$max,$smallest,$largest).'px">'.$tag->name.'</span></a>&nbsp; ';
+							$output[$i]['tags'][$count_amount]['description'] = $tag->description;
+							
+							$output[$i]['tags'][$count_amount]['count'] = $tag->count;
+							
+							$output[$i]['tags'][$count_amount]['slug'] = $tag->slug;
+
+							$output[$i]['tags'][$count_amount]['name'] = $tag->name;
+
+							$output[$i]['tags'][$count_amount]['font_size'] = font_size($tag->count,$min,$max,$smallest,$largest);
+															
 							$count_amount++;
 						
 						}
 					
 					}
+					
+					$output[$i]['amount'] = $count_amount;
+
+				}
 				
-				} 
-			$html .= '</div>';
-		}
-	}
-
-	$html .= '</div>';
+			}
 	
-	return $html;
+		}
 
+	return $output;
+	
+	} else {
+	//return as html
+	
+		$html = '<div'.$div_id_output.$div_class_output.'>';
+
+		if ($show_tabs == '1') {
+	
+			$html .= '<ul'.$ul_class_output.'>';
+		
+			for ($i = 1; $i <= $number_of_tag_groups; $i++) {
+		
+				if (($include == '') || (in_array($tag_group_ids[$i],$include_groups))) {
+		
+					$html .= '<li><a href="#tabs-'.$i.'" >'.translate_string_wpml('Group Label ID '.$tag_group_ids[$i], $tag_group_labels[$i]).'</a></li>';
+		
+				}
+		
+			}
+		
+			$html .= '</ul>';
+	
+		}
+	
+		for ($i = 1; $i <= $number_of_tag_groups; $i++) {
+		
+			if (($include == '') || (in_array($tag_group_ids[$i],$include_groups))) {
+			
+				$html .= '<div id="tabs-'.$i.'">';
+	
+					if ($posttags) {
+	
+						// find minimum and maximum of quantity of posts for each tag
+						$count_amount = 0;
+					
+						$max = 0;
+					
+						$min = 9999999;
+						
+						foreach($posttags as $tag) {
+					
+							if ($count_amount > $amount) break;
+					
+							if ($tag->term_group == $tag_group_ids[$i]) {
+					
+								if ($tag->count > $max) $max = $tag->count;
+						 
+								if ($tag->count < $min) $min = $tag->count;
+								
+								$count_amount++;
+					
+							}
+					
+						}
+					
+						$count_amount = 0;
+	
+						foreach($posttags as $tag) {
+	
+							if ($count_amount >= $amount) break;
+	
+							if ($tag->term_group == $tag_group_ids[$i]) {
+	
+								$tag_link = get_tag_link($tag->term_id);
+								
+								$html .= '<a href="'.$tag_link.'" title="'.htmlentities($tag->description).' ('.$tag->count.')"  class="'.$tag->slug.'"><span style="font-size:'.font_size($tag->count,$min,$max,$smallest,$largest).'px">'.$tag->name.'</span></a>&nbsp; ';
+								
+								$count_amount++;
+							
+							}
+						
+						}
+					
+					} 
+				$html .= '</div>';
+			}
+		}
+	
+		$html .= '</div>';
+		
+		return $html;
+
+	}
 }
 
 

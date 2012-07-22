@@ -4,7 +4,7 @@ Donate link: https://flattr.com/thing/721303/Tag-Groups-plugin
 Tags: tag, tags, term_group, tag cloud, tag-cloud, WPML
 Requires at least: 2.9
 Tested up to: 3.4.1
-Stable tag: 0.5.1
+Stable tag: 0.6
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -30,7 +30,10 @@ The plugin will create a new submenu in the Post section where you edit the tag 
 
 == Frequently Asked Questions ==
 
-No questions yet.
+= When I use the shortcode I can see the content but they are not displayed in tabs. =
+
+Make sure you have "Use jQuery" checked on the settings page. If you use a plugin for caching pages or for minifying scripts or style sheets, purge their caches and see if that helps.
+
 
 == Screenshots ==
 
@@ -39,6 +42,17 @@ No questions yet.
 3. Tag cloud (custom theme)
 
 == Changelog ==
+
+= 0.6 =
+
+FEATURES
+
+* optional output as array for theme developers
+* tags can now be sorted
+
+BUG FIXES
+
+* counting tags
 
 = 0.5.1 =
 
