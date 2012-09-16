@@ -4,12 +4,12 @@ Plugin Name: Tag Groups
 Plugin URI: http://www.christoph-amthor.de/software/tag-groups/
 Description: Assign tags to groups and display them in a tabbed tag cloud
 Author: Christoph Amthor
-Version: 0.6.1
+Version: 0.6.2
 Author URI: http://www.christoph-amthor.de
 License: GNU GENERAL PUBLIC LICENSE, Version 3
 */
 
-define("TAG_GROUPS_VERSION", "0.6.1");
+define("TAG_GROUPS_VERSION", "0.6.2");
 
 define("TAG_GROUPS_BUILT_IN_THEMES", "ui-gray,ui-lightness,ui-darkness");
 
@@ -1152,6 +1152,7 @@ jquery needs some script in the html - opportunity to facilitate some options
 
 }
 
+
 function post_in_tag_group($post_id, $tag_group_id) {
 /*
 checks if the post with $post_id has a tag that is in the tag group with $tag_group_id
@@ -1159,9 +1160,17 @@ checks if the post with $post_id has a tag that is in the tag group with $tag_gr
 
 	$tags = get_the_tags($post_id);
 	
-	foreach( $tags as $tag ) {
+	if($tags) {
 
-		if ($tag->term_group == $tag_group_id) return true;
+		foreach( $tags as $tag ) {
+
+			if ($tag->term_group == $tag_group_id) return true;
+		}
+		
+	} else {
+
+		return false;
+	
 	}
 	
 	return false;

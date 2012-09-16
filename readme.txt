@@ -3,8 +3,8 @@ Contributors: camthor
 Donate link: https://flattr.com/thing/721303/Tag-Groups-plugin
 Tags: tag, tags, term_group, tag cloud, tag-cloud, WPML
 Requires at least: 2.9
-Tested up to: 3.4.1
-Stable tag: 0.6.1
+Tested up to: 3.4.2
+Stable tag: 0.6.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -32,7 +32,7 @@ The plugin will create a new submenu in the Post section where you edit the tag 
 
 = When I use the shortcode I can see the content but they are not displayed in tabs. =
 
-Make sure you have "Use jQuery" checked on the settings page. If you use a plugin for caching pages or for minifying scripts or style sheets, purge their caches and see if that helps.
+Make sure you have "Use jQuery" checked on the settings page. If you use a plugin for caching pages, purge their caches and see if that helps. If you use plugins for minifying scripts or style sheets, turn them off and purge their caches.
 
 
 == Screenshots ==
@@ -42,6 +42,12 @@ Make sure you have "Use jQuery" checked on the settings page. If you use a plugi
 3. Tag cloud (custom theme)
 
 == Changelog ==
+
+= 0.6.2 =
+
+BUG FIXES
+
+* fixed 'foreach' warning (thanks to IOTI for reporting)
 
 = 0.6.1 =
 
