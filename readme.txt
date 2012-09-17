@@ -1,16 +1,16 @@
 === Tag Groups ===
 Contributors: camthor
 Donate link: https://flattr.com/thing/721303/Tag-Groups-plugin
-Tags: tag, tags, term_group, tag cloud, tag-cloud, WPML
+Tags: tag, tags, term_group, tag cloud, tag-cloud, WPML, category, categories, category cloud
 Requires at least: 2.9
 Tested up to: 3.4.2
-Stable tag: 0.6.2
+Stable tag: 0.7
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
 == Description ==
 
-This plugin enables you to define groups for tags and then assign tags to them. The group membership is saved in the native WP table field term_group, so it won’t create additional tables in the database. The plugin comes with a configurable tag cloud where tags are displayed in tabs sorted by groups.
+This plugin enables you to define groups for tags (or categories) and then assign tags (or categories) to them. The group membership is saved in the native WP table field term_group, so it won’t create additional tables in the database. The plugin comes with a configurable tag cloud where tags are displayed in tabs sorted by groups.
 
 Possible applications are:
 
@@ -25,7 +25,9 @@ Please find more information [here](http://www.christoph-amthor.de/software/tag-
 1. Find the plugin in the list at the backend and click to install it. Or, upload the ZIP file through the admin backend. Or, upload the unzipped tag-groups folder to the /wp-content/plugins/ directory.
 2. Activate the plugin through the ‘Plugins’ menu in WordPress.
 
-The plugin will create a new submenu in the Post section where you edit the tag groups. After you have created some groups, you can edit your (post) tags and assign them to one of these groups.
+The plugin will create two new submenus in the Post section where you find the tag groups and related settings. After you have created some groups, you can edit your tags and assign them to one of these groups.
+
+Other taxonomies than post tags and categories may need further customization beyond this plugin.
 
 
 == Frequently Asked Questions ==
@@ -42,6 +44,17 @@ Make sure you have "Use jQuery" checked on the settings page. If you use a plugi
 3. Tag cloud (custom theme)
 
 == Changelog ==
+
+= 0.7 =
+
+FEATURES
+
+* supports now other taxonomies than post_tag
+* user-friendlier settings page
+
+BUG FIXES
+
+* fixed wrong group displayed on quick edit
 
 = 0.6.2 =
 

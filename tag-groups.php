@@ -4,12 +4,12 @@ Plugin Name: Tag Groups
 Plugin URI: http://www.christoph-amthor.de/software/tag-groups/
 Description: Assign tags to groups and display them in a tabbed tag cloud
 Author: Christoph Amthor
-Version: 0.6.2
+Version: 0.7
 Author URI: http://www.christoph-amthor.de
 License: GNU GENERAL PUBLIC LICENSE, Version 3
 */
 
-define("TAG_GROUPS_VERSION", "0.6.2");
+define("TAG_GROUPS_VERSION", "0.7");
 
 define("TAG_GROUPS_BUILT_IN_THEMES", "ui-gray,ui-lightness,ui-darkness");
 
@@ -36,14 +36,19 @@ add_action( 'wp_head', 'tg_custom_js' );
 
 
 function tg_register_settings() {
+/*
+	Initial settings after calling the plugin
+*/
 
-	add_action( 'edit_tag_form_fields', 'tg_tag_input_metabox' );
-	
-	add_action( 'post_tag_add_form_fields', 'tg_create_new_tag' );
-	
-	add_filter( 'manage_edit-post_tag_columns', 'tg_add_post_tag_columns' );
-	
-	add_filter( 'manage_post_tag_custom_column', 'tg_add_post_tag_column_content', 10, 3 );
+	$tag_group_taxonomy = get_option( 'tag_group_taxonomy', 'post_tag' );
+
+	add_action( "{$tag_group_taxonomy}_edit_form_fields", 'tg_tag_input_metabox' );
+
+	add_action( "{$tag_group_taxonomy}_add_form_fields", 'tg_create_new_tag' );
+
+	add_filter( "manage_edit-{$tag_group_taxonomy}_columns", 'tg_add_taxonomy_columns' );
+
+	add_filter( "manage_{$tag_group_taxonomy}_custom_column", 'tg_add_taxonomy_column_content', 10, 3 );
 
 	add_action( 'quick_edit_custom_box', 'tg_quick_edit_tag', 10, 3 );
 	
@@ -66,10 +71,10 @@ function tg_register_settings() {
 
 function tg_plugin_settings_link($links) {
 /*
-adds Settings link to plugin list
+	adds Settings link to plugin list
 */
 
-  $settings_link = '<a href="edit.php?page=tag-groups">Settings</a>'; 
+  $settings_link = '<a href="edit.php?page=tag-groups-settings">Settings</a>'; 
   array_unshift($links, $settings_link); 
 
   return $links; 
@@ -79,7 +84,7 @@ adds Settings link to plugin list
 
 function tg_add_admin_js_css() {
 /*
-adds css to backend
+	adds css to backend
 */
 
 	wp_register_style( 'tag-groups-css-backend', plugins_url('css/style.css', __FILE__) );
@@ -91,7 +96,7 @@ adds css to backend
 
 function tg_add_js_css() {
 /*
-adds js and css to frontend
+	adds js and css to frontend
 */
 
 	$theme = get_option( 'tag_group_theme', TAG_GROUPS_STANDARD_THEME );
@@ -130,17 +135,21 @@ adds js and css to frontend
 
 
 function tg_register_tag_label_page() {
+/*
+	adds the submenus to the admin backend
+*/
 
-	add_posts_page('Tag Groups', 'Tag Groups', 'manage_options', 'tag-groups', 'tg_settings_page');
+	add_submenu_page( 'edit.php', 'Tag Groups', 'Tag Groups', 'manage_options', 'tag-groups', 'tg_group_administration' );
+
+	add_submenu_page( 'edit.php', 'Tag Groups Settings', 'Tag Groups Settings', 'manage_options', 'tag-groups-settings', 'tg_settings_page');
 
 }
 
 
-function tg_add_post_tag_columns($columns) {
-// thanks to http://coderrr.com/add-columns-to-a-taxonomy-terms-table/
-
+function tg_add_taxonomy_columns($columns) {
 /*
-adds a custom column
+	adds a custom column to the table of tags/terms
+	thanks to http://coderrr.com/add-columns-to-a-taxonomy-terms-table/
 */
 		
 	$columns['term_group'] = __('Tag Group', 'tag-groups');
@@ -150,20 +159,21 @@ adds a custom column
 }
 
 	
-function tg_add_post_tag_column_content($empty = '', $empty = '', $term_id) {
-// thanks to http://coderrr.com/add-columns-to-a-taxonomy-terms-table/
-
+function tg_add_taxonomy_column_content($empty = '', $empty = '', $term_id) {
 /*
-adds data into custom column for each row
+	adds data into custom column of the table for each row
+	thanks to http://coderrr.com/add-columns-to-a-taxonomy-terms-table/
 */
 
 	$tag_group_labels = get_option( 'tag_group_labels', array() );
 
 	$tag_group_ids = get_option( 'tag_group_ids', array() );
 
-	$tag = get_tag($term_id);
+	$tag_group_taxonomy = get_option( 'tag_group_taxonomy', 'post_tag' );
 	
-	$i = array_search($tag->term_group, $tag_group_ids); 
+	$tag = get_term($term_id, $tag_group_taxonomy);
+	
+	$i = array_search($tag->term_group, $tag_group_ids);
 
 	return $tag_group_labels[$i];
 
@@ -172,7 +182,7 @@ adds data into custom column for each row
 
 function tg_update_edit_term_group($term_id) {
 /*
-get the $_POSTed value and save it in the table
+	get the $_POSTed value after saving a tag/term and save it in the table
 */
 
 	// next two lines to prevent infinite loops when the hook edit_term is called again from the function wp_update_term
@@ -182,8 +192,10 @@ get the $_POSTed value and save it in the table
 	if ($tg_update_edit_term_group_called > 0) return;
 	
 	$screen = get_current_screen();
+	
+	$tag_group_taxonomy = get_option( 'tag_group_taxonomy', 'post_tag' );
 
-	if ( ($screen->taxonomy != 'post_tag') && (!isset($_POST['new-tag-created']))) return;
+	if ( ($screen->taxonomy != $tag_group_taxonomy) && (!isset($_POST['new-tag-created']))) return;
 	
 	$tg_update_edit_term_group_called++;
 	
@@ -214,7 +226,7 @@ get the $_POSTed value and save it in the table
 
 		if ( isset($_POST['description']) && ($_POST['description'] != '') ) $term['description'] = stripslashes(sanitize_text_field($_POST['description']));
 		
-		wp_update_term( $term_id, 'post_tag', $term );
+		wp_update_term( $term_id, $tag_group_taxonomy, $term );
 		
 	} else wp_die( __( 'Cheatin&#8217; uh?' ) );
 
@@ -222,15 +234,16 @@ get the $_POSTed value and save it in the table
 
  
 function tg_quick_edit_javascript() {
-// thanks to http://shibashake.com/wordpress-theme/expand-the-wordpress-quick-edit-menu
-
 /*
-adds JS function that selects right tag group for given element opened for quick edit
+	adds JS function that sets the saved tag group for a given element when it's opened in quick edit
+	thanks to http://shibashake.com/wordpress-theme/expand-the-wordpress-quick-edit-menu
 */
 
 	$screen = get_current_screen();
 	
-	if ( $screen->taxonomy != 'post_tag' ) return;
+	$tag_group_taxonomy = get_option( 'tag_group_taxonomy', 'post_tag' );
+	
+	if ( $screen->taxonomy != $tag_group_taxonomy ) return;
  
 	?>
 	<script type="text/javascript">
@@ -254,19 +267,20 @@ adds JS function that selects right tag group for given element opened for quick
 
 
 function tg_expand_quick_edit_link($actions, $tag) {
-// thanks to http://shibashake.com/wordpress-theme/expand-the-wordpress-quick-edit-menu
-
 /*
-modifies Quick Edit link to call JS when clicked
+	modifies Quick Edit link to call JS when clicked
+	thanks to http://shibashake.com/wordpress-theme/expand-the-wordpress-quick-edit-menu
 */
 
 	$screen = get_current_screen();
+
+	$tag_group_taxonomy = get_option( 'tag_group_taxonomy', 'post_tag' );
 	
-	if ( $screen->taxonomy != 'post_tag' ) return $actions;
+	if ( $screen->taxonomy != $tag_group_taxonomy ) return $actions;
  
 	$tag_group_ids = get_option( 'tag_group_ids', array() );
 
-	$tag_group_id = array_search($tag->term_group, $tag_group_ids); 
+	$tag_group_id = $tag->term_group;
 	
 	$nonce = wp_create_nonce('tag-groups-option');
 	
@@ -286,12 +300,14 @@ modifies Quick Edit link to call JS when clicked
 
 function tg_quick_edit_tag() {
 /*
-assigning tags to tag groups directly in tag table
+	assigning tags to tag groups directly in tag table ('quick edit')
 */
 
 	$screen = get_current_screen();
-	
-	if ( $screen->taxonomy != 'post_tag' ) return;
+
+	$tag_group_taxonomy = get_option( 'tag_group_taxonomy', 'post_tag' );
+
+	if ( $screen->taxonomy != $tag_group_taxonomy ) return;
 
  	$tag_group_labels = get_option( 'tag_group_labels', array() );
 
@@ -329,7 +345,7 @@ assigning tags to tag groups directly in tag table
 
 function tg_create_new_tag($tag) {
 /*
-assigning tags to tag groups upon new tag creation
+	assigning tags to tag groups upon new tag creation (left of the table)
 */
 
  	$tag_group_labels = get_option( 'tag_group_labels', array() );
@@ -362,7 +378,7 @@ assigning tags to tag groups upon new tag creation
 
 function tg_tag_input_metabox($tag) {
 /*
-assigning tags to tag groups on single tag view
+	assigning tags to tag groups on single tag view (after clicking tag for editing)
 */
 
  	$tag_group_labels = get_option( 'tag_group_labels', array() );
@@ -397,7 +413,7 @@ assigning tags to tag groups on single tag view
 
 function tg_init() {
 /*
-If it doesn't exist: create the default group with ID 0 that will only show up on tag pages as "unassigned".
+	If it doesn't exist: create the default group with ID 0 that will only show up on tag pages as "unassigned".
 */
 
 	$tag_group_labels = get_option( 'tag_group_labels', array() );
@@ -413,12 +429,16 @@ If it doesn't exist: create the default group with ID 0 that will only show up o
 		$number_of_tag_groups = 0;
 
 		$max_tag_group_id = 0;
+		
+		$tag_group_taxonomy = 'post_tag';
 
 		update_option( 'tag_group_labels', $tag_group_labels );
 
 		update_option( 'tag_group_ids', $tag_group_ids );
 
 		update_option( 'max_tag_group_id', $max_tag_group_id );
+		
+		upate_option( 'tag_group_taxonomy', $tag_group_taxonomy );
 
 		$tag_group_theme = get_option( 'tag_group_theme', TAG_GROUPS_STANDARD_THEME );
 
@@ -428,9 +448,9 @@ If it doesn't exist: create the default group with ID 0 that will only show up o
 }
 
 
-function tg_settings_page() {
+function tg_group_administration() {
 /*
-creates the sub-menu with its page on the admin backend and handles the main actions that you perform with tag groups and themes
+	Outputs a table on a submenu page where you can add, delete, change tag groups, their labels and their order.
 */
 
 	$tag_group_labels = get_option( 'tag_group_labels', array());
@@ -438,39 +458,25 @@ creates the sub-menu with its page on the admin backend and handles the main act
 	$tag_group_ids = get_option( 'tag_group_ids', array() );
 
 	$max_tag_group_id = get_option( 'max_tag_group_id', 0 );
-	
-	$tag_group_theme = get_option( 'tag_group_theme', TAG_GROUPS_STANDARD_THEME );
-	
-	$tag_group_mouseover = get_option( 'tag_group_mouseover', '' );
-
-	$tag_group_collapsible = get_option( 'tag_group_collapsible', '' );
-	
-	$tag_group_enqueue_jquery = get_option( 'tag_group_enqueue_jquery', true );
-
+		
 	$number_of_tag_groups = count($tag_group_labels) - 1;
 
 	if ($max_tag_group_id < 0) $max_tag_group_id = 0;
-	
-	$default_themes = explode(',', TAG_GROUPS_BUILT_IN_THEMES);
 
-	$label = '';
+	if (isset($_REQUEST['action'])) $action = $_REQUEST['action']; else $action = '';
+
+	if (isset($_GET['id'])) (int) $tag_groups_id = $_GET['id']; else $tag_groups_id = 0;
+
+	if (isset($_POST['ok'])) $ok = $_POST['ok']; else $ok = '';
+
+
 	?>
 	
 	<div class='wrap'>
 	<h2>Tag Groups</h2>
 	
-	<?php
+<?php
 
-	if (isset($_REQUEST['action'])) $action = $_REQUEST['action']; else $action = '';
-
-	if (isset($_GET['id'])) (int) $tag_groups_id = $_GET['id']; else $tag_groups_id = 0;
-	
-	if (isset($_POST['theme-name'])) $theme_name = stripslashes(sanitize_text_field($_POST['theme-name'])); else $theme_name = '';
-	
-	if (isset($_POST['theme'])) $theme = stripslashes(sanitize_text_field($_POST['theme'])); else $theme = '';
-
-	if (isset($_POST['ok'])) $ok = $_POST['ok']; else $ok = '';
-	
 	// save a new label
 	if (isset($_POST['label'])) {
 	
@@ -571,39 +577,7 @@ creates the sub-menu with its page on the admin backend and handles the main act
 	
 	}
 
-	if (($action == 'reset') && ($ok != 'yes')) $action = '';
-	
-	
-	$number_of_tag_groups = count($tag_group_labels) - 1;
-	
 	switch ($action) {
-	
-	case 'reset':
-
-		if ( !isset($_POST['tag-groups-reset-nonce']) || ! wp_verify_nonce($_POST['tag-groups-reset-nonce'], 'tag-groups-reset') ) die("Security check");
-
- 		unset($tag_group_labels);
-
- 		unset($tag_group_ids);
-
- 		$max_tag_group_id = 0;
-
- 		update_option( 'tag_group_labels', $tag_group_labels );
-	
-		update_option( 'tag_group_ids', $tag_group_ids );
-	
-		update_option( 'max_tag_group_id', $max_tag_group_id );
-
-		tg_unassign(0);
-		
-		?>
-		<div class="updated fade"><p>
-			<?php _e('All groups are deleted and assignments reset.', 'tag-groups'); ?>
-		</p></div><br clear="all" />
-		<input class='button-primary' type='button' name='ok' value='<?php _e('OK'); ?>' id='ok' onclick="location.href='edit.php?page=tag-groups'"/>
-		<?php
-	break;
-	
 	case 'new': ?>
 	
 		<h3><?php _e('Create a new tag group', 'tag-groups' ) ?></h3>
@@ -630,21 +604,6 @@ creates the sub-menu with its page on the admin backend and handles the main act
 		<input class='button-primary' type='submit' name='Save' value='<?php _e('Save Group', 'tag-groups' ); ?>' id='submitbutton' />
 		<input class='button-primary' type='button' name='Cancel' value='<?php _e('Cancel'); ?>' id='cancel' onclick="location.href='edit.php?page=tag-groups'"/>
 		</form>
-
-	<?php break;
-
-	case 'wpml':
-
-		for ($i = 1; $i <= $number_of_tag_groups; $i++) {
-
-			tg_register_string_wpml( 'Group Label ID '.$i, $tag_group_labels[$i] );
-
-		} ?>
-		
-		<div class="updated fade"><p>
-			<?php _e('All labels were registered.', 'tag-groups' ); ?>
-		</p></div><br clear="all" />
-		<input class='button-primary' type='button' name='ok' value='<?php _e('OK'); ?>' id='ok' onclick="location.href='edit.php?page=tag-groups'"/>
 
 	<?php break;
 
@@ -684,39 +643,9 @@ creates the sub-menu with its page on the admin backend and handles the main act
 		<input class='button-primary' type='button' name='ok' value='<?php _e('OK'); ?>' id='ok' onclick="location.href='edit.php?page=tag-groups'"/>
 	<?php break;
 
-	case 'theme':
-
-		if ($theme == 'own') $theme = $theme_name;
-
-		if ( !isset($_POST['tag-groups-settings-nonce']) || ! wp_verify_nonce($_POST['tag-groups-settings-nonce'], 'tag-groups-settings') ) die("Security check");
-
-		update_option( 'tag_group_theme', $theme );
-		
-		$mouseover = ($_POST['mouseover'] && $_POST['mouseover'] == '1') ? true : false;
-
-		$collapsible = ($_POST['collapsible'] && $_POST['collapsible'] == '1') ? true : false;
-		
-		update_option( 'tag_group_mouseover', $mouseover );
-
-		update_option( 'tag_group_collapsible', $collapsible );
-
-		$tag_group_enqueue_jquery = ($_POST['enqueue-jquery'] && $_POST['enqueue-jquery'] == '1') ? true : false;
-		
-		update_option( 'tag_group_enqueue_jquery', $tag_group_enqueue_jquery );
-		
-		tg_clear_cache;
-
-		?> <div class="updated fade"><p>
-		<?php _e('Your tag cloud theme settings have been saved', 'tag-groups' ); ?>
-		</p></div><br clear="all" />
-		<input class='button-primary' type='button' name='ok' value='<?php _e('OK'); ?>' id='ok' onclick="location.href='edit.php?page=tag-groups'"/>
-		<?php
-		
-	break;
-
-	
-	default: ?>
-		<p><?PHP _e('On this page you can define tag groups. Tags can be assigned to these groups on the page where you edit single tags.', 'tag-groups') ?></p>
+	default:
+?>
+		<p><?PHP _e('On this page you can define tag groups. Tags (or terms) can be assigned to these groups on the page where you edit the tags (terms).', 'tag-groups') ?></p>
 		<h3><?php _e('List', 'tag-groups') ?></h3>
 		<table class="widefat">
 		<thead>
@@ -776,94 +705,306 @@ creates the sub-menu with its page on the admin backend and handles the main act
 		</tr>
 		</tbody>
 		</table>
+	</div>
+	
+	<p><a href="edit.php?page=tag-groups-settings"><?php _e('Go to the settings.' , 'tag-groups') ?></a></p>
+	<?php }	?>
+	
+	<?php
+}
 
+
+function tg_settings_page() {
+/*
+	Outputs the general settings page and handles the main actions: select taxonomy, theming options, WPML integration, reset all
+*/
+
+	$tag_group_labels = get_option( 'tag_group_labels', array());
+
+	$tag_group_ids = get_option( 'tag_group_ids', array() );
+
+	$max_tag_group_id = get_option( 'max_tag_group_id', 0 );
+	
+	$tag_group_theme = get_option( 'tag_group_theme', TAG_GROUPS_STANDARD_THEME );
+	
+	$tag_group_mouseover = get_option( 'tag_group_mouseover', '' );
+
+	$tag_group_collapsible = get_option( 'tag_group_collapsible', '' );
+	
+	$tag_group_enqueue_jquery = get_option( 'tag_group_enqueue_jquery', true );
+	
+	$tag_group_taxonomy = get_option( 'tag_group_taxonomy', 'post_tag' );
+
+	$number_of_tag_groups = count($tag_group_labels) - 1;
+
+	if ($max_tag_group_id < 0) $max_tag_group_id = 0;
+	
+	$default_themes = explode(',', TAG_GROUPS_BUILT_IN_THEMES);
+
+	$label = '';
+	?>
+	
+	<div class='wrap'>
+	<h2>Tag Groups Settings</h2>
+	
+	<?php
+
+	// performing actions
+	
+	if (isset($_REQUEST['action'])) $action = $_REQUEST['action']; else $action = '';
+
+	if (isset($_GET['id'])) (int) $tag_groups_id = $_GET['id']; else $tag_groups_id = 0;
+	
+	if (isset($_POST['theme-name'])) $theme_name = stripslashes(sanitize_text_field($_POST['theme-name'])); else $theme_name = '';
+	
+	if (isset($_POST['theme'])) $theme = stripslashes(sanitize_text_field($_POST['theme'])); else $theme = '';
+	
+	if (isset($_POST['taxonomy'])) $taxonomy = stripslashes(sanitize_text_field($_POST['taxonomy'])); else $taxonomy = '';
+
+	if (isset($_POST['ok'])) $ok = $_POST['ok']; else $ok = '';
+
+	if (isset($_GET['active-tab'])) $active_tab = (int) $_GET['active-tab'];
 		
+	if ( $active_tab<0 || $active_tab>5) $active_tab = 0;	
+
+
+	if (($action == 'reset') && ($ok != 'yes')) $action = '';
+	
+	
+	$number_of_tag_groups = count($tag_group_labels) - 1;
+	
+	switch ($action) {
+	
+	case 'reset':
+
+		if ( !isset($_POST['tag-groups-reset-nonce']) || ! wp_verify_nonce($_POST['tag-groups-reset-nonce'], 'tag-groups-reset') ) die("Security check");
+
+ 		unset($tag_group_labels);
+
+ 		unset($tag_group_ids);
+
+ 		$max_tag_group_id = 0;
+
+ 		update_option( 'tag_group_labels', $tag_group_labels );
+	
+		update_option( 'tag_group_ids', $tag_group_ids );
+	
+		update_option( 'max_tag_group_id', $max_tag_group_id );
+
+		tg_unassign(0);
 		
+		?>
+		<div class="updated fade"><p>
+			<?php _e('All groups are deleted and assignments reset.', 'tag-groups'); ?>
+		</p></div><br clear="all" />
+		<input class='button-primary' type='button' name='ok' value='<?php _e('OK'); ?>' id='ok' onclick="location.href='edit.php?page=tag-groups-settings&active-tab=4'"/>
+		<?php
+	break;
+	
+	case 'wpml':
+
+		for ($i = 1; $i <= $number_of_tag_groups; $i++) {
+
+			tg_register_string_wpml( 'Group Label ID '.$i, $tag_group_labels[$i] );
+
+		} ?>
+		
+		<div class="updated fade"><p>
+			<?php _e('All labels were registered.', 'tag-groups' ); ?>
+		</p></div><br clear="all" />
+		<input class='button-primary' type='button' name='ok' value='<?php _e('OK'); ?>' id='ok' onclick="location.href='edit.php?page=tag-groups-settings&active-tab=2'"/>
+
+	<?php break;
+
+	case 'theme':
+
+		if ($theme == 'own') $theme = $theme_name;
+
+		if ( !isset($_POST['tag-groups-settings-nonce']) || ! wp_verify_nonce($_POST['tag-groups-settings-nonce'], 'tag-groups-settings') ) die("Security check");
+
+		update_option( 'tag_group_theme', $theme );
+		
+		$mouseover = ($_POST['mouseover'] && $_POST['mouseover'] == '1') ? true : false;
+
+		$collapsible = ($_POST['collapsible'] && $_POST['collapsible'] == '1') ? true : false;
+		
+		update_option( 'tag_group_mouseover', $mouseover );
+
+		update_option( 'tag_group_collapsible', $collapsible );
+
+		$tag_group_enqueue_jquery = ($_POST['enqueue-jquery'] && $_POST['enqueue-jquery'] == '1') ? true : false;
+		
+		update_option( 'tag_group_enqueue_jquery', $tag_group_enqueue_jquery );
+		
+		tg_clear_cache;
+
+		?> <div class="updated fade"><p>
+		<?php _e('Your tag cloud theme settings have been saved.', 'tag-groups' ); ?>
+		</p></div><br clear="all" />
+		<input class='button-primary' type='button' name='ok' value='<?php _e('OK'); ?>' id='ok' onclick="location.href='edit.php?page=tag-groups-settings&active-tab=1'"/>
+		<?php
+		
+	break;
+
+	case 'taxonomy':
+
+		if ( !isset($_POST['tag-groups-taxonomy-nonce']) || !wp_verify_nonce($_POST['tag-groups-taxonomy-nonce'], 'tag-groups-taxonomy') ) die("Security check");
+
+		$args=array(
+			'public'   => true
+		);
+		
+		$taxonomies=get_taxonomies( $args, 'names' );
+		
+		if ( !in_array( $taxonomy, $taxonomies ) ) die("Security check t");
+
+		update_option( 'tag_group_taxonomy', $taxonomy );
+				
+		tg_clear_cache;
+
+		?> <div class="updated fade"><p>
+		<?php _e('Your tag cloud taxonomy settings have been saved.', 'tag-groups' ); ?>
+		</p></div><br clear="all" />
+		<input class='button-primary' type='button' name='ok' value='<?php _e('OK'); ?>' id='ok' onclick="location.href='edit.php?page=tag-groups-settings&active-tab=0'"/>
+		<?php
+		
+	break;
+	
+	default:		
+		?>
+		<h2 class="nav-tab-wrapper">
+			<a href="edit.php?page=tag-groups-settings&active-tab=0" class="nav-tab <?php if ( $active_tab == 0 ) echo 'nav-tab-active' ?>"><?php _e('Taxonomy', 'tag-groups') ?></a>
+			<a href="edit.php?page=tag-groups-settings&active-tab=1" class="nav-tab <?php if ( $active_tab == 1 ) echo 'nav-tab-active' ?>"><?php _e('Theme', 'tag-groups') ?></a>
+			<?php if (function_exists('icl_register_string')) :?>
+				<a href="edit.php?page=tag-groups-settings&active-tab=2" class="nav-tab <?php if ( $active_tab == 2 ) echo 'nav-tab-active' ?>"><?php _e('WPML', 'tag-groups') ?></a>
+			<?php endif; ?>
+			<a href="edit.php?page=tag-groups-settings&active-tab=3" class="nav-tab <?php if ( $active_tab == 3 ) echo 'nav-tab-active' ?>"><?php _e('Tag Cloud', 'tag-groups') ?></a>
+			<a href="edit.php?page=tag-groups-settings&active-tab=4" class="nav-tab <?php if ( $active_tab == 4 ) echo 'nav-tab-active' ?>"><?php _e('Delete Groups', 'tag-groups') ?></a>
+			<a href="edit.php?page=tag-groups-settings&active-tab=5" class="nav-tab <?php if ( $active_tab == 5 ) echo 'nav-tab-active' ?>"><?php _e('About', 'tag-groups') ?></a>
+		</h2>
 		<p>&nbsp;</p>
-		<form method="POST" action="<?php echo $_SERVER['REQUEST_URI']; ?>">
-		<input type="hidden" name="tag-groups-settings-nonce" id="tag-groups-settings-nonce" value="<?php echo wp_create_nonce('tag-groups-settings') ?>" />
-		<h3><?php _e('Theme', 'tag-groups') ?></h3>
-		<p><?php _e('Here you can choose a theme for the tag cloud. The path is relative to the <i>uploads</i> folder of your Wordpress installation. Leave empty if you don\'t use any.</p><p>New themes can be created with the <a href="http://jqueryui.com/themeroller/" target="_blank">jQuery UI ThemeRoller</a>. Make sure that before download you open the "Advanced Theme Settings" and enter as "CSS Scope" <b>.tag-groups-cloud-tabs</b> (including the dot) and as "Theme Folder Name" the name that you wish to enter below (for example "my-theme" - avoid spaces and exotic characters). Then you unpack the downloaded zip file and open the css folder. Inside it you will find a folder with the chosen Theme Folder Name - copy it to your <i>uploads</i> folder and enter its name below.', 'tag-groups') ?></p>
 
-		<table>
-		<tr>
-		<td style="width:400px; padding-right:50px;">
-		<ul>
-	
-			<?php foreach($default_themes as $theme) : ?>
-	
-				<li><input type="radio" name="theme" value="<?php echo $theme ?>" <?php if ($tag_group_theme == $theme) echo 'checked'; ?> />&nbsp;<?php echo $theme ?></li>
-	
-			<?php endforeach; ?>
-	
-			<li><input type="radio" name="theme" value="own" <?php if (!in_array($tag_group_theme, $default_themes)) echo 'checked' ?> />&nbsp;own: /wp-content/uploads/<input type="text" id="theme-name" name="theme-name" value="<?php if (!in_array($tag_group_theme, $default_themes)) echo $tag_group_theme ?>" /></li>
-			<li><input type="checkbox" name="enqueue-jquery" value="1" <?php if ($tag_group_enqueue_jquery) echo 'checked' ?> />&nbsp;<?php _e('Use jQuery.  (Default is on. Other plugins might override this setting.)', 'tag-groups' ) ?></li>
-		</ul>
-		</td>
-
-		<td>
-		<h4>Further options</h4>
-		<p><?php _e('These will not work if you change the parameter div_id for the cloud.', 'tag-groups') ?></p>
-		<ul>
-			<li><input type="checkbox" name="mouseover" value="1" <?php if ($tag_group_mouseover) echo 'checked'; ?> >&nbsp;<?php _e('Tabs triggered by hovering mouse pointer (without clicking).', 'tag-groups' ) ?></li>
-			<li><input type="checkbox" name="collapsible" value="1" <?php if ($tag_group_collapsible) echo 'checked'; ?> >&nbsp;<?php _e('Collapsible tabs (toggle open/close).', 'tag-groups' ) ?></li>
-		</ul>
-		</td>
-		</tr>
-		</table>
-
-		<input type="hidden" id="action" name="action" value="theme">
-		<input class='button-primary' type='submit' name='Save' value='<?php _e('Save Theme Options', 'tag-groups'); ?>' id='submitbutton' />
-		</form>
-
-		<?php if (function_exists('icl_register_string')) :?>
-			<p>&nbsp;</p>
+		<?php if ( $active_tab == 0 ): ?>
 			<form method="POST" action="<?php echo $_SERVER['REQUEST_URI']; ?>">
-			<h3><?php _e('Register group labels with WPML', 'tag-groups') ?></h3>
-			<p><?php _e('Use this button to register all existing group labels with WPML for string translation. This is only necessary if labels have existed before you installed WPML.', 'tag-groups') ?></p>
-			<input type="hidden" id="action" name="action" value="wpml">
-			<input class='button-primary' type='submit' name='register' value='<?php _e('Register Labels', 'tag-groups' ); ?>' id='submitbutton' />
+			<input type="hidden" name="tag-groups-taxonomy-nonce" id="tag-groups-taxonomy-nonce" value="<?php echo wp_create_nonce('tag-groups-taxonomy') ?>" />
+			<h3></h3>
+			<p><?php _e('Choose the taxonomy for which you want to use tag groups. Default is <b>post_tag</b>. Please note that the tag cloud might not work with all taxonomies and that some taxonomies listed here may not be accessible in the admin backend. If you don\'t understand what is going on here, just leave the default.', 'tag-groups') ?></p>
+			<?php
+			$args=array(
+				'public'   => true
+			);
+			
+			$taxonomies=get_taxonomies( $args, 'names' );
+			?>
+			
+			<ul>
+		
+				<?php foreach( $taxonomies as $taxonomy ) : ?>
+		
+					<li><input type="radio" name="taxonomy" value="<?php echo $taxonomy ?>" <?php if ($tag_group_taxonomy == $taxonomy) echo 'checked'; ?> />&nbsp;<?php echo $taxonomy ?></li>
+		
+				<?php endforeach; ?>
+		
+			</ul>
+	
+			<input type="hidden" id="action" name="action" value="taxonomy">
+			<input class='button-primary' type='submit' name='Save' value='<?php _e('Save Taxonomy', 'tag-groups'); ?>' id='submitbutton' />
 			</form>
 		<?php endif; ?>
 
-		<p>&nbsp;</p>
-		<form method="POST" action="<?php echo $_SERVER['REQUEST_URI']; ?>">
-		<input type="hidden" name="tag-groups-reset-nonce" id="tag-groups-reset-nonce" value="<?php echo wp_create_nonce('tag-groups-reset') ?>" />
-		<h3><?php _e('Delete Groups', 'tag-groups') ?></h3>
-		<p><?php _e('Use this button to delete all tag groups and assignments. Your tags will not be changed. Check the checkbox to confirm.', 'tag-groups') ?></p>
-		<input type="checkbox" id="ok" name="ok" value="yes" />
-		<label><?php _e('I know what I am doing.', 'tag-groups') ?></label>
-		<input type="hidden" id="action" name="action" value="reset">
-		<input class='button-primary' type='submit' name='delete' value='<?php _e('Delete Groups', 'tag-groups' ); ?>' id='submitbutton' />
-		</form>
+		<?php if ( $active_tab == 1 ): ?>
+			<form method="POST" action="<?php echo $_SERVER['REQUEST_URI']; ?>">
+			<input type="hidden" name="tag-groups-settings-nonce" id="tag-groups-settings-nonce" value="<?php echo wp_create_nonce('tag-groups-settings') ?>" />
+			<p><?php _e('Here you can choose a theme for the tag cloud. The path is relative to the <i>uploads</i> folder of your Wordpress installation. Leave empty if you don\'t use any.</p><p>New themes can be created with the <a href="http://jqueryui.com/themeroller/" target="_blank">jQuery UI ThemeRoller</a>. Make sure that before download you open the "Advanced Theme Settings" and enter as "CSS Scope" <b>.tag-groups-cloud-tabs</b> (including the dot) and as "Theme Folder Name" the name that you wish to enter below (for example "my-theme" - avoid spaces and exotic characters). Then you unpack the downloaded zip file and open the css folder. Inside it you will find a folder with the chosen Theme Folder Name - copy it to your <i>uploads</i> folder and enter its name below.', 'tag-groups') ?></p>
+	
+			<table>
+			<tr>
+			<td style="width:400px; padding-right:50px;">
+			<ul>
+		
+				<?php foreach($default_themes as $theme) : ?>
+		
+					<li><input type="radio" name="theme" value="<?php echo $theme ?>" <?php if ($tag_group_theme == $theme) echo 'checked'; ?> />&nbsp;<?php echo $theme ?></li>
+		
+				<?php endforeach; ?>
+		
+				<li><input type="radio" name="theme" value="own" <?php if (!in_array($tag_group_theme, $default_themes)) echo 'checked' ?> />&nbsp;own: /wp-content/uploads/<input type="text" id="theme-name" name="theme-name" value="<?php if (!in_array($tag_group_theme, $default_themes)) echo $tag_group_theme ?>" /></li>
+				<li><input type="checkbox" name="enqueue-jquery" value="1" <?php if ($tag_group_enqueue_jquery) echo 'checked' ?> />&nbsp;<?php _e('Use jQuery.  (Default is on. Other plugins might override this setting.)', 'tag-groups' ) ?></li>
+			</ul>
+			</td>
+	
+			<td>
+			<h4>Further options</h4>
+			<p><?php _e('These will not work if you change the parameter div_id for the cloud.', 'tag-groups') ?></p>
+			<ul>
+				<li><input type="checkbox" name="mouseover" value="1" <?php if ($tag_group_mouseover) echo 'checked'; ?> >&nbsp;<?php _e('Tabs triggered by hovering mouse pointer (without clicking).', 'tag-groups' ) ?></li>
+				<li><input type="checkbox" name="collapsible" value="1" <?php if ($tag_group_collapsible) echo 'checked'; ?> >&nbsp;<?php _e('Collapsible tabs (toggle open/close).', 'tag-groups' ) ?></li>
+			</ul>
+			</td>
+			</tr>
+			</table>
+	
+			<input type="hidden" id="action" name="action" value="theme">
+			<input class='button-primary' type='submit' name='Save' value='<?php _e('Save Theme Options', 'tag-groups'); ?>' id='submitbutton' />
+			</form>
+		<?php endif; ?>
 
-		<p>&nbsp;</p>
-		<h3><?php _e('Displaying the Tag Cloud', 'tag-groups') ?></h3>
-		<h4>a) <?php _e('Shortcode') ?></h4>
-		<p>[tag_groups_cloud]</p>
-		<p><b><?php _e('Parameters', 'tag-groups') ?>:</b> (example: [tag_groups_cloud smallest=9 largest=30 include=1,2,10]
-		<?php _e('<ul>
-		<li><b>smallest=x</b> Font-size in pt of the smallest tags. Default: 12</li>
-		<li><b>largest=x</b> Font-size in pt of the largest tags. Default: 22</li>
-		<li><b>orderby=abc</b> Which field to use for sorting, e.g. count. Default: name</li>
-		<li><b>order=ASC or =DESC</b> Whether to sort the tags in ascending or descending order. Default: ASC</li>
-		<li><b>amount=x</b> Maximum amount of tags in one cloud. Default: 40</li>
-		<li><b>hide_empty=1 or =0</b> Whether to hide or show also tags that are not assigned to any post. Default: 1 (hide empty)</li>
-		<li><b>include=x,y,...</b> IDs of tag groups (left column in table above) that will be considered in the tag cloud. Empty or not used means that all tag groups will be used. Default: empty</li>
-		<li><b>div_id=abc</b> Define an id for the enclosing '.htmlentities('<div>').' Default: tag-groups-cloud-tabs</li>
-		<li><b>div_class=abc</b> Define a class for the enclosing '.htmlentities('<div>').'. Default: tag-groups-cloud-tabs</li>
-		<li><b>ul_class=abc</b> Define a class for the '.htmlentities('<ul>').' that generates the tabs with the group labels. Default: empty</li>
-		<li><b>show_tabs=1 or =0</b> Whether to show the tabs. Default: 1</li>
-		</ul>', 'tag-groups') ?></p>
-		<h4>b) PHP</h4>
-		<p><?php _e('By default the function <b>tag_groups_cloud</b> returns the html for a tabbed tag cloud.', 'tag-groups') ?></p>
-		<p><?php _e('Example: ', 'tag-groups'); echo htmlentities("<?php if ( function_exists( 'tag_groups_cloud' ) ) echo tag_groups_cloud( array( 'include' => '1,2,5,6' ) ); ?>") ?></p>
-		<p><?php _e('If the optional second parameter is set to \'true\', the function will return a multidimensional array containing tag groups and tags. Example: ', 'tag-groups'); echo htmlentities("<?php if ( function_exists( 'tag_groups_cloud' ) ) print_r( tag_groups_cloud( array( 'orderby' => 'count', 'order' => 'DESC' ), true ) ); ?>") ?></p>		
-		<p>&nbsp;</p>
-		<p>&nbsp;</p>
-		<h4><a href="http://www.christoph-amthor.de/plugins/tag-groups/" target="_blank">Tag Groups</a>, Version: <?php echo TAG_GROUPS_VERSION ?></h4>
-		<h4><a href="http://flattr.com/thing/721303/Tag-Groups-plugin" target="_blank">
-<img src="<?php echo plugins_url('images/flattr-badge-large.png', __FILE__) ?>" alt="Flattr this" title="Support through micro-donation" border="0" /></a></h4>
+		<?php if ( $active_tab == 2 ): ?>
+			<?php if (function_exists('icl_register_string')) :?>
+				<form method="POST" action="<?php echo $_SERVER['REQUEST_URI']; ?>">
+				<h3><?php _e('Register group labels with WPML', 'tag-groups') ?></h3>
+				<p><?php _e('Use this button to register all existing group labels with WPML for string translation. This is only necessary if labels have existed before you installed WPML.', 'tag-groups') ?></p>
+				<input type="hidden" id="action" name="action" value="wpml">
+				<input class='button-primary' type='submit' name='register' value='<?php _e('Register Labels', 'tag-groups' ); ?>' id='submitbutton' />
+				</form>
+			<?php endif; ?>
+		<?php endif; ?>
+
+		
+		<?php if ( $active_tab == 3 ): ?>
+			<p><?php _e('You can use a shortcode to embed the tag cloud directly in a post, page or widget or you call the function in the PHP code of your theme.') ?></p>
+			<h4>a) <?php _e('Shortcode') ?></h4>
+			<p>[tag_groups_cloud]</p>
+			<p><b><?php _e('Parameters', 'tag-groups') ?>:</b> (example: [tag_groups_cloud smallest=9 largest=30 include=1,2,10]
+			<?php _e('<ul>
+			<li><b>smallest=x</b> Font-size in pt of the smallest tags. Default: 12</li>
+			<li><b>largest=x</b> Font-size in pt of the largest tags. Default: 22</li>
+			<li><b>orderby=abc</b> Which field to use for sorting, e.g. count. Default: name</li>
+			<li><b>order=ASC or =DESC</b> Whether to sort the tags in ascending or descending order. Default: ASC</li>
+			<li><b>amount=x</b> Maximum amount of tags in one cloud. Default: 40</li>
+			<li><b>hide_empty=1 or =0</b> Whether to hide or show also tags that are not assigned to any post. Default: 1 (hide empty)</li>
+			<li><b>include=x,y,...</b> IDs of tag groups (left column in table above) that will be considered in the tag cloud. Empty or not used means that all tag groups will be used. Default: empty</li>
+			<li><b>div_id=abc</b> Define an id for the enclosing '.htmlentities('<div>').' Default: tag-groups-cloud-tabs</li>
+			<li><b>div_class=abc</b> Define a class for the enclosing '.htmlentities('<div>').'. Default: tag-groups-cloud-tabs</li>
+			<li><b>ul_class=abc</b> Define a class for the '.htmlentities('<ul>').' that generates the tabs with the group labels. Default: empty</li>
+			<li><b>show_tabs=1 or =0</b> Whether to show the tabs. Default: 1</li>
+			</ul>', 'tag-groups') ?></p>
+			<h4>b) PHP</h4>
+			<p><?php _e('By default the function <b>tag_groups_cloud</b> returns the html for a tabbed tag cloud.', 'tag-groups') ?></p>
+			<p><?php _e('Example: ', 'tag-groups'); echo htmlentities("<?php if ( function_exists( 'tag_groups_cloud' ) ) echo tag_groups_cloud( array( 'include' => '1,2,5,6' ) ); ?>") ?></p>
+			<p><?php _e('If the optional second parameter is set to \'true\', the function will return a multidimensional array containing tag groups and tags. Example: ', 'tag-groups'); echo htmlentities("<?php if ( function_exists( 'tag_groups_cloud' ) ) print_r( tag_groups_cloud( array( 'orderby' => 'count', 'order' => 'DESC' ), true ) ); ?>") ?></p>
+		<?php endif; ?>
+
+
+		<?php if ( $active_tab == 4 ): ?>
+			<form method="POST" action="<?php echo $_SERVER['REQUEST_URI']; ?>">
+			<input type="hidden" name="tag-groups-reset-nonce" id="tag-groups-reset-nonce" value="<?php echo wp_create_nonce('tag-groups-reset') ?>" />
+			<p><?php _e('Use this button to delete all tag groups and assignments. Your tags will not be changed. Check the checkbox to confirm.', 'tag-groups') ?></p>
+			<input type="checkbox" id="ok" name="ok" value="yes" />
+			<label><?php _e('I know what I am doing.', 'tag-groups') ?></label>
+			<input type="hidden" id="action" name="action" value="reset">
+			<input class='button-primary' type='submit' name='delete' value='<?php _e('Delete Groups', 'tag-groups' ); ?>' id='submitbutton' />
+			</form>
+		<?php endif; ?>
+
+
+		<?php if ( $active_tab == 5 ): ?>
+			<h4>Tag Groups, Version: <?php echo TAG_GROUPS_VERSION ?></h4>
+			<p>If you find a bug or have a question, please visit the official <a href="http://wordpress.org/support/plugin/tag-groups" target="_blank">support forum</a>. There is also a <a href="http://www.christoph-amthor.de/plugins/tag-groups/" target="_blank">dedicated page</a> with more examples and instructions for particular applications.</p>
+			<h2>Donations</h2>
+			<p>Support the author with a microdonation <a href="http://flattr.com/thing/721303/Tag-Groups-plugin" target="_blank">
+	<img src="<?php echo plugins_url('images/flattr-badge-large.png', __FILE__) ?>" alt="Flattr this" title="Support through micro-donation" border="0" /></a>, or support his work by a nice link to <a href="http://www.burma-center.org" target="_blank">www.burma-center.org</a>, <a href="http://www.ecoburma.com" target="_blank">www.ecoburma.com</a>, or <a href="http://www.discounts-for-nonprofits.com" target="_blank">www.discounts-for-nonprofits.com</a>. Thanks!</p>
+		<?php endif; ?>
 	
 	<?php }	?>
 
@@ -875,13 +1016,15 @@ creates the sub-menu with its page on the admin backend and handles the main act
 
 function tag_groups_cloud( $atts = array(), $return_array = false ) {
 /*
-Rendering of the tag cloud, usually by a shortcode [tag_groups_cloud xyz=1 ...], or returning array
+	Rendering the tag cloud, usually by a shortcode, or returning a multidimensional array
 */
 
 	$tag_group_labels = get_option( 'tag_group_labels', array() );
 
 	$tag_group_ids = get_option( 'tag_group_ids', array() );
 
+	$tag_group_taxonomy = get_option( 'tag_group_taxonomy', 'post_tag' );
+	
 	$number_of_tag_groups = count($tag_group_labels) - 1;
 	
 	extract( shortcode_atts( array(
@@ -910,7 +1053,7 @@ Rendering of the tag cloud, usually by a shortcode [tag_groups_cloud xyz=1 ...],
 	
 	}
 
-	$posttags = get_tags(array('hide_empty' => $hide_empty, 'orderby' => $orderby, 'order' => $order));
+	$posttags = get_terms($tag_group_taxonomy, array('hide_empty' => $hide_empty, 'orderby' => $orderby, 'order' => $order));
 
 	$div_id_output = ($div_id) ? ' id="'.$div_id.'"' : '';
 
@@ -920,13 +1063,14 @@ Rendering of the tag cloud, usually by a shortcode [tag_groups_cloud xyz=1 ...],
 
 
 	if ($return_array) {
-	//return as array
+	
+	// return as array
 	
 		$output = array ();
 	
 		for ($i = 1; $i <= $number_of_tag_groups; $i++) {
 
-			if (($include == '') || (in_array($tag_group_ids[$i],$include_groups))) {
+			if (($include == '') || (in_array($tag_group_ids[$i], $include_groups))) {
 			
 				$output[$i]['name'] = tg_translate_string_wpml('Group Label ID '.$tag_group_ids[$i], $tag_group_labels[$i]);
 
@@ -967,7 +1111,7 @@ Rendering of the tag cloud, usually by a shortcode [tag_groups_cloud xyz=1 ...],
 							
 							$output[$i]['tags'][$count_amount]['term_id'] = $tag->term_id;
 							
-							$output[$i]['tags'][$count_amount]['link'] = get_tag_link($tag->term_id);
+							$output[$i]['tags'][$count_amount]['link'] = get_term_link($tag->slug, $tag_group_taxonomy);
 
 							$output[$i]['tags'][$count_amount]['description'] = $tag->description;
 							
@@ -996,7 +1140,8 @@ Rendering of the tag cloud, usually by a shortcode [tag_groups_cloud xyz=1 ...],
 	return $output;
 	
 	} else {
-	//return as html
+
+	// return as html
 	
 		$html = '<div'.$div_id_output.$div_class_output.'>';
 
@@ -1057,7 +1202,7 @@ Rendering of the tag cloud, usually by a shortcode [tag_groups_cloud xyz=1 ...],
 	
 							if ($tag->term_group == $tag_group_ids[$i]) {
 	
-								$tag_link = get_tag_link($tag->term_id);
+								$tag_link = get_term_link($tag->slug, $tag_group_taxonomy);
 								
 								$html .= '<a href="'.$tag_link.'" title="'.htmlentities($tag->description).' ('.$tag->count.')"  class="'.$tag->slug.'"><span style="font-size:'.tg_font_size($tag->count,$min,$max,$smallest,$largest).'px">'.$tag->name.'</span></a>&nbsp; ';
 								
@@ -1081,8 +1226,15 @@ Rendering of the tag cloud, usually by a shortcode [tag_groups_cloud xyz=1 ...],
 
 
 function tg_unassign($id) {
+/*
+	After deleting a tag group, this function removes its ID from the previously assigned tags.
+*/
 
-	$posttags = get_tags(array('hide_empty' => false));
+	$tag_group_taxonomy = get_option( 'tag_group_taxonomy', 'post_tag' );
+
+	$posttags = get_terms($tag_group_taxonomy, array('hide_empty' => false));
+	
+	$tag_group_taxonomy = get_option( 'tag_group_taxonomy', 'post_tag' );
 	
 	foreach($posttags as $tag) {
 
@@ -1090,7 +1242,7 @@ function tg_unassign($id) {
 
 			$tag->term_group = 0;
 
-			$ret = wp_update_term( $tag->term_id, 'post_tag', array( 'term_group' => $tag->term_group ) );
+			$ret = wp_update_term( $tag->term_id, $tag_group_taxonomy, array( 'term_group' => $tag->term_group ) );
 		}
 		
 	}
@@ -1099,8 +1251,13 @@ function tg_unassign($id) {
 
 
 function tg_number_assigned($id) {
+/*
+	Returns number of tags that are assigned to a given tag group. Needed for the table.
+*/
 
-	$posttags = get_tags(array('hide_empty' => false));
+	$tag_group_taxonomy = get_option( 'tag_group_taxonomy', 'post_tag' );
+
+	$posttags = get_terms($tag_group_taxonomy, array('hide_empty' => false));
 	
 	$number = 0;
 
@@ -1117,7 +1274,7 @@ function tg_number_assigned($id) {
 
 function tg_custom_js() {
 /*
-jquery needs some script in the html - opportunity to facilitate some options
+	jquery needs some script in the html for the tabs to work - opportunity to facilitate some options
 */
 
 	if ( get_option( 'tag_group_mouseover', '' ) ) $mouseover = 'event: "mouseover"';
@@ -1138,6 +1295,7 @@ jquery needs some script in the html - opportunity to facilitate some options
 
 	}
 
+	// Not necessarily in HEAD section, but can't do no harm to have it there.
 	echo '
 	<!-- begin Tag Groups plugin -->
 	<script type="text/javascript">
@@ -1155,10 +1313,12 @@ jquery needs some script in the html - opportunity to facilitate some options
 
 function post_in_tag_group($post_id, $tag_group_id) {
 /*
-checks if the post with $post_id has a tag that is in the tag group with $tag_group_id
+	Checks if the post with $post_id has a tag that is in the tag group with $tag_group_id.
 */
 
-	$tags = get_the_tags($post_id);
+	$tag_group_taxonomy = get_option( 'tag_group_taxonomy', 'post_tag' );
+
+	$tags = get_the_tags($post_id, $tag_group_taxonomy);
 	
 	if($tags) {
 
@@ -1179,7 +1339,7 @@ checks if the post with $post_id has a tag that is in the tag group with $tag_gr
 
 function tg_font_size($count, $min, $max, $smallest, $largest) {
 /*
-calculates the font size for the cloud tag ($min, $max and $size with same unit)
+	Calculates the font size for the cloud tag for a particular tag ($min, $max and $size with same unit, e.g. pt.)
 */
 
 	if ($max > $min) {
@@ -1198,6 +1358,9 @@ calculates the font size for the cloud tag ($min, $max and $size with same unit)
 
 
 function tg_register_string_wpml($name, $value) {
+/*
+	Makes sure that WPML knows about the tag group label that can have different language versions.
+*/
 
 	if (function_exists('icl_register_string')) icl_register_string('tag-groups', $name, $value);
 
@@ -1205,6 +1368,9 @@ function tg_register_string_wpml($name, $value) {
 
 
 function tg_unregister_string_wpml($name) {
+/*
+	Asks WPML to forget about $name.
+*/
 
 	if (function_exists('icl_unregister_string')) icl_unregister_string('tag-groups', $name);
 
@@ -1212,6 +1378,9 @@ function tg_unregister_string_wpml($name) {
 
 
 function tg_translate_string_wpml($name, $string) {
+/*
+	If WPML is installed: return translation; otherwise return original
+*/
 
 	if (function_exists('icl_t')) return icl_t('tag-groups', $name, $string); else return $string;
 
@@ -1220,7 +1389,7 @@ function tg_translate_string_wpml($name, $string) {
  
 function tg_swap(&$ary,$element1,$element2) {
 /*
-swaps the position in an array - needed for changing the order of list items
+	swaps the position of two elements in an array - needed for changing the order of list items
 */
 
 	$temp=$ary[$element1];
@@ -1234,12 +1403,13 @@ swaps the position in an array - needed for changing the order of list items
 
 function tg_clear_cache()  {
 /*
-good idea to purge the cache after changing the theme options - else your visitors won't see the change for a while
+	Good idea to purge the cache after changing theme options - else your visitors won't see the change for a while. Currently implemented for W3T Total Cache and WP Super Cache.
 */
 
 	if (function_exists('w3tc_pgcache_flush')) {
 
 		$plugin_totalcacheadmin->flush_pgcache();
+		
 		$plugin_totalcacheadmin->flush_minify();
 
 	} 
@@ -1252,4 +1422,7 @@ good idea to purge the cache after changing the theme options - else your visito
 
 }
 
+/*
+	guess what - the end
+*/
 ?>
