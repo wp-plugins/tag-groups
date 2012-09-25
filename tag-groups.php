@@ -4,12 +4,12 @@ Plugin Name: Tag Groups
 Plugin URI: http://www.christoph-amthor.de/software/tag-groups/
 Description: Assign tags to groups and display them in a tabbed tag cloud
 Author: Christoph Amthor
-Version: 0.7
+Version: 0.7.1
 Author URI: http://www.christoph-amthor.de
 License: GNU GENERAL PUBLIC LICENSE, Version 3
 */
 
-define("TAG_GROUPS_VERSION", "0.7");
+define("TAG_GROUPS_VERSION", "0.7.1");
 
 define("TAG_GROUPS_BUILT_IN_THEMES", "ui-gray,ui-lightness,ui-darkness");
 
@@ -29,10 +29,6 @@ add_action( 'wp_enqueue_scripts', 'tg_add_js_css' );
 add_action( 'admin_enqueue_scripts', 'tg_add_admin_js_css' );
 
 add_action( 'wp_head', 'tg_custom_js' );
-
-// register_activation_hook();
-
-// register_deactivation_hook();
 
 
 function tg_register_settings() {
@@ -224,7 +220,7 @@ function tg_update_edit_term_group($term_id) {
 
 		if ( isset($_POST['slug']) && ($_POST['slug'] != '') ) $term['slug'] = sanitize_title($_POST['slug']);
 
-		if ( isset($_POST['description']) && ($_POST['description'] != '') ) $term['description'] = stripslashes(sanitize_text_field($_POST['description']));
+		if ( isset($_POST['description']) && ($_POST['description'] != '') ) $term['description'] = stripslashes($_POST['description']);
 		
 		wp_update_term( $term_id, $tag_group_taxonomy, $term );
 		
@@ -438,7 +434,7 @@ function tg_init() {
 
 		update_option( 'max_tag_group_id', $max_tag_group_id );
 		
-		upate_option( 'tag_group_taxonomy', $tag_group_taxonomy );
+		update_option( 'tag_group_taxonomy', $tag_group_taxonomy );
 
 		$tag_group_theme = get_option( 'tag_group_theme', TAG_GROUPS_STANDARD_THEME );
 
@@ -742,6 +738,8 @@ function tg_settings_page() {
 	$default_themes = explode(',', TAG_GROUPS_BUILT_IN_THEMES);
 
 	$label = '';
+	
+	$active_tab = 0;
 	?>
 	
 	<div class='wrap'>
@@ -1003,7 +1001,14 @@ function tg_settings_page() {
 			<p>If you find a bug or have a question, please visit the official <a href="http://wordpress.org/support/plugin/tag-groups" target="_blank">support forum</a>. There is also a <a href="http://www.christoph-amthor.de/plugins/tag-groups/" target="_blank">dedicated page</a> with more examples and instructions for particular applications.</p>
 			<h2>Donations</h2>
 			<p>Support the author with a microdonation <a href="http://flattr.com/thing/721303/Tag-Groups-plugin" target="_blank">
-	<img src="<?php echo plugins_url('images/flattr-badge-large.png', __FILE__) ?>" alt="Flattr this" title="Support through micro-donation" border="0" /></a>, or support his work by a nice link to <a href="http://www.burma-center.org" target="_blank">www.burma-center.org</a>, <a href="http://www.ecoburma.com" target="_blank">www.ecoburma.com</a>, or <a href="http://www.discounts-for-nonprofits.com" target="_blank">www.discounts-for-nonprofits.com</a>. Thanks!</p>
+	<img src="<?php echo plugins_url('images/flattr-badge-large.png', __FILE__) ?>" alt="Flattr this" title="Support through micro-donation" border="0" /></a>, or support his work by a nice link to one of these websites:
+<ul>
+	<li><a href="http://www.burma-center.org" target="_blank">www.burma-center.org</a></li>
+	<li><a href="http://www.ecoburma.com" target="_blank">www.ecoburma.com</a></li>
+	<li><a href="http://www.weirdthingsinprague.com" target="_blank">www.weirdthingsinprague.com</a></li>
+	<li><a href="http://www.discounts-for-nonprofits.com" target="_blank">www.discounts-for-nonprofits.com</a></li>
+</ul>
+	Thanks!</p>
 		<?php endif; ?>
 	
 	<?php }	?>
@@ -1233,8 +1238,6 @@ function tg_unassign($id) {
 	$tag_group_taxonomy = get_option( 'tag_group_taxonomy', 'post_tag' );
 
 	$posttags = get_terms($tag_group_taxonomy, array('hide_empty' => false));
-	
-	$tag_group_taxonomy = get_option( 'tag_group_taxonomy', 'post_tag' );
 	
 	foreach($posttags as $tag) {
 
