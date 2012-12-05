@@ -26,6 +26,8 @@ if( defined('WP_UNINSTALL_PLUGIN') ) {
 
 	delete_option( 'tag_group_enqueue_jquery' );
 
+	delete_option( 'tag_group_shortcode_widget' );
+
 }
  
 ?>

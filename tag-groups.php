@@ -4,12 +4,12 @@ Plugin Name: Tag Groups
 Plugin URI: http://www.christoph-amthor.de/software/tag-groups/
 Description: Assign tags to groups and display them in a tabbed tag cloud
 Author: Christoph Amthor
-Version: 0.7.1
+Version: 0.7.2
 Author URI: http://www.christoph-amthor.de
 License: GNU GENERAL PUBLIC LICENSE, Version 3
 */
 
-define("TAG_GROUPS_VERSION", "0.7.1");
+define("TAG_GROUPS_VERSION", "0.7.2");
 
 define("TAG_GROUPS_BUILT_IN_THEMES", "ui-gray,ui-lightness,ui-darkness");
 
@@ -17,6 +17,7 @@ define("TAG_GROUPS_STANDARD_THEME", "ui-gray");
 
 
 
+add_action( 'init', 'tg_widget_hook' );
 
 add_action( 'admin_init', 'tg_register_settings' );
 
@@ -31,13 +32,24 @@ add_action( 'admin_enqueue_scripts', 'tg_add_admin_js_css' );
 add_action( 'wp_head', 'tg_custom_js' );
 
 
+function tg_widget_hook() {
+/*
+	Hooks for frontend
+*/
+
+	$tag_group_shortcode_widget = get_option( 'tag_group_shortcode_widget', 0 );
+
+	if ( $tag_group_shortcode_widget ) add_filter('widget_text', 'do_shortcode');
+
+}
+
 function tg_register_settings() {
 /*
 	Initial settings after calling the plugin
 */
 
 	$tag_group_taxonomy = get_option( 'tag_group_taxonomy', 'post_tag' );
-
+	
 	add_action( "{$tag_group_taxonomy}_edit_form_fields", 'tg_tag_input_metabox' );
 
 	add_action( "{$tag_group_taxonomy}_add_form_fields", 'tg_create_new_tag' );
@@ -191,7 +203,7 @@ function tg_update_edit_term_group($term_id) {
 	
 	$tag_group_taxonomy = get_option( 'tag_group_taxonomy', 'post_tag' );
 
-	if ( ($screen->taxonomy != $tag_group_taxonomy) && (!isset($_POST['new-tag-created']))) return;
+	if ( is_object($screen) && ($screen->taxonomy != $tag_group_taxonomy) && (!isset($_POST['new-tag-created']))) return;
 	
 	$tg_update_edit_term_group_called++;
 	
@@ -272,7 +284,7 @@ function tg_expand_quick_edit_link($actions, $tag) {
 
 	$tag_group_taxonomy = get_option( 'tag_group_taxonomy', 'post_tag' );
 	
-	if ( $screen->taxonomy != $tag_group_taxonomy ) return $actions;
+	if ( is_object($screen) && ( $screen->taxonomy != $tag_group_taxonomy ) ) return $actions;
  
 	$tag_group_ids = get_option( 'tag_group_ids', array() );
 
@@ -416,7 +428,7 @@ function tg_init() {
 
 	$number_of_tag_groups = count($tag_group_labels) - 1;
 
-	if ((!isset($tag_group_labels)) || ($tag_group_labels[0] == '')) {
+	if ((!isset($tag_group_labels)) || (!isset($tag_group_labels[0])) || ($tag_group_labels[0] == '')) {
 
 		$tag_group_labels[0] = 'not assigned';
 
@@ -540,6 +552,10 @@ function tg_group_administration() {
 			$number_of_tag_groups = count($tag_group_labels) - 1;	
 
 		endif;
+	
+	} else {
+	
+		$label = '';
 	
 	}
 	
@@ -731,6 +747,8 @@ function tg_settings_page() {
 	
 	$tag_group_taxonomy = get_option( 'tag_group_taxonomy', 'post_tag' );
 
+	$tag_group_shortcode_widget = get_option( 'tag_group_shortcode_widget' );
+
 	$number_of_tag_groups = count($tag_group_labels) - 1;
 
 	if ($max_tag_group_id < 0) $max_tag_group_id = 0;
@@ -773,13 +791,36 @@ function tg_settings_page() {
 	
 	switch ($action) {
 	
+	case 'widget':
+	
+		if ( !isset($_POST['tag-groups-widget-nonce']) || ! wp_verify_nonce($_POST['tag-groups-widget-nonce'], 'tag-groups-widget') ) die("Security check");
+
+		if ( isset($_POST['widget']) && ($_POST['widget'] == '1') ) {
+		
+			update_option( 'tag_group_shortcode_widget', 1 );
+		
+		} else {
+		
+			update_option( 'tag_group_shortcode_widget', 0 );
+		
+		}
+		
+		?>
+		<div class="updated fade"><p>
+			<?php _e('Settings saved.', 'tag-groups'); ?>
+		</p></div><br clear="all" />
+		<input class='button-primary' type='button' name='ok' value='<?php _e('OK'); ?>' id='ok' onclick="location.href='edit.php?page=tag-groups-settings&active-tab=3'"/>
+		<?php
+		
+	break;
+	
 	case 'reset':
 
 		if ( !isset($_POST['tag-groups-reset-nonce']) || ! wp_verify_nonce($_POST['tag-groups-reset-nonce'], 'tag-groups-reset') ) die("Security check");
 
- 		unset($tag_group_labels);
+ 		$tag_group_labels = array();
 
- 		unset($tag_group_ids);
+ 		$tag_group_ids = array();
 
  		$max_tag_group_id = 0;
 
@@ -822,9 +863,9 @@ function tg_settings_page() {
 
 		update_option( 'tag_group_theme', $theme );
 		
-		$mouseover = ($_POST['mouseover'] && $_POST['mouseover'] == '1') ? true : false;
+		$mouseover = (isset($_POST['mouseover']) && $_POST['mouseover'] == '1') ? true : false;
 
-		$collapsible = ($_POST['collapsible'] && $_POST['collapsible'] == '1') ? true : false;
+		$collapsible = (isset($_POST['collapsible']) && $_POST['collapsible'] == '1') ? true : false;
 		
 		update_option( 'tag_group_mouseover', $mouseover );
 
@@ -834,7 +875,7 @@ function tg_settings_page() {
 		
 		update_option( 'tag_group_enqueue_jquery', $tag_group_enqueue_jquery );
 		
-		tg_clear_cache;
+		tg_clear_cache();
 
 		?> <div class="updated fade"><p>
 		<?php _e('Your tag cloud theme settings have been saved.', 'tag-groups' ); ?>
@@ -858,10 +899,10 @@ function tg_settings_page() {
 
 		update_option( 'tag_group_taxonomy', $taxonomy );
 				
-		tg_clear_cache;
+		tg_clear_cache();
 
 		?> <div class="updated fade"><p>
-		<?php _e('Your tag cloud taxonomy settings have been saved.', 'tag-groups' ); ?>
+		<?php _e('Your tag taxonomy settings have been saved.', 'tag-groups' ); ?>
 		</p></div><br clear="all" />
 		<input class='button-primary' type='button' name='ok' value='<?php _e('OK'); ?>' id='ok' onclick="location.href='edit.php?page=tag-groups-settings&active-tab=0'"/>
 		<?php
@@ -943,7 +984,7 @@ function tg_settings_page() {
 			</table>
 	
 			<input type="hidden" id="action" name="action" value="theme">
-			<input class='button-primary' type='submit' name='Save' value='<?php _e('Save Theme Options', 'tag-groups'); ?>' id='submitbutton' />
+			<input class='button-primary' type='submit' name='save' value='<?php _e('Save Theme Options', 'tag-groups'); ?>' id='submitbutton' />
 			</form>
 		<?php endif; ?>
 
@@ -961,6 +1002,17 @@ function tg_settings_page() {
 		
 		<?php if ( $active_tab == 3 ): ?>
 			<p><?php _e('You can use a shortcode to embed the tag cloud directly in a post, page or widget or you call the function in the PHP code of your theme.') ?></p>
+			<form method="POST" action="<?php echo $_SERVER['REQUEST_URI']; ?>">
+			<input type="hidden" name="tag-groups-widget-nonce" id="tag-groups-widget-nonce" value="<?php echo wp_create_nonce('tag-groups-widget') ?>" />
+			<ul>
+				<li><input type="checkbox" name="widget" value="1" <?php if ($tag_group_shortcode_widget) echo 'checked'; ?> >&nbsp;<?php _e('Enable shortcode in sidebar widgets (if not visible anyway).', 'tag-groups' ) ?></li>
+			</ul>
+			<input type="hidden" id="action" name="action" value="widget">
+			<input class='button-primary' type='submit' name='save' value='<?php _e('Save', 'tag-groups' ); ?>' id='submitbutton' />
+			</form>
+
+			<p>&nbsp;</p>
+			<h3><?php _e('Further Instructions') ?></h3>
 			<h4>a) <?php _e('Shortcode') ?></h4>
 			<p>[tag_groups_cloud]</p>
 			<p><b><?php _e('Parameters', 'tag-groups') ?>:</b> (example: [tag_groups_cloud smallest=9 largest=30 include=1,2,10]
@@ -998,7 +1050,7 @@ function tg_settings_page() {
 
 		<?php if ( $active_tab == 5 ): ?>
 			<h4>Tag Groups, Version: <?php echo TAG_GROUPS_VERSION ?></h4>
-			<p>If you find a bug or have a question, please visit the official <a href="http://wordpress.org/support/plugin/tag-groups" target="_blank">support forum</a>. There is also a <a href="http://www.christoph-amthor.de/plugins/tag-groups/" target="_blank">dedicated page</a> with more examples and instructions for particular applications.</p>
+			<p>If you find a bug or have a question, please visit the official <a href="http://wordpress.org/support/plugin/tag-groups" target="_blank">support forum</a>. There is also a <a href="http://www.christoph-amthor.de/software/tag-groups/" target="_blank">dedicated page</a> with more examples and instructions for particular applications.</p>
 			<h2>Donations</h2>
 			<p>Support the author with a microdonation <a href="http://flattr.com/thing/721303/Tag-Groups-plugin" target="_blank">
 	<img src="<?php echo plugins_url('images/flattr-badge-large.png', __FILE__) ?>" alt="Flattr this" title="Support through micro-donation" border="0" /></a>, or support his work by a nice link to one of these websites:
@@ -1007,6 +1059,7 @@ function tg_settings_page() {
 	<li><a href="http://www.ecoburma.com" target="_blank">www.ecoburma.com</a></li>
 	<li><a href="http://www.weirdthingsinprague.com" target="_blank">www.weirdthingsinprague.com</a></li>
 	<li><a href="http://www.discounts-for-nonprofits.com" target="_blank">www.discounts-for-nonprofits.com</a></li>
+	<li><a href="http://digitalmyanmar.net" target="_blank">digitalmyanmar.net</a></li>
 </ul>
 	Thanks!</p>
 		<?php endif; ?>
@@ -1280,9 +1333,9 @@ function tg_custom_js() {
 	jquery needs some script in the html for the tabs to work - opportunity to facilitate some options
 */
 
-	if ( get_option( 'tag_group_mouseover', '' ) ) $mouseover = 'event: "mouseover"';
+	if ( get_option( 'tag_group_mouseover', '' ) ) $mouseover = 'event: "mouseover"'; else $mouseover = '';
 
-	if ( get_option( 'tag_group_collapsible', '' ) ) $collapsible = 'collapsible: true';
+	if ( get_option( 'tag_group_collapsible', '' ) ) $collapsible = 'collapsible: true'; else $collapsible = '';
 
 	if ( !$mouseover && !$collapsible ) {
 
