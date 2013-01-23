@@ -4,7 +4,7 @@ Donate link: https://flattr.com/thing/721303/Tag-Groups-plugin
 Tags: tag, tags, term_group, tag cloud, tag-cloud, WPML, category, categories, category cloud
 Requires at least: 2.9
 Tested up to: 3.5
-Stable tag: 0.7.2
+Stable tag: 0.8
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -45,6 +45,15 @@ Make sure you have "Use jQuery" checked on the settings page. If you use a plugi
 
 == Changelog ==
 
+= 0.8 =
+
+FEATURES
+
+* new parameters for shortcode to display a separator
+
+BUG FIXES
+
+* fixed potential problem when flushing the cache
 
 = 0.7.2 =
 

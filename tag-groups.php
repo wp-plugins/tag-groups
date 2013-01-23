@@ -4,12 +4,12 @@ Plugin Name: Tag Groups
 Plugin URI: http://www.christoph-amthor.de/software/tag-groups/
 Description: Assign tags to groups and display them in a tabbed tag cloud
 Author: Christoph Amthor
-Version: 0.7.2
+Version: 0.8
 Author URI: http://www.christoph-amthor.de
 License: GNU GENERAL PUBLIC LICENSE, Version 3
 */
 
-define("TAG_GROUPS_VERSION", "0.7.2");
+define("TAG_GROUPS_VERSION", "0.8");
 
 define("TAG_GROUPS_BUILT_IN_THEMES", "ui-gray,ui-lightness,ui-darkness");
 
@@ -1028,11 +1028,15 @@ function tg_settings_page() {
 			<li><b>div_class=abc</b> Define a class for the enclosing '.htmlentities('<div>').'. Default: tag-groups-cloud-tabs</li>
 			<li><b>ul_class=abc</b> Define a class for the '.htmlentities('<ul>').' that generates the tabs with the group labels. Default: empty</li>
 			<li><b>show_tabs=1 or =0</b> Whether to show the tabs. Default: 1</li>
+			<li><b>separator="•"</b> A separator between the tags. Default: empty</li>
+			<li><b>separator_size=12</b> The size of the separator. Default: 12</li>
+			<li><b>adjust_separator_size=1 or =0</b> Whether to adjust the separator\'s size to the size of the following tag. Default: 0</li>
 			</ul>', 'tag-groups') ?></p>
 			<h4>b) PHP</h4>
 			<p><?php _e('By default the function <b>tag_groups_cloud</b> returns the html for a tabbed tag cloud.', 'tag-groups') ?></p>
 			<p><?php _e('Example: ', 'tag-groups'); echo htmlentities("<?php if ( function_exists( 'tag_groups_cloud' ) ) echo tag_groups_cloud( array( 'include' => '1,2,5,6' ) ); ?>") ?></p>
-			<p><?php _e('If the optional second parameter is set to \'true\', the function will return a multidimensional array containing tag groups and tags. Example: ', 'tag-groups'); echo htmlentities("<?php if ( function_exists( 'tag_groups_cloud' ) ) print_r( tag_groups_cloud( array( 'orderby' => 'count', 'order' => 'DESC' ), true ) ); ?>") ?></p>
+			<p><?php _e('If the optional second parameter is set to \'true\', the function returns a multidimensional array containing tag groups and tags.', 'tag-groups'); ?></p>
+			<p><?php _e('Example: ', 'tag-groups'); echo htmlentities("<?php if ( function_exists( 'tag_groups_cloud' ) ) print_r( tag_groups_cloud( array( 'orderby' => 'count', 'order' => 'DESC' ), true ) ); ?>") ?></p>
 		<?php endif; ?>
 
 
@@ -1096,7 +1100,10 @@ function tag_groups_cloud( $atts = array(), $return_array = false ) {
 		'ul_class' => '',
 		'show_tabs' => '1',
 		'orderby' => 'name',
-		'order' => 'ASC'
+		'order' => 'ASC',
+		'separator' => '',
+		'separator_size' => 12,
+		'adjust_separator_size' => false
 		), $atts ) );
 
 	if ($smallest < 1) $smallest = 1;
@@ -1105,11 +1112,7 @@ function tag_groups_cloud( $atts = array(), $return_array = false ) {
 	
 	if ($amount < 1) $amount = 1;
 	
-	if ($include != '') {
-
-		$include_groups = explode(',', $include);
-	
-	}
+	if ($include != '') $include_groups = explode(',', $include);
 
 	$posttags = get_terms($tag_group_taxonomy, array('hide_empty' => $hide_empty, 'orderby' => $orderby, 'order' => $order));
 
@@ -1119,6 +1122,7 @@ function tag_groups_cloud( $atts = array(), $return_array = false ) {
 
 	$ul_class_output = ($ul_class) ? ' class="'.$ul_class.'"' : '';
 
+	if ($separator_size < 1) $separator_size = 12; else $separator_size = (int) $separator_size;
 
 	if ($return_array) {
 	
@@ -1262,7 +1266,13 @@ function tag_groups_cloud( $atts = array(), $return_array = false ) {
 	
 								$tag_link = get_term_link($tag->slug, $tag_group_taxonomy);
 								
-								$html .= '<a href="'.$tag_link.'" title="'.htmlentities($tag->description).' ('.$tag->count.')"  class="'.$tag->slug.'"><span style="font-size:'.tg_font_size($tag->count,$min,$max,$smallest,$largest).'px">'.$tag->name.'</span></a>&nbsp; ';
+								$font_size = tg_font_size($tag->count,$min,$max,$smallest,$largest);
+								
+								$font_size_tag = $adjust_separator_size ? $font_size : $separator_size;
+								
+								if ($count_amount > 0) $html .= '<span style="font-size:'. $font_size_tag .'px">'.$separator.'</span> ';
+								
+								$html .= '<a href="'.$tag_link.'" title="'.htmlentities($tag->description).' ('.$tag->count.')"  class="'.$tag->slug.'"><span style="font-size:'.$font_size.'px">'.$tag->name.'</span></a>&nbsp; ';
 								
 								$count_amount++;
 							
@@ -1462,19 +1472,11 @@ function tg_clear_cache()  {
 	Good idea to purge the cache after changing theme options - else your visitors won't see the change for a while. Currently implemented for W3T Total Cache and WP Super Cache.
 */
 
-	if (function_exists('w3tc_pgcache_flush')) {
+	if (function_exists('flush_pgcache')) flush_pgcache;
 
-		$plugin_totalcacheadmin->flush_pgcache();
-		
-		$plugin_totalcacheadmin->flush_minify();
+	if (function_exists('flush_minify')) flush_minify;
 
-	} 
-
-	if (function_exists('wp_cache_clear_cache')) {
-
-		wp_cache_clear_cache();
-
-	} 
+	if (function_exists('wp_cache_clear_cache')) wp_cache_clear_cache();
 
 }
 
