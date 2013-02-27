@@ -4,12 +4,12 @@ Plugin Name: Tag Groups
 Plugin URI: http://www.christoph-amthor.de/software/tag-groups/
 Description: Assign tags to groups and display them in a tabbed tag cloud
 Author: Christoph Amthor
-Version: 0.8
+Version: 0.8.1
 Author URI: http://www.christoph-amthor.de
 License: GNU GENERAL PUBLIC LICENSE, Version 3
 */
 
-define("TAG_GROUPS_VERSION", "0.8");
+define("TAG_GROUPS_VERSION", "0.8.1");
 
 define("TAG_GROUPS_BUILT_IN_THEMES", "ui-gray,ui-lightness,ui-darkness");
 
@@ -197,9 +197,11 @@ function tg_update_edit_term_group($term_id) {
 
 	global $tg_update_edit_term_group_called;
 
-	if ($tg_update_edit_term_group_called > 0) return;
+	if ( $tg_update_edit_term_group_called > 0 ) return;
 	
 	$screen = get_current_screen();
+
+	if ( !isset($_POST['term-group']) && !isset($_POST['term-group-option']) ) return;
 	
 	$tag_group_taxonomy = get_option( 'tag_group_taxonomy', 'post_tag' );
 
@@ -207,10 +209,10 @@ function tg_update_edit_term_group($term_id) {
 	
 	$tg_update_edit_term_group_called++;
 	
-	if (current_user_can('edit_posts')) {
+	if ( current_user_can('edit_posts') ) {
 
 		$term_id = (int) $term_id;
-		
+
 		$term = array();
 		
 
