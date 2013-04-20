@@ -4,7 +4,7 @@ Donate link: https://flattr.com/thing/721303/Tag-Groups-plugin
 Tags: tag, tags, term_group, tag cloud, tag-cloud, WPML, category, categories, category cloud
 Requires at least: 3.1
 Tested up to: 3.6
-Stable tag: 0.8.2
+Stable tag: 0.8.2.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -45,12 +45,16 @@ Make sure you have "Use jQuery" checked on the settings page. If you use a plugi
 
 == Changelog ==
 
-= 0.8.2 =
+= 0.8.2.1 =
 
 BUG FIXES
 
 * theme images lost during plugin evolution
 * fixed css of jquery-ui
+
+= 0.8.2 =
+
+* svn missed files, new version is 0.8.2.1
 
 = 0.8.1 =
 
