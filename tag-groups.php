@@ -4,12 +4,12 @@ Plugin Name: Tag Groups
 Plugin URI: http://www.christoph-amthor.de/software/tag-groups/
 Description: Assign tags to groups and display them in a tabbed tag cloud
 Author: Christoph Amthor
-Version: 0.8.1
+Version: 0.8.2
 Author URI: http://www.christoph-amthor.de
 License: GNU GENERAL PUBLIC LICENSE, Version 3
 */
 
-define("TAG_GROUPS_VERSION", "0.8.1");
+define("TAG_GROUPS_VERSION", "0.8.2");
 
 define("TAG_GROUPS_BUILT_IN_THEMES", "ui-gray,ui-lightness,ui-darkness");
 
@@ -128,17 +128,46 @@ function tg_add_js_css() {
 	
 	if (in_array($theme, $default_themes)) {
 
-		wp_register_style( 'tag-groups-css-frontend', plugins_url('css/'.$theme.'/jquery-ui-1.8.21.custom.css', __FILE__) );
-
+		wp_register_style( 'tag-groups-css-frontend-theme-1', plugins_url('css/'.$theme.'/jquery.ui.theme.css', __FILE__) );
 		
-	} else {
+		wp_register_style( 'tag-groups-css-frontend-theme-2', plugins_url('css/'.$theme.'/jquery-ui.min.css', __FILE__) );
 
-		wp_register_style( 'tag-groups-css-frontend', get_bloginfo('wpurl').'/wp-content/uploads/'.$theme.'/jquery-ui-1.8.21.custom.css' );
+	} else {
 	
+		if ( file_exists( WP_CONTENT_DIR.'/uploads/'.$theme.'/jquery-ui.min.css' ) ) {
+		
+			wp_register_style( 'tag-groups-css-frontend-theme-2', get_bloginfo('wpurl').'/wp-content/uploads/'.$theme.'/jquery-ui.min.css' );
+			
+		} else {
+		
+			wp_register_style( 'tag-groups-css-frontend-theme-2', plugins_url('css/jquery-ui.default.min.css', __FILE__) );
+		
+		}
+
+		$dh  = @opendir(WP_CONTENT_DIR.'/uploads/'.$theme);
+		
+		if ($dh) {
+		
+			while (false !== ($filename = readdir($dh))) {
+
+			    if (preg_match("/jquery(-ui-\d+\.\d+\.\d+\.custom\.(min\.)?)|(\.ui\.theme\.)css/i", $filename) ) {
+		    
+		    		wp_register_style( 'tag-groups-css-frontend-theme-1', get_bloginfo('wpurl').'/wp-content/uploads/'.$theme.'/'.$filename );
+		    	
+		    		break;
+		    
+		    	}
+		    
+		    }
+		
+		}
+
 	}
 
-	wp_enqueue_style( 'tag-groups-css-frontend' );
+	wp_enqueue_style( 'tag-groups-css-frontend-theme-1' );
 
+	wp_enqueue_style( 'tag-groups-css-frontend-theme-2' );
+	
 }
 
 
@@ -956,7 +985,7 @@ function tg_settings_page() {
 		<?php if ( $active_tab == 1 ): ?>
 			<form method="POST" action="<?php echo $_SERVER['REQUEST_URI']; ?>">
 			<input type="hidden" name="tag-groups-settings-nonce" id="tag-groups-settings-nonce" value="<?php echo wp_create_nonce('tag-groups-settings') ?>" />
-			<p><?php _e('Here you can choose a theme for the tag cloud. The path is relative to the <i>uploads</i> folder of your Wordpress installation. Leave empty if you don\'t use any.</p><p>New themes can be created with the <a href="http://jqueryui.com/themeroller/" target="_blank">jQuery UI ThemeRoller</a>. Make sure that before download you open the "Advanced Theme Settings" and enter as "CSS Scope" <b>.tag-groups-cloud-tabs</b> (including the dot) and as "Theme Folder Name" the name that you wish to enter below (for example "my-theme" - avoid spaces and exotic characters). Then you unpack the downloaded zip file and open the css folder. Inside it you will find a folder with the chosen Theme Folder Name - copy it to your <i>uploads</i> folder and enter its name below.', 'tag-groups') ?></p>
+			<p><?php _e('Here you can choose a theme for the tag cloud. The path is relative to the <i>uploads</i> folder of your Wordpress installation. Leave empty if you don\'t use any.</p><p>New themes can be created with the <a href="http://jqueryui.com/themeroller/" target="_blank">jQuery UI ThemeRoller</a>. You will need the components "Core", "Widget" and "Tabs". Make sure that before download you enter as "CSS Scope" <b>.tag-groups-cloud-tabs</b> (including the dot) and as "Theme Folder Name" the name that you wish to enter below (for example "my-theme" - avoid spaces and exotic characters). Then you unpack the downloaded zip file and open the css folder. Inside it you will find a folder with the chosen Theme Folder Name - copy this folder to your <i>wp-content/uploads</i> folder and enter its name below.', 'tag-groups') ?></p>
 	
 			<table>
 			<tr>
