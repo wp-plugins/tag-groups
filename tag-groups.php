@@ -4,12 +4,12 @@ Plugin Name: Tag Groups
 Plugin URI: http://www.christoph-amthor.de/software/tag-groups/
 Description: Assign tags to groups and display them in a tabbed tag cloud
 Author: Christoph Amthor
-Version: 0.9
+Version: 0.9.1
 Author URI: http://www.christoph-amthor.de
 License: GNU GENERAL PUBLIC LICENSE, Version 3
 */
 
-define("TAG_GROUPS_VERSION", "0.9");
+define("TAG_GROUPS_VERSION", "0.9.1");
 
 define("TAG_GROUPS_BUILT_IN_THEMES", "ui-gray,ui-lightness,ui-darkness");
 
@@ -684,7 +684,7 @@ function tg_group_administration() {
 		update_option( 'max_tag_group_id', $max_tag_group_id ); ?>
 		
 		<div class="updated fade"><p>
-			<?php printf(__('A tag group with the id %i and the label \'%s\' has been deleted.', 'tag-groups'), $id, $label); ?>
+			<?php printf(__('A tag group with the id %s and the label \'%s\' has been deleted.', 'tag-groups'), $id, $label); ?>
 		</p></div><br clear="all" />
 		<input class='button-primary' type='button' name='ok' value='<?php _e('OK'); ?>' id='ok' onclick="location.href='edit.php?page=tag-groups'"/>
 	<?php break;
@@ -1570,7 +1570,7 @@ function tg_add_filter(){
 	
 	if ( !$show_filter ) return;
 
-	$tg_type = get_option( 'tag_group_taxonomy', 'post' );
+	$tg_type = get_option( 'tag_group_taxonomy', 'post_tag' );
 	
     $type = ( isset( $_GET['post_type'] ) ) ? $_GET['post_type'] : 'post';
 
@@ -1625,7 +1625,7 @@ function tg_apply_filter( $query ) {
 	
 	if ( !$show_filter ) return;
 	
-	$tg_type = get_option( 'tag_group_taxonomy', 'post' );
+	$tg_type = get_option( 'tag_group_taxonomy', 'post_tag' );
 	
 	$tg_prefix = ($tg_type == 'post_tag') ? 'tag' : $tg_type;
 
