@@ -4,12 +4,12 @@ Plugin Name: Tag Groups
 Plugin URI: http://www.christoph-amthor.de/software/tag-groups/
 Description: Assign tags to groups and display them in a tabbed tag cloud
 Author: Christoph Amthor
-Version: 0.8.2.1
+Version: 0.9
 Author URI: http://www.christoph-amthor.de
 License: GNU GENERAL PUBLIC LICENSE, Version 3
 */
 
-define("TAG_GROUPS_VERSION", "0.8.2.1");
+define("TAG_GROUPS_VERSION", "0.9");
 
 define("TAG_GROUPS_BUILT_IN_THEMES", "ui-gray,ui-lightness,ui-darkness");
 
@@ -71,6 +71,10 @@ function tg_register_settings() {
 	add_action('admin_footer', 'tg_quick_edit_javascript');
 
 	add_filter('tag_row_actions', 'tg_expand_quick_edit_link', 10, 2);
+	
+	add_action( 'restrict_manage_posts', 'tg_add_filter' );
+
+	add_filter( 'parse_query', 'tg_apply_filter' );
 
 	tg_init();
 
@@ -128,9 +132,9 @@ function tg_add_js_css() {
 	
 	if (in_array($theme, $default_themes)) {
 
-		wp_register_style( 'tag-groups-css-frontend-theme-1', plugins_url('css/'.$theme.'/jquery.ui.theme.css', __FILE__) );
+		wp_register_style( 'tag-groups-css-frontend-theme-1', plugins_url('css/'.$theme.'/jquery-ui-1.10.2.custom.min.css', __FILE__) );
 		
-		wp_register_style( 'tag-groups-css-frontend-theme-2', plugins_url('css/'.$theme.'/jquery-ui.min.css', __FILE__) );
+		wp_register_style( 'tag-groups-css-frontend-theme-2', plugins_url('css/jquery-ui.default.min.css', __FILE__) );
 
 	} else {
 	
@@ -150,8 +154,7 @@ function tg_add_js_css() {
 		
 			while (false !== ($filename = readdir($dh))) {
 
-			    if (preg_match("/jquery(-ui-\d+\.\d+\.\d+\.custom\.(min\.)?)|(\.ui\.theme\.)css/i", $filename) ) {
-		    
+			    if (preg_match("/jquery-ui-\d+\.\d+\.\d+\.custom\.(min\.)?css/i", $filename) ) {
 		    		wp_register_style( 'tag-groups-css-frontend-theme-1', get_bloginfo('wpurl').'/wp-content/uploads/'.$theme.'/'.$filename );
 		    	
 		    		break;
@@ -176,7 +179,7 @@ function tg_register_tag_label_page() {
 	adds the submenus to the admin backend
 */
 
-	add_submenu_page( 'edit.php', 'Tag Groups', 'Tag Groups', 'manage_options', 'tag-groups', 'tg_group_administration' );
+	add_submenu_page( 'edit.php', 'Tag Groups', 'Tag Groups', 'edit_pages', 'tag-groups', 'tg_group_administration' );
 
 	add_submenu_page( 'edit.php', 'Tag Groups Settings', 'Tag Groups Settings', 'manage_options', 'tag-groups-settings', 'tg_settings_page');
 
@@ -750,7 +753,10 @@ function tg_group_administration() {
 		</table>
 	</div>
 	
-	<p><a href="edit.php?page=tag-groups-settings"><?php _e('Go to the settings.' , 'tag-groups') ?></a></p>
+	<?php if ( current_user_can('manage_options') ) :	?>
+		<p><a href="edit.php?page=tag-groups-settings"><?php _e('Go to the settings.' , 'tag-groups') ?></a></p>
+	<?php endif;	?>
+	
 	<?php }	?>
 	
 	<?php
@@ -781,6 +787,9 @@ function tg_settings_page() {
 	$tag_group_shortcode_widget = get_option( 'tag_group_shortcode_widget' );
 
 	$number_of_tag_groups = count($tag_group_labels) - 1;
+	
+	$show_filter = get_option( 'tag_group_show_filter', true );
+
 
 	if ($max_tag_group_id < 0) $max_tag_group_id = 0;
 	
@@ -939,11 +948,27 @@ function tg_settings_page() {
 		<?php
 		
 	break;
+
+	case 'backend':
+
+		if ( !isset($_POST['tag-groups-backend-nonce']) || !wp_verify_nonce($_POST['tag-groups-backend-nonce'], 'tag-groups-backend') ) die("Security check");
 	
+		$show_filter = isset($_POST['filter']) ? 1 : 0;
+
+		update_option( 'tag_group_show_filter', $show_filter );
+				
+		?> <div class="updated fade"><p>
+		<?php _e('Your back end settings have been saved.', 'tag-groups' ); ?>
+		</p></div><br clear="all" />
+		<input class='button-primary' type='button' name='ok' value='<?php _e('OK'); ?>' id='ok' onclick="location.href='edit.php?page=tag-groups-settings&active-tab=0'"/>
+		<?php
+		
+	break;
+
 	default:		
 		?>
 		<h2 class="nav-tab-wrapper">
-			<a href="edit.php?page=tag-groups-settings&active-tab=0" class="nav-tab <?php if ( $active_tab == 0 ) echo 'nav-tab-active' ?>"><?php _e('Taxonomy', 'tag-groups') ?></a>
+			<a href="edit.php?page=tag-groups-settings&active-tab=0" class="nav-tab <?php if ( $active_tab == 0 ) echo 'nav-tab-active' ?>"><?php _e('Basics', 'tag-groups') ?></a>
 			<a href="edit.php?page=tag-groups-settings&active-tab=1" class="nav-tab <?php if ( $active_tab == 1 ) echo 'nav-tab-active' ?>"><?php _e('Theme', 'tag-groups') ?></a>
 			<?php if (function_exists('icl_register_string')) :?>
 				<a href="edit.php?page=tag-groups-settings&active-tab=2" class="nav-tab <?php if ( $active_tab == 2 ) echo 'nav-tab-active' ?>"><?php _e('WPML', 'tag-groups') ?></a>
@@ -957,7 +982,7 @@ function tg_settings_page() {
 		<?php if ( $active_tab == 0 ): ?>
 			<form method="POST" action="<?php echo $_SERVER['REQUEST_URI']; ?>">
 			<input type="hidden" name="tag-groups-taxonomy-nonce" id="tag-groups-taxonomy-nonce" value="<?php echo wp_create_nonce('tag-groups-taxonomy') ?>" />
-			<h3></h3>
+			<h3>Taxonomy</h3>
 			<p><?php _e('Choose the taxonomy for which you want to use tag groups. Default is <b>post_tag</b>. Please note that the tag cloud might not work with all taxonomies and that some taxonomies listed here may not be accessible in the admin backend. If you don\'t understand what is going on here, just leave the default.', 'tag-groups') ?></p>
 			<?php
 			$args=array(
@@ -971,21 +996,41 @@ function tg_settings_page() {
 		
 				<?php foreach( $taxonomies as $taxonomy ) : ?>
 		
-					<li><input type="radio" name="taxonomy" value="<?php echo $taxonomy ?>" <?php if ($tag_group_taxonomy == $taxonomy) echo 'checked'; ?> />&nbsp;<?php echo $taxonomy ?></li>
+					<li><input type="radio" name="taxonomy" id="<?php echo $taxonomy ?>" value="<?php echo $taxonomy ?>" <?php if ($tag_group_taxonomy == $taxonomy) echo 'checked'; ?> />&nbsp;<label for="<?php echo $taxonomy ?>"><?php echo $taxonomy ?></label></li>
 		
 				<?php endforeach; ?>
 		
 			</ul>
 	
-			<input type="hidden" id="action" name="action" value="taxonomy">
+			<input type="hidden" name="action" value="taxonomy">
 			<input class='button-primary' type='submit' name='Save' value='<?php _e('Save Taxonomy', 'tag-groups'); ?>' id='submitbutton' />
 			</form>
+			<p>&nbsp;</p>
+			
+			<form method="POST" action="<?php echo $_SERVER['REQUEST_URI']; ?>">
+			<input type="hidden" name="tag-groups-backend-nonce" id="tag-groups-backend-nonce" value="<?php echo wp_create_nonce('tag-groups-backend') ?>" />
+			
+			<h3>Back End Settings</h3>
+			<p><?php _e('You can add a pull-down menu to the filters above the list of posts. If you filter posts by tag groups, then only items will be shown that have tags (terms) in that particular group. This feature can be turned off so that the menu won\'t obstruct your screen if you use a high number of groups. (May not work with all custom taxonomies.)', 'tag-groups') ?></p>
+			<ul>
+				<li><input type="checkbox" id="tg_filter" name="filter" value="1" <?php if ( $show_filter ) echo 'checked'; ?> />&nbsp;<label for="tg_filter"><?php _e('Display filter menu', 'tag-groups') ?></label></li>
+			</ul>			
+			<input type="hidden" name="action" value="backend">
+			<input class='button-primary' type='submit' name='Save' value='<?php _e('Save Back End Settings', 'tag-groups'); ?>' id='submitbutton' />
+			</form>
+
 		<?php endif; ?>
 
 		<?php if ( $active_tab == 1 ): ?>
 			<form method="POST" action="<?php echo $_SERVER['REQUEST_URI']; ?>">
 			<input type="hidden" name="tag-groups-settings-nonce" id="tag-groups-settings-nonce" value="<?php echo wp_create_nonce('tag-groups-settings') ?>" />
-			<p><?php _e('Here you can choose a theme for the tag cloud. The path is relative to the <i>uploads</i> folder of your Wordpress installation. Leave empty if you don\'t use any.</p><p>New themes can be created with the <a href="http://jqueryui.com/themeroller/" target="_blank">jQuery UI ThemeRoller</a>. You will need the components "Core", "Widget" and "Tabs". Make sure that before download you enter as "CSS Scope" <b>.tag-groups-cloud-tabs</b> (including the dot) and as "Theme Folder Name" the name that you wish to enter below (for example "my-theme" - avoid spaces and exotic characters). Then you unpack the downloaded zip file and open the css folder. Inside it you will find a folder with the chosen Theme Folder Name - copy this folder to your <i>wp-content/uploads</i> folder and enter its name below.', 'tag-groups') ?></p>
+			<p><?php _e('Here you can choose a theme for the tag cloud. The path to own themes is relative to the <i>uploads</i> folder of your Wordpress installation. Leave empty if you don\'t use any.</p><p>New themes can be created with the <a href="http://jqueryui.com/themeroller/" target="_blank">jQuery UI ThemeRoller</a>:
+			<ol>
+			 <li>On the page "Theme Roller" you can customize all features or pick one set from the gallery. Finish with the "download" button.</li>
+			 <li>On the next page ("Download Builder") you will need to select the components "Core", "Widget" and "Tabs". Make sure that before download you enter at the bottom as "CSS Scope" <b>.tag-groups-cloud-tabs</b> (including the dot) and as "Theme Folder Name" the name that you wish to enter below (for example "my-theme" or the name used in the theme gallery - avoid spaces and exotic characters).</li>
+			 <li>Then you unpack the downloaded zip file and open the css folder. Inside it you will find a folder with the previously chosen "Theme Folder Name" (containing a folder "images" and files named like "jquery-ui-1.10.2.custom.(min.)css").</li>
+			 <li>Copy this folder to your <i>wp-content/uploads</i> folder and enter its name below.</li>
+			</ol>', 'tag-groups') ?></p>
 	
 			<table>
 			<tr>
@@ -994,12 +1039,12 @@ function tg_settings_page() {
 		
 				<?php foreach($default_themes as $theme) : ?>
 		
-					<li><input type="radio" name="theme" value="<?php echo $theme ?>" <?php if ($tag_group_theme == $theme) echo 'checked'; ?> />&nbsp;<?php echo $theme ?></li>
+					<li><input type="radio" name="theme" id="tg_<?php echo $theme ?>" value="<?php echo $theme ?>" <?php if ($tag_group_theme == $theme) echo 'checked'; ?> />&nbsp;<label for="tg_<?php echo $theme ?>"><?php echo $theme ?></label></li>
 		
 				<?php endforeach; ?>
 		
-				<li><input type="radio" name="theme" value="own" <?php if (!in_array($tag_group_theme, $default_themes)) echo 'checked' ?> />&nbsp;own: /wp-content/uploads/<input type="text" id="theme-name" name="theme-name" value="<?php if (!in_array($tag_group_theme, $default_themes)) echo $tag_group_theme ?>" /></li>
-				<li><input type="checkbox" name="enqueue-jquery" value="1" <?php if ($tag_group_enqueue_jquery) echo 'checked' ?> />&nbsp;<?php _e('Use jQuery.  (Default is on. Other plugins might override this setting.)', 'tag-groups' ) ?></li>
+				<li><input type="radio" name="theme" value="own" id="tg_own" <?php if (!in_array($tag_group_theme, $default_themes)) echo 'checked' ?> />&nbsp;<label for="tg_own">own: /wp-content/uploads/</label><input type="text" id="theme-name" name="theme-name" value="<?php if (!in_array($tag_group_theme, $default_themes)) echo $tag_group_theme ?>" /></li>
+				<li><input type="checkbox" name="enqueue-jquery" id="tg_enqueue-jquery" value="1" <?php if ($tag_group_enqueue_jquery) echo 'checked' ?> />&nbsp;<label for="tg_enqueue-jquery"><?php _e('Use jQuery.  (Default is on. Other plugins might override this setting.)', 'tag-groups' ) ?></label></li>
 			</ul>
 			</td>
 	
@@ -1007,8 +1052,8 @@ function tg_settings_page() {
 			<h4>Further options</h4>
 			<p><?php _e('These will not work if you change the parameter div_id for the cloud.', 'tag-groups') ?></p>
 			<ul>
-				<li><input type="checkbox" name="mouseover" value="1" <?php if ($tag_group_mouseover) echo 'checked'; ?> >&nbsp;<?php _e('Tabs triggered by hovering mouse pointer (without clicking).', 'tag-groups' ) ?></li>
-				<li><input type="checkbox" name="collapsible" value="1" <?php if ($tag_group_collapsible) echo 'checked'; ?> >&nbsp;<?php _e('Collapsible tabs (toggle open/close).', 'tag-groups' ) ?></li>
+				<li><input type="checkbox" name="mouseover" id="mouseover" value="1" <?php if ($tag_group_mouseover) echo 'checked'; ?> >&nbsp;<label for="mouseover"><?php _e('Tabs triggered by hovering mouse pointer (without clicking).', 'tag-groups' ) ?></label></li>
+				<li><input type="checkbox" name="collapsible" id="collapsible" value="1" <?php if ($tag_group_collapsible) echo 'checked'; ?> >&nbsp;<label for="collapsible"><?php _e('Collapsible tabs (toggle open/close).', 'tag-groups' ) ?></label></li>
 			</ul>
 			</td>
 			</tr>
@@ -1036,7 +1081,7 @@ function tg_settings_page() {
 			<form method="POST" action="<?php echo $_SERVER['REQUEST_URI']; ?>">
 			<input type="hidden" name="tag-groups-widget-nonce" id="tag-groups-widget-nonce" value="<?php echo wp_create_nonce('tag-groups-widget') ?>" />
 			<ul>
-				<li><input type="checkbox" name="widget" value="1" <?php if ($tag_group_shortcode_widget) echo 'checked'; ?> >&nbsp;<?php _e('Enable shortcode in sidebar widgets (if not visible anyway).', 'tag-groups' ) ?></li>
+				<li><input type="checkbox" name="widget" id="tg_widget" value="1" <?php if ($tag_group_shortcode_widget) echo 'checked'; ?> >&nbsp;<label for="tg_widget"><?php _e('Enable shortcode in sidebar widgets (if not visible anyway).', 'tag-groups' ) ?></label></li>
 			</ul>
 			<input type="hidden" id="action" name="action" value="widget">
 			<input class='button-primary' type='submit' name='save' value='<?php _e('Save', 'tag-groups' ); ?>' id='submitbutton' />
@@ -1088,7 +1133,8 @@ function tg_settings_page() {
 			<p>If you find a bug or have a question, please visit the official <a href="http://wordpress.org/support/plugin/tag-groups" target="_blank">support forum</a>. There is also a <a href="http://www.christoph-amthor.de/software/tag-groups/" target="_blank">dedicated page</a> with more examples and instructions for particular applications.</p>
 			<h2>Donations</h2>
 			<p>Support the author with a microdonation <a href="http://flattr.com/thing/721303/Tag-Groups-plugin" target="_blank">
-	<img src="<?php echo plugins_url('images/flattr-badge-large.png', __FILE__) ?>" alt="Flattr this" title="Support through micro-donation" border="0" /></a>, or support his work by a nice link to one of these websites:
+	<img src="<?php echo plugins_url('images/flattr-badge-large.png', __FILE__) ?>" alt="Flattr this" title="Support through micro-donation" border="0" /></a> or <a href="http://www.burma-center.org/donate/" target="_blank">donate to his favourite charity</a>.</p>
+	<p>Or support his work by a nice link to one of these websites:
 <ul>
 	<li><a href="http://www.burma-center.org" target="_blank">www.burma-center.org</a></li>
 	<li><a href="http://www.ecoburma.com" target="_blank">www.ecoburma.com</a></li>
@@ -1415,9 +1461,9 @@ function post_in_tag_group($post_id, $tag_group_id) {
 
 	$tag_group_taxonomy = get_option( 'tag_group_taxonomy', 'post_tag' );
 
-	$tags = get_the_tags($post_id, $tag_group_taxonomy);
+	$tags = get_the_tags( $post_id, $tag_group_taxonomy );
 	
-	if($tags) {
+	if ( $tags ) {
 
 		foreach( $tags as $tag ) {
 
@@ -1508,6 +1554,128 @@ function tg_clear_cache()  {
 	if (function_exists('flush_minify')) flush_minify;
 
 	if (function_exists('wp_cache_clear_cache')) wp_cache_clear_cache();
+
+}
+
+
+function tg_add_filter(){
+/*
+	Adds a pull-down menu to the filters above the posts.
+
+	Based on the code by Ohad Raz, http://wordpress.stackexchange.com/q/45436/2487
+	License: Creative Commons Share Alike
+*/
+
+	$show_filter = get_option( 'tag_group_show_filter', true );
+	
+	if ( !$show_filter ) return;
+
+	$tg_type = get_option( 'tag_group_taxonomy', 'post' );
+	
+    $type = ( isset( $_GET['post_type'] ) ) ? $_GET['post_type'] : 'post';
+
+    if ( in_array( $tg_type, get_object_taxonomies( $type ) ) ) {
+    
+    	$tag_group_labels = get_option( 'tag_group_labels', array() );
+
+		$tag_group_ids = get_option( 'tag_group_ids', array() );
+
+        $values = array();
+        
+        $number_of_tag_groups = count($tag_group_labels) - 1;
+        
+        $values[0] = __('not assigned', 'tag-groups');
+        
+        for ($i = 1; $i <= $number_of_tag_groups; $i++) {
+        
+        	$values[$tag_group_ids[$i]] = $tag_group_labels[$i];
+        	
+        }
+        ?>
+        <select name="tg_filter_value">
+        <option value=""><?php _e('Filter by tag group ', 'tag-groups'); ?></option>
+        <?php
+        
+            $current_v = isset( $_GET['tg_filter_value'] ) ? $_GET['tg_filter_value'] : '';
+            
+            foreach ( $values as $value => $label ) {
+            
+                printf( '<option value="%s"%s>%s</option>', $value, ( $current_v != '' && $value == $current_v ) ? ' selected="selected"' : '', $label );
+                }
+        ?>
+        </select>
+        <?php
+    }
+}
+
+
+function tg_apply_filter( $query ) {
+/*
+	Applies the filter, if used.
+
+	Based on the code by Ohad Raz, http://wordpress.stackexchange.com/q/45436/2487
+	License: Creative Commons Share Alike
+*/
+
+    global $pagenow;
+    
+    $filter_terms = array();
+    
+    $show_filter = get_option( 'tag_group_show_filter', true );
+	
+	if ( !$show_filter ) return;
+	
+	$tg_type = get_option( 'tag_group_taxonomy', 'post' );
+	
+	$tg_prefix = ($tg_type == 'post_tag') ? 'tag' : $tg_type;
+
+    $type = ( isset( $_GET['post_type'] ) ) ? $_GET['post_type'] : 'post';
+    
+    if ( in_array( $tg_type, get_object_taxonomies( $type ) ) && is_admin() && $pagenow == 'edit.php' && isset( $_GET['tg_filter_value']) && $_GET['tg_filter_value'] != '' ) {
+    
+		$terms = get_terms( $tg_type );
+		
+		$tag_group_ids = get_option( 'tag_group_ids', array() );
+		
+		$tg_selected = (int) $_GET['tg_filter_value'];
+
+		if ( $terms ) {
+		
+	    	if ( $tg_selected == '0' ) {
+    	
+    			foreach( $terms as $term ) {
+
+    				if ( $term->term_group != 0 && in_array( $term->term_group, $tag_group_ids ) ) {
+    				
+    					$filter_terms[] = $term->term_id;
+    					
+    				}
+    			
+    			}
+    			
+    			$query->query_vars[$tg_prefix.'__not_in'] = $filter_terms;
+    	
+    		} else {
+
+    			$filter_terms[] = 0;
+    
+				foreach( $terms as $term ) {
+
+					if ( $term->term_group == $tg_selected ) {
+			
+						$filter_terms[] = $term->term_id;
+			
+					}
+					
+				}
+				
+				$query->query_vars[$tg_prefix.'__in'] = $filter_terms;
+			
+			}
+			
+		}
+		
+    }
 
 }
 
