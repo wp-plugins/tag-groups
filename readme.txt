@@ -4,7 +4,7 @@ Donate link: https://flattr.com/thing/721303/Tag-Groups-plugin
 Tags: tag, tags, term_group, tag cloud, tag-cloud, WPML, category, categories, category cloud
 Requires at least: 3.1
 Tested up to: 3.6
-Stable tag: 0.9.1
+Stable tag: 0.10
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -44,6 +44,18 @@ Make sure you have "Use jQuery" checked on the settings page. If you use a plugi
 3. Tag cloud (custom theme)
 
 == Changelog ==
+
+
+= 0.10 =
+
+FEATURES
+
+* added two parameters for shortcode and function to filter tags or groups depending on the tags of a particular post
+* added parameter to optionally hide empty tabs
+
+BUG FIXES
+
+* updated uninstall routine
 
 = 0.9.1 =
 

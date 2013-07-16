@@ -4,12 +4,12 @@ Plugin Name: Tag Groups
 Plugin URI: http://www.christoph-amthor.de/software/tag-groups/
 Description: Assign tags to groups and display them in a tabbed tag cloud
 Author: Christoph Amthor
-Version: 0.9.1
+Version: 0.10
 Author URI: http://www.christoph-amthor.de
 License: GNU GENERAL PUBLIC LICENSE, Version 3
 */
 
-define("TAG_GROUPS_VERSION", "0.9.1");
+define("TAG_GROUPS_VERSION", "0.10");
 
 define("TAG_GROUPS_BUILT_IN_THEMES", "ui-gray,ui-lightness,ui-darkness");
 
@@ -670,9 +670,13 @@ function tg_group_administration() {
 		tg_unregister_string_wpml('Group Label ID '.$id);
 
 		$max = 0;
+		
 		foreach($tag_group_ids as $check_id) {	
+		
 			if ($check_id > $max) $max = $check_id;
+			
 		}
+		
 		$max_tag_group_id = $max;
 
 		tg_unassign($tag_groups_id);
@@ -1091,23 +1095,35 @@ function tg_settings_page() {
 			<h3><?php _e('Further Instructions') ?></h3>
 			<h4>a) <?php _e('Shortcode') ?></h4>
 			<p>[tag_groups_cloud]</p>
-			<p><b><?php _e('Parameters', 'tag-groups') ?>:</b> (example: [tag_groups_cloud smallest=9 largest=30 include=1,2,10]
+			<p><b><?php _e('Parameters', 'tag-groups') ?></b><br /><?php _e('example', 'tag-groups') ?>: [tag_groups_cloud smallest=9 largest=30 include=1,2,10]
 			<?php _e('<ul>
+			<li>&nbsp;</li>
+			<li><b>Tags or Terms:</b></li>
 			<li><b>smallest=x</b> Font-size in pt of the smallest tags. Default: 12</li>
 			<li><b>largest=x</b> Font-size in pt of the largest tags. Default: 22</li>
 			<li><b>orderby=abc</b> Which field to use for sorting, e.g. count. Default: name</li>
 			<li><b>order=ASC or =DESC</b> Whether to sort the tags in ascending or descending order. Default: ASC</li>
-			<li><b>amount=x</b> Maximum amount of tags in one cloud. Default: 40</li>
+			<li><b>amount=x</b> Maximum amount of tags in one cloud (per group). Default: 40</li>
 			<li><b>hide_empty=1 or =0</b> Whether to hide or show also tags that are not assigned to any post. Default: 1 (hide empty)</li>
-			<li><b>include=x,y,...</b> IDs of tag groups (left column in table above) that will be considered in the tag cloud. Empty or not used means that all tag groups will be used. Default: empty</li>
-			<li><b>div_id=abc</b> Define an id for the enclosing '.htmlentities('<div>').' Default: tag-groups-cloud-tabs</li>
-			<li><b>div_class=abc</b> Define a class for the enclosing '.htmlentities('<div>').'. Default: tag-groups-cloud-tabs</li>
-			<li><b>ul_class=abc</b> Define a class for the '.htmlentities('<ul>').' that generates the tabs with the group labels. Default: empty</li>
-			<li><b>show_tabs=1 or =0</b> Whether to show the tabs. Default: 1</li>
+			<li><b>tags_post_id=x</b> Display only tags that are assigned to the post (or page) with the ID x. If set to 0, it will try to retrieve the current post ID. Default: -1 (all tags displayed)</li>
 			<li><b>separator="•"</b> A separator between the tags. Default: empty</li>
 			<li><b>separator_size=12</b> The size of the separator. Default: 12</li>
 			<li><b>adjust_separator_size=1 or =0</b> Whether to adjust the separator\'s size to the size of the following tag. Default: 0</li>
+			
+			<li>&nbsp;</li>
+			<li><b>Groups and Tabs:</b></li>
+			<li><b>include=x,y,...</b> IDs of tag groups (left column in list of groups) that will be considered in the tag cloud. Empty or not used means that all tag groups will be used. Default: empty</li>
+			<li><b>groups_post_id=x</b> Display only groups of which at least one assigned tag is also assigned to the post (or page) with the ID x. If set to 0, it will try to retrieve the current post ID. Default: -1 (all groups displayed). Matching groups will be added to the list specified by the parameter <b>include</b>.</li>
+			<li><b>show_tabs=1 or =0</b> Whether to show the tabs. Default: 1</li>
+			<li><b>hide_empty_tabs=1 or =0</b> Whether to hide tabs without tags. Default: 0 (Not implemented for PHP function with second parameter set to \'true\'. Not effective with <b>groups_post_id</b>.)</li>
+
+			<li>&nbsp;</li>
+			<li><b>Advanced Styling:</b></li>
+			<li><b>div_id=abc</b> Define an id for the enclosing '.htmlentities('<div>').' Default: tag-groups-cloud-tabs</li>
+			<li><b>div_class=abc</b> Define a class for the enclosing '.htmlentities('<div>').'. Default: tag-groups-cloud-tabs</li>
+			<li><b>ul_class=abc</b> Define a class for the '.htmlentities('<ul>').' that generates the tabs with the group labels. Default: empty</li>
 			</ul>', 'tag-groups') ?></p>
+			<p>&nbsp;</p>
 			<h4>b) PHP</h4>
 			<p><?php _e('By default the function <b>tag_groups_cloud</b> returns the html for a tabbed tag cloud.', 'tag-groups') ?></p>
 			<p><?php _e('Example: ', 'tag-groups'); echo htmlentities("<?php if ( function_exists( 'tag_groups_cloud' ) ) echo tag_groups_cloud( array( 'include' => '1,2,5,6' ) ); ?>") ?></p>
@@ -1139,7 +1155,6 @@ function tg_settings_page() {
 	<li><a href="http://www.burma-center.org" target="_blank">www.burma-center.org</a></li>
 	<li><a href="http://www.ecoburma.com" target="_blank">www.ecoburma.com</a></li>
 	<li><a href="http://www.weirdthingsinprague.com" target="_blank">www.weirdthingsinprague.com</a></li>
-	<li><a href="http://www.discounts-for-nonprofits.com" target="_blank">www.discounts-for-nonprofits.com</a></li>
 	<li><a href="http://digitalmyanmar.net" target="_blank">digitalmyanmar.net</a></li>
 </ul>
 	Thanks!</p>
@@ -1157,6 +1172,11 @@ function tag_groups_cloud( $atts = array(), $return_array = false ) {
 /*
 	Rendering the tag cloud, usually by a shortcode, or returning a multidimensional array
 */
+	$include_array = array();
+	
+	$html_tabs = array();
+	
+	$html_tags = array();
 
 	$tag_group_labels = get_option( 'tag_group_labels', array() );
 
@@ -1180,7 +1200,10 @@ function tag_groups_cloud( $atts = array(), $return_array = false ) {
 		'order' => 'ASC',
 		'separator' => '',
 		'separator_size' => 12,
-		'adjust_separator_size' => false
+		'adjust_separator_size' => false,
+		'tags_post_id' => -1,
+		'groups_post_id' => -1,
+		'hide_empty_tabs' => false
 		), $atts ) );
 
 	if ($smallest < 1) $smallest = 1;
@@ -1188,8 +1211,6 @@ function tag_groups_cloud( $atts = array(), $return_array = false ) {
 	if ($largest < $smallest) $largest = $smallest;
 	
 	if ($amount < 1) $amount = 1;
-	
-	if ($include != '') $include_groups = explode(',', $include);
 
 	$posttags = get_terms($tag_group_taxonomy, array('hide_empty' => $hide_empty, 'orderby' => $orderby, 'order' => $order));
 
@@ -1198,20 +1219,87 @@ function tag_groups_cloud( $atts = array(), $return_array = false ) {
 	$div_class_output = ($div_class) ? ' class="'.$div_class.'"' : '';
 
 	$ul_class_output = ($ul_class) ? ' class="'.$ul_class.'"' : '';
+	
+	if ($include != '') $include_array = explode(',', $include);
 
 	if ($separator_size < 1) $separator_size = 12; else $separator_size = (int) $separator_size;
+	
+	
+	// applying parameter tags_post_id
+	
+	if ($tags_post_id < -1) $tags_post_id = -1;
+	
+	if ($tags_post_id == 0) $tags_post_id = get_the_ID();
+	
+	if ($tags_post_id) {
+	
+		// get all tags of this post
+		$post_id_terms = get_the_terms( (int) $tags_post_id, $tag_group_taxonomy );
+		
+		if ($post_id_terms) {
+
+			// clean all others from $posttags
+			foreach ( $posttags as $key => $tag ) {
+			
+				$found = false;
+					
+				foreach ( $post_id_terms as $id_tag ) {
+				
+					if ( $tag->term_id == $id_tag->term_id ) {
+					
+						$found = true;
+						
+						break;
+						
+					}
+					
+				}
+				
+				if (!$found) unset( $posttags[$key] );
+			
+			}
+		
+		}
+	
+	}
+	
+	
+	// applying parameter groups_post_id
+	
+	if ($groups_post_id < -1) $groups_post_id = -1;
+	
+	if ($groups_post_id == 0) $groups_post_id = get_the_ID();
+
+	if ($groups_post_id) {
+	
+		// get all tags of this post
+		$post_id_terms = get_the_terms( (int) $groups_post_id, $tag_group_taxonomy );
+		
+		// get all involved groups, append them to $include
+		if ($post_id_terms) {
+
+			foreach ( $post_id_terms as $term ) {
+
+				if (!in_array( $term->term_group, $include_array )) $include_array[] = $term->term_group;
+			
+			}
+		
+		}
+	
+	}
+	
 
 	if ($return_array) {
 	
-	// return as array
+	// return tags as array
 	
 		$output = array ();
 	
 		for ($i = 1; $i <= $number_of_tag_groups; $i++) {
 
-			if (($include == '') || (in_array($tag_group_ids[$i], $include_groups))) {
+			if ((!$include_array) || (in_array( $tag_group_ids[$i], $include_array ))) {
 			
-				$output[$i]['name'] = tg_translate_string_wpml('Group Label ID '.$tag_group_ids[$i], $tag_group_labels[$i]);
+				$output[$i]['name'] = tg_translate_string_wpml( 'Group Label ID '.$tag_group_ids[$i], $tag_group_labels[$i] );
 
 				$output[$i]['term_group'] = $tag_group_ids[$i];
 
@@ -1280,33 +1368,33 @@ function tag_groups_cloud( $atts = array(), $return_array = false ) {
 	
 	} else {
 
-	// return as html
+	// return as html (in shape of a tabbed cloud)
 	
 		$html = '<div'.$div_id_output.$div_class_output.'>';
 
 		if ($show_tabs == '1') {
 	
-			$html .= '<ul'.$ul_class_output.'>';
+			$html_tabs[0] = '<ul'.$ul_class_output.'>';
 		
 			for ($i = 1; $i <= $number_of_tag_groups; $i++) {
 		
-				if (($include == '') || (in_array($tag_group_ids[$i],$include_groups))) {
+				if ((!$include_array) || (in_array($tag_group_ids[$i],$include_array))) {
 		
-					$html .= '<li><a href="#tabs-'.$i.'" >'.tg_translate_string_wpml('Group Label ID '.$tag_group_ids[$i], $tag_group_labels[$i]).'</a></li>';
+					$html_tabs[$i] = '<li><a href="#tabs-'.$i.'" >'.tg_translate_string_wpml('Group Label ID '.$tag_group_ids[$i], $tag_group_labels[$i]).'</a></li>';
 		
 				}
 		
 			}
 		
-			$html .= '</ul>';
+			$html_tabs[] .= '</ul>';
 	
 		}
 	
 		for ($i = 1; $i <= $number_of_tag_groups; $i++) {
 		
-			if (($include == '') || (in_array($tag_group_ids[$i],$include_groups))) {
+			if ((!$include_array) || (in_array($tag_group_ids[$i],$include_array))) {
 			
-				$html .= '<div id="tabs-'.$i.'">';
+				$html_tags[$i] = '<div id="tabs-'.$i.'">';
 	
 					if ($posttags) {
 	
@@ -1347,9 +1435,9 @@ function tag_groups_cloud( $atts = array(), $return_array = false ) {
 								
 								$font_size_tag = $adjust_separator_size ? $font_size : $separator_size;
 								
-								if ($count_amount > 0) $html .= '<span style="font-size:'. $font_size_tag .'px">'.$separator.'</span> ';
+								if ($count_amount > 0) $html_tags[$i] .= '<span style="font-size:'. $font_size_tag .'px">'.$separator.'</span> ';
 								
-								$html .= '<a href="'.$tag_link.'" title="'.htmlentities($tag->description).' ('.$tag->count.')"  class="'.$tag->slug.'"><span style="font-size:'.$font_size.'px">'.$tag->name.'</span></a>&nbsp; ';
+								$html_tags[$i] .= '<a href="'.$tag_link.'" title="'.htmlentities($tag->description).' ('.$tag->count.')"  class="'.$tag->slug.'"><span style="font-size:'.$font_size.'px">'.$tag->name.'</span></a>&nbsp; ';
 								
 								$count_amount++;
 							
@@ -1357,10 +1445,27 @@ function tag_groups_cloud( $atts = array(), $return_array = false ) {
 						
 						}
 					
-					} 
-				$html .= '</div>';
+					}
+					
+				if ($hide_empty_tabs && !$count_amount) {
+				
+					unset($html_tabs[$i]);
+
+					unset($html_tags[$i]);
+				
+				} else {
+				
+					$html_tags[$i] .= '</div>';
+					
+				}
+				
 			}
+			
 		}
+	
+		foreach ( $html_tabs as $html_tab) $html .= $html_tab;
+		
+		foreach ( $html_tags as $html_tag) $html .= $html_tag;
 	
 		$html .= '</div>';
 		
