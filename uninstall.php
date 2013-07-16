@@ -28,6 +28,8 @@ if( defined('WP_UNINSTALL_PLUGIN') ) {
 
 	delete_option( 'tag_group_shortcode_widget' );
 
+	delete_option( 'tag_group_show_filter' );
+
 }
  
 ?>
