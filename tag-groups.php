@@ -4,12 +4,12 @@ Plugin Name: Tag Groups
 Plugin URI: http://www.christoph-amthor.de/software/tag-groups/
 Description: Assign tags to groups and display them in a tabbed tag cloud
 Author: Christoph Amthor
-Version: 0.10
+Version: 0.11
 Author URI: http://www.christoph-amthor.de
 License: GNU GENERAL PUBLIC LICENSE, Version 3
 */
 
-define("TAG_GROUPS_VERSION", "0.10");
+define("TAG_GROUPS_VERSION", "0.11");
 
 define("TAG_GROUPS_BUILT_IN_THEMES", "ui-gray,ui-lightness,ui-darkness");
 
@@ -28,8 +28,6 @@ add_shortcode( 'tag_groups_cloud', 'tag_groups_cloud' );
 add_action( 'wp_enqueue_scripts', 'tg_add_js_css' );
 
 add_action( 'admin_enqueue_scripts', 'tg_add_admin_js_css' );
-
-add_action( 'wp_head', 'tg_custom_js' );
 
 
 function tg_widget_hook() {
@@ -1054,7 +1052,6 @@ function tg_settings_page() {
 	
 			<td>
 			<h4>Further options</h4>
-			<p><?php _e('These will not work if you change the parameter div_id for the cloud.', 'tag-groups') ?></p>
 			<ul>
 				<li><input type="checkbox" name="mouseover" id="mouseover" value="1" <?php if ($tag_group_mouseover) echo 'checked'; ?> >&nbsp;<label for="mouseover"><?php _e('Tabs triggered by hovering mouse pointer (without clicking).', 'tag-groups' ) ?></label></li>
 				<li><input type="checkbox" name="collapsible" id="collapsible" value="1" <?php if ($tag_group_collapsible) echo 'checked'; ?> >&nbsp;<label for="collapsible"><?php _e('Collapsible tabs (toggle open/close).', 'tag-groups' ) ?></label></li>
@@ -1109,6 +1106,8 @@ function tg_settings_page() {
 			<li><b>separator="•"</b> A separator between the tags. Default: empty</li>
 			<li><b>separator_size=12</b> The size of the separator. Default: 12</li>
 			<li><b>adjust_separator_size=1 or =0</b> Whether to adjust the separator\'s size to the size of the following tag. Default: 0</li>
+			<li><b>prepend="#"</b> Prepend to each tag label. Default: empty</li>
+			<li><b>append="something"</b> Append to each tag label. Default: empty</li>
 			
 			<li>&nbsp;</li>
 			<li><b>Groups and Tabs:</b></li>
@@ -1116,10 +1115,12 @@ function tg_settings_page() {
 			<li><b>groups_post_id=x</b> Display only groups of which at least one assigned tag is also assigned to the post (or page) with the ID x. If set to 0, it will try to retrieve the current post ID. Default: -1 (all groups displayed). Matching groups will be added to the list specified by the parameter <b>include</b>.</li>
 			<li><b>show_tabs=1 or =0</b> Whether to show the tabs. Default: 1</li>
 			<li><b>hide_empty_tabs=1 or =0</b> Whether to hide tabs without tags. Default: 0 (Not implemented for PHP function with second parameter set to \'true\'. Not effective with <b>groups_post_id</b>.)</li>
+			<li><b>collapsible=1 or =0</b> Whether tabs are collapsible (toggle open/close). Default: general settings in the back end</li>
+			<li><b>mouseover=1 or =0</b> Whether tabs can be selected by hovering over with the mouse pointer (without clicking). Default: general settings in the back end</li>
 
 			<li>&nbsp;</li>
 			<li><b>Advanced Styling:</b></li>
-			<li><b>div_id=abc</b> Define an id for the enclosing '.htmlentities('<div>').' Default: tag-groups-cloud-tabs</li>
+			<li><b>div_id=abc</b> Define an id for the enclosing '.htmlentities('<div>').'. You need to define different values if you use more than one cloud on one page. Make sure this id has not yet been used - including the active theme and other plugins. Recommended are non-standard values to avoid collisions of names, replace spaces by underscores or hyphens, or use "camelCase". Default: tag-groups-cloud-tabs</li>
 			<li><b>div_class=abc</b> Define a class for the enclosing '.htmlentities('<div>').'. Default: tag-groups-cloud-tabs</li>
 			<li><b>ul_class=abc</b> Define a class for the '.htmlentities('<ul>').' that generates the tabs with the group labels. Default: empty</li>
 			</ul>', 'tag-groups') ?></p>
@@ -1155,6 +1156,7 @@ function tg_settings_page() {
 	<li><a href="http://www.burma-center.org" target="_blank">www.burma-center.org</a></li>
 	<li><a href="http://www.ecoburma.com" target="_blank">www.ecoburma.com</a></li>
 	<li><a href="http://www.weirdthingsinprague.com" target="_blank">www.weirdthingsinprague.com</a></li>
+	<li><a href="http://www.myanmar-dictionary.org" target="_blank">www.myanmar-dictionary.org</a></li>
 	<li><a href="http://digitalmyanmar.net" target="_blank">digitalmyanmar.net</a></li>
 </ul>
 	Thanks!</p>
@@ -1203,7 +1205,11 @@ function tag_groups_cloud( $atts = array(), $return_array = false ) {
 		'adjust_separator_size' => false,
 		'tags_post_id' => -1,
 		'groups_post_id' => -1,
-		'hide_empty_tabs' => false
+		'hide_empty_tabs' => false,
+		'mouseover' => null,
+		'collapsible' => null,
+		'prepend' => '',
+		'append' => ''
 		), $atts ) );
 
 	if ($smallest < 1) $smallest = 1;
@@ -1214,16 +1220,15 @@ function tag_groups_cloud( $atts = array(), $return_array = false ) {
 
 	$posttags = get_terms($tag_group_taxonomy, array('hide_empty' => $hide_empty, 'orderby' => $orderby, 'order' => $order));
 
-	$div_id_output = ($div_id) ? ' id="'.$div_id.'"' : '';
+	$div_id_output = $div_id ? ' id="'.sanitize_html_class($div_id).'"' : '';
 
-	$div_class_output = ($div_class) ? ' class="'.$div_class.'"' : '';
+	$div_class_output = $div_class ? ' class="'.sanitize_html_class($div_class).'"' : '';
 
-	$ul_class_output = ($ul_class) ? ' class="'.$ul_class.'"' : '';
+	$ul_class_output = $ul_class ? ' class="'.sanitize_html_class($ul_class).'"' : '';
 	
 	if ($include != '') $include_array = explode(',', $include);
 
-	if ($separator_size < 1) $separator_size = 12; else $separator_size = (int) $separator_size;
-	
+	if ($separator_size < 1) $separator_size = 12; else $separator_size = (int) $separator_size;	
 	
 	// applying parameter tags_post_id
 	
@@ -1437,7 +1442,7 @@ function tag_groups_cloud( $atts = array(), $return_array = false ) {
 								
 								if ($count_amount > 0) $html_tags[$i] .= '<span style="font-size:'. $font_size_tag .'px">'.$separator.'</span> ';
 								
-								$html_tags[$i] .= '<a href="'.$tag_link.'" title="'.htmlentities($tag->description).' ('.$tag->count.')"  class="'.$tag->slug.'"><span style="font-size:'.$font_size.'px">'.$tag->name.'</span></a>&nbsp; ';
+								$html_tags[$i] .= '<a href="'.$tag_link.'" title="'.htmlentities($tag->description).' ('.$tag->count.')"  class="'.$tag->slug.'"><span style="font-size:'.$font_size.'px">'.sanitize_text_field($prepend).$tag->name.sanitize_text_field($append).'</span></a>&nbsp; ';
 								
 								$count_amount++;
 							
@@ -1469,6 +1474,8 @@ function tag_groups_cloud( $atts = array(), $return_array = false ) {
 	
 		$html .= '</div>';
 		
+		$html .= tg_custom_js( $div_id, $mouseover, $collapsible );
+		
 		return $html;
 
 	}
@@ -1482,7 +1489,7 @@ function tg_unassign($id) {
 
 	$tag_group_taxonomy = get_option( 'tag_group_taxonomy', 'post_tag' );
 
-	$posttags = get_terms($tag_group_taxonomy, array('hide_empty' => false));
+	$posttags = get_terms( $tag_group_taxonomy, array('hide_empty' => false) );
 	
 	foreach($posttags as $tag) {
 
@@ -1520,15 +1527,31 @@ function tg_number_assigned($id) {
 }
 
 
-function tg_custom_js() {
+function tg_custom_js( $id = null, $option_mouseover = null, $option_collapsible = null ) {
 /*
-	jquery needs some script in the html for the tabs to work - opportunity to facilitate some options
+	A piece of script for the tabs to work, including options, for each individual cloud
 */
 
-	if ( get_option( 'tag_group_mouseover', '' ) ) $mouseover = 'event: "mouseover"'; else $mouseover = '';
+	if ( isset( $option_mouseover ) ) {
+	
+		$mouseover = $option_mouseover ? 'event: "mouseover"' : '';
+	
+	} else {
+	
+		$mouseover = get_option( 'tag_group_mouseover', '' ) ? 'event: "mouseover"' : '';
+		
+	}
 
-	if ( get_option( 'tag_group_collapsible', '' ) ) $collapsible = 'collapsible: true'; else $collapsible = '';
-
+	if ( isset( $option_collapsible ) ) {
+	
+		$collapsible = $option_collapsible ? 'collapsible: true' : '';
+	
+	} else {
+	
+		$collapsible = get_option( 'tag_group_collapsible', '' ) ? 'collapsible: true' : '';
+	
+	}
+	
 	if ( !$mouseover && !$collapsible ) {
 
 		$options = '';
@@ -1542,20 +1565,20 @@ function tg_custom_js() {
 		$options = "{\n" . $options . "\n}";
 
 	}
-
-	// Not necessarily in HEAD section, but can't do no harm to have it there.
-	echo '
-	<!-- begin Tag Groups plugin -->
-	<script type="text/javascript">
-		jQuery(function() {
 	
-			jQuery( "#tag-groups-cloud-tabs" ).tabs(' . $options . ');
+	if ( !isset( $id ) ) $id = 'tag-groups-cloud-tabs'; else $id = sanitize_html_class($id);
 
-		});
-	</script>
-	<!-- end Tag Groups plugin -->
-	';
-
+	$html = '
+<!-- begin Tag Groups plugin -->
+<script type="text/javascript">
+	jQuery(function() {
+		jQuery( "#'.$id.'" ).tabs(' . $options . ');
+	});
+</script>
+<!-- end Tag Groups plugin -->
+';
+	
+	return $html;
 }
 
 
@@ -1787,4 +1810,3 @@ function tg_apply_filter( $query ) {
 /*
 	guess what - the end
 */
-?>
