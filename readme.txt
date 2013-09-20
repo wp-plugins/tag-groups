@@ -1,6 +1,6 @@
 === Tag Groups ===
 Contributors: camthor
-Donate link: https://flattr.com/thing/721303/Tag-Groups-plugin
+Donate link: http://www.burma-center.org/donate/
 Tags: tag, tags, term_group, tag cloud, tag-cloud, WPML, category, categories, category cloud
 Requires at least: 3.1
 Tested up to: 3.6
