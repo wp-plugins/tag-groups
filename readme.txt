@@ -4,7 +4,7 @@ Donate link: http://www.burma-center.org/donate/
 Tags: tag, tags, term_group, tag cloud, tag-cloud, WPML, category, categories, category cloud
 Requires at least: 3.1
 Tested up to: 3.7
-Stable tag: 0.11
+Stable tag: 0.12
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -47,6 +47,17 @@ Make sure you have "Use jQuery" checked on the settings page. If you use a plugi
 3. Tag cloud (custom theme)
 
 == Changelog ==
+
+= 0.12 =
+
+FEATURES
+
+* multiple taxonomies
+* new parameter to select taxonomies for tag cloud
+
+BUG FIXES
+
+* function post_in_tag_group was wrong for other taxonomies that tags
 
 = 0.11 =
 
