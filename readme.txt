@@ -52,7 +52,7 @@ Make sure you have "Use jQuery" checked on the settings page. If you use a plugi
 
 FEATURES
 
-* multiple taxonomies
+* multiple taxonomies (please check settings after update)
 * new parameter to select taxonomies for tag cloud
 
 BUG FIXES
