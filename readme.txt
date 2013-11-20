@@ -1,10 +1,10 @@
 === Tag Groups ===
 Contributors: camthor
-Donate link: https://flattr.com/thing/721303/Tag-Groups-plugin
+Donate link: http://www.burma-center.org/donate/
 Tags: tag, tags, term_group, tag cloud, tag-cloud, WPML, category, categories, category cloud
 Requires at least: 3.1
-Tested up to: 3.6
-Stable tag: 0.10
+Tested up to: 3.7.1
+Stable tag: 0.12.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -17,6 +17,7 @@ Possible applications are:
 * Display your tags grouped by language or by topic.
 * Display your tags in any order, independently from their names or slugs.
 * Choose which tags to display in different sections of your blog.
+* Link from you posts and pages to other ones that have the same tags.
 
 Please find more information [here](http://www.christoph-amthor.de/software/tag-groups/ "plugin website").
 
@@ -28,6 +29,8 @@ Please find more information [here](http://www.christoph-amthor.de/software/tag-
 The plugin will create two new submenus in the Post section where you find the tag groups and related settings. After you have created some groups, you can edit your tags (or other terms) and assign them to one of these groups.
 
 Other taxonomies than post tags and categories may need further customization beyond this plugin.
+
+The tabbed tag cloud can be inserted with a shortcode. Options are listed on the Settings page.
 
 
 == Frequently Asked Questions ==
@@ -45,6 +48,30 @@ Make sure you have "Use jQuery" checked on the settings page. If you use a plugi
 
 == Changelog ==
 
+= 0.12.1 =
+
+BUG FIXES
+
+* tag group not saved on Edit Tag screen
+
+= 0.12 =
+
+FEATURES
+
+* multiple taxonomies (please check settings after update)
+* new parameter to select taxonomies for tag cloud
+
+BUG FIXES
+
+* function post_in_tag_group was wrong for other taxonomies than tags
+
+= 0.11 =
+
+FEATURES
+
+* multiple shortcodes/clouds per page by using 'div_id' with own values
+* general settings for 'collapsible' and 'mouseover' can be overridden per cloud
+* new parameters to prepend and append text to tags
 
 = 0.10 =
 

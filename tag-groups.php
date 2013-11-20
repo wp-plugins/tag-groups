@@ -4,12 +4,12 @@ Plugin Name: Tag Groups
 Plugin URI: http://www.christoph-amthor.de/software/tag-groups/
 Description: Assign tags to groups and display them in a tabbed tag cloud
 Author: Christoph Amthor
-Version: 0.10
+Version: 0.12.1
 Author URI: http://www.christoph-amthor.de
 License: GNU GENERAL PUBLIC LICENSE, Version 3
 */
 
-define("TAG_GROUPS_VERSION", "0.10");
+define("TAG_GROUPS_VERSION", "0.12.1");
 
 define("TAG_GROUPS_BUILT_IN_THEMES", "ui-gray,ui-lightness,ui-darkness");
 
@@ -29,8 +29,6 @@ add_action( 'wp_enqueue_scripts', 'tg_add_js_css' );
 
 add_action( 'admin_enqueue_scripts', 'tg_add_admin_js_css' );
 
-add_action( 'wp_head', 'tg_custom_js' );
-
 
 function tg_widget_hook() {
 /*
@@ -48,15 +46,27 @@ function tg_register_settings() {
 	Initial settings after calling the plugin
 */
 
-	$tag_group_taxonomy = get_option( 'tag_group_taxonomy', 'post_tag' );
+	$tag_group_taxonomy = get_option( 'tag_group_taxonomy', array('post_tag') );
 	
-	add_action( "{$tag_group_taxonomy}_edit_form_fields", 'tg_tag_input_metabox' );
+	if ( !is_array( $tag_group_taxonomy ) ) {
+	
+		$tag_group_taxonomy = array( $tag_group_taxonomy );
+	
+		update_option( 'tag_group_taxonomy', $tag_group_taxonomy );
+	
+	}
+	
+	foreach( $tag_group_taxonomy as $taxonomy ) {
+	
+		add_action( "{$taxonomy}_edit_form_fields", 'tg_tag_input_metabox' );
 
-	add_action( "{$tag_group_taxonomy}_add_form_fields", 'tg_create_new_tag' );
+		add_action( "{$taxonomy}_add_form_fields", 'tg_create_new_tag' );
 
-	add_filter( "manage_edit-{$tag_group_taxonomy}_columns", 'tg_add_taxonomy_columns' );
+		add_filter( "manage_edit-{$taxonomy}_columns", 'tg_add_taxonomy_columns' );
 
-	add_filter( "manage_{$tag_group_taxonomy}_custom_column", 'tg_add_taxonomy_column_content', 10, 3 );
+		add_filter( "manage_{$taxonomy}_custom_column", 'tg_add_taxonomy_column_content', 10, 3 );
+		
+	}
 
 	add_action( 'quick_edit_custom_box', 'tg_quick_edit_tag', 10, 3 );
 	
@@ -66,11 +76,11 @@ function tg_register_settings() {
 	
 	$plugin = plugin_basename(__FILE__);
 
-	add_filter("plugin_action_links_$plugin", 'tg_plugin_settings_link' );
+	add_filter( "plugin_action_links_$plugin", 'tg_plugin_settings_link' );
 	
-	add_action('admin_footer', 'tg_quick_edit_javascript');
+	add_action( 'admin_footer', 'tg_quick_edit_javascript' );
 
-	add_filter('tag_row_actions', 'tg_expand_quick_edit_link', 10, 2);
+	add_filter( 'tag_row_actions', 'tg_expand_quick_edit_link', 10, 2);
 	
 	add_action( 'restrict_manage_posts', 'tg_add_filter' );
 
@@ -191,7 +201,7 @@ function tg_add_taxonomy_columns($columns) {
 	adds a custom column to the table of tags/terms
 	thanks to http://coderrr.com/add-columns-to-a-taxonomy-terms-table/
 */
-		
+
 	$columns['term_group'] = __('Tag Group', 'tag-groups');
 	
 	return $columns;
@@ -199,19 +209,19 @@ function tg_add_taxonomy_columns($columns) {
 }
 
 	
-function tg_add_taxonomy_column_content($empty = '', $empty = '', $term_id) {
+function tg_add_taxonomy_column_content($a = '', $b = '', $term_id) {
 /*
 	adds data into custom column of the table for each row
 	thanks to http://coderrr.com/add-columns-to-a-taxonomy-terms-table/
 */
-
+	
 	$tag_group_labels = get_option( 'tag_group_labels', array() );
 
 	$tag_group_ids = get_option( 'tag_group_ids', array() );
-
-	$tag_group_taxonomy = get_option( 'tag_group_taxonomy', 'post_tag' );
 	
-	$tag = get_term($term_id, $tag_group_taxonomy);
+	if (isset($_REQUEST['taxonomy'])) $taxonomy = sanitize_title( $_REQUEST['taxonomy'] );
+	
+	$tag = get_term($term_id, $taxonomy);
 	
 	$i = array_search($tag->term_group, $tag_group_ids);
 
@@ -235,9 +245,9 @@ function tg_update_edit_term_group($term_id) {
 
 	if ( !isset($_POST['term-group']) && !isset($_POST['term-group-option']) ) return;
 	
-	$tag_group_taxonomy = get_option( 'tag_group_taxonomy', 'post_tag' );
-
-	if ( is_object($screen) && ($screen->taxonomy != $tag_group_taxonomy) && (!isset($_POST['new-tag-created']))) return;
+	$tag_group_taxonomy = get_option( 'tag_group_taxonomy', array('post_tag') );
+	
+	if ( is_object($screen) && ( !in_array($screen->taxonomy, $tag_group_taxonomy) ) && (!isset($_POST['new-tag-created']))) return;
 	
 	$tg_update_edit_term_group_called++;
 	
@@ -267,8 +277,14 @@ function tg_update_edit_term_group($term_id) {
 		if ( isset($_POST['slug']) && ($_POST['slug'] != '') ) $term['slug'] = sanitize_title($_POST['slug']);
 
 		if ( isset($_POST['description']) && ($_POST['description'] != '') ) $term['description'] = stripslashes($_POST['description']);
+
+		if ( isset($_POST['tag-groups-taxonomy']) ) {
 		
-		wp_update_term( $term_id, $tag_group_taxonomy, $term );
+			$category = stripslashes($_POST['tag-groups-taxonomy']);
+		
+			wp_update_term( $term_id, $category, $term );
+			
+		}
 		
 	} else wp_die( __( 'Cheatin&#8217; uh?' ) );
 
@@ -283,9 +299,9 @@ function tg_quick_edit_javascript() {
 
 	$screen = get_current_screen();
 	
-	$tag_group_taxonomy = get_option( 'tag_group_taxonomy', 'post_tag' );
+	$tag_group_taxonomy = get_option( 'tag_group_taxonomy', array('post_tag') );
 	
-	if ( $screen->taxonomy != $tag_group_taxonomy ) return;
+	if ( !in_array($screen->taxonomy, $tag_group_taxonomy) ) return;
  
 	?>
 	<script type="text/javascript">
@@ -316,9 +332,9 @@ function tg_expand_quick_edit_link($actions, $tag) {
 
 	$screen = get_current_screen();
 
-	$tag_group_taxonomy = get_option( 'tag_group_taxonomy', 'post_tag' );
+	$tag_group_taxonomy = get_option( 'tag_group_taxonomy', array('post_tag') );
 	
-	if ( is_object($screen) && ( $screen->taxonomy != $tag_group_taxonomy ) ) return $actions;
+	if ( is_object($screen) && ( !in_array($screen->taxonomy, $tag_group_taxonomy) ) ) return $actions;
  
 	$tag_group_ids = get_option( 'tag_group_ids', array() );
 
@@ -347,9 +363,9 @@ function tg_quick_edit_tag() {
 
 	$screen = get_current_screen();
 
-	$tag_group_taxonomy = get_option( 'tag_group_taxonomy', 'post_tag' );
+	$tag_group_taxonomy = get_option( 'tag_group_taxonomy', array('post_tag') );
 
-	if ( $screen->taxonomy != $tag_group_taxonomy ) return;
+	if ( !in_array($screen->taxonomy, $tag_group_taxonomy) ) return;
 
  	$tag_group_labels = get_option( 'tag_group_labels', array() );
 
@@ -359,28 +375,30 @@ function tg_quick_edit_tag() {
 
 	?>
 
-		<fieldset><div class="inline-edit-col">
+	<fieldset><div class="inline-edit-col">
+	
+	<label><span class="title"><?php _e( 'Group' , 'tag-groups') ?></span><span class="input-text-wrap">
+	
+	<select id="term-group-option" name="term-group-option" class="ptitle">
+	
+		<option value="0" ><?php _e('not assigned', 'tag-groups') ?></option>
+
+		<?php for ($i = 1; $i <= $number_of_tag_groups; $i++) :?>
+
+		<option value="<?php echo $tag_group_ids[$i]; ?>" ><?php echo $tag_group_labels[$i]; ?></option>
+
+	<?php endfor; ?>
+
+	</select>
+
+	<input type="hidden" name="tag-groups-option-nonce" id="tag-groups-option-nonce" value="" />
 		
-		<label><span class="title"><?php _e( 'Group' , 'tag-groups') ?></span><span class="input-text-wrap">
+	<input type="hidden" name="tag-groups-taxonomy" id="tag-groups-taxonomy" value="<?php echo $screen->taxonomy; ?>" />
+
+	</span></label>
 		
-		<select id="term-group-option" name="term-group-option" class="ptitle">
-		
-			<option value="0" ><?php _e('not assigned', 'tag-groups') ?></option>
-
-			<?php for ($i = 1; $i <= $number_of_tag_groups; $i++) :?>
-
-			<option value="<?php echo $tag_group_ids[$i]; ?>" ><?php echo $tag_group_labels[$i]; ?></option>
-
-		<?php endfor; ?>
-
-		</select>
-
-		<input type="hidden" name="tag-groups-option-nonce" id="tag-groups-option-nonce" value="" />
-
-		</span></label>
-		
-		</div></fieldset>
-	<?php
+	</div></fieldset>
+<?php
 	
 }
 
@@ -389,6 +407,8 @@ function tg_create_new_tag($tag) {
 /*
 	assigning tags to tag groups upon new tag creation (left of the table)
 */
+
+	$screen = get_current_screen();
 
  	$tag_group_labels = get_option( 'tag_group_labels', array() );
 
@@ -412,6 +432,7 @@ function tg_create_new_tag($tag) {
 		</select>		
 	<input type="hidden" name="tag-groups-nonce" id="tag-groups-nonce" value="<?php echo wp_create_nonce('tag-groups') ?>" />
 	<input type="hidden" name="new-tag-created" id="new-tag-created" value="1" />
+	<input type="hidden" name="tag-groups-taxonomy" id="tag-groups-taxonomy" value="<?php echo $screen->taxonomy; ?>" />
 	</div>
 
 	<?php
@@ -422,6 +443,8 @@ function tg_tag_input_metabox($tag) {
 /*
 	assigning tags to tag groups on single tag view (after clicking tag for editing)
 */
+
+	$screen = get_current_screen();
 
  	$tag_group_labels = get_option( 'tag_group_labels', array() );
 
@@ -445,6 +468,7 @@ function tg_tag_input_metabox($tag) {
 
 		</select>
 		<input type="hidden" name="tag-groups-nonce" id="tag-groups-nonce" value="<?php echo wp_create_nonce('tag-groups') ?>" />
+		<input type="hidden" name="tag-groups-taxonomy" id="tag-groups-taxonomy" value="<?php echo $screen->taxonomy; ?>" />
 		<p><a href="edit.php?page=tag-groups"><?php _e('Edit tag groups' , 'tag-groups') ?></a>. (<?php _e('Clicking will leave this page without saving.', 'tag-groups') ?>)</p>
 		</td>
 	</tr>
@@ -472,7 +496,7 @@ function tg_init() {
 
 		$max_tag_group_id = 0;
 		
-		$tag_group_taxonomy = 'post_tag';
+		$tag_group_taxonomy = array('post_tag');
 
 		update_option( 'tag_group_labels', $tag_group_labels );
 
@@ -786,7 +810,7 @@ function tg_settings_page() {
 	
 	$tag_group_enqueue_jquery = get_option( 'tag_group_enqueue_jquery', true );
 	
-	$tag_group_taxonomy = get_option( 'tag_group_taxonomy', 'post_tag' );
+	$tag_group_taxonomy = get_option( 'tag_group_taxonomy', array('post_tag') );
 
 	$tag_group_shortcode_widget = get_option( 'tag_group_shortcode_widget' );
 
@@ -819,7 +843,7 @@ function tg_settings_page() {
 	
 	if (isset($_POST['theme'])) $theme = stripslashes(sanitize_text_field($_POST['theme'])); else $theme = '';
 	
-	if (isset($_POST['taxonomy'])) $taxonomy = stripslashes(sanitize_text_field($_POST['taxonomy'])); else $taxonomy = '';
+	if (isset($_POST['taxonomies'])) $taxonomy = $_POST['taxonomies']; else $taxonomy = array();
 
 	if (isset($_POST['ok'])) $ok = $_POST['ok']; else $ok = '';
 
@@ -933,14 +957,20 @@ function tg_settings_page() {
 
 		if ( !isset($_POST['tag-groups-taxonomy-nonce']) || !wp_verify_nonce($_POST['tag-groups-taxonomy-nonce'], 'tag-groups-taxonomy') ) die("Security check");
 
-		$args=array(
-			'public'   => true
+		$args = array(
+			'public' => true
 		);
-		
+
 		$taxonomies=get_taxonomies( $args, 'names' );
 		
-		if ( !in_array( $taxonomy, $taxonomies ) ) die("Security check t");
+		foreach ( $taxonomy as $taxonomy_item ) {
+		
+			$taxonomy_item = stripslashes(sanitize_text_field($taxonomy_item));
+			
+			if ( !in_array( $taxonomy_item, $taxonomies ) ) die("Security check: taxonomies");
 
+		}
+		
 		update_option( 'tag_group_taxonomy', $taxonomy );
 				
 		tg_clear_cache();
@@ -986,8 +1016,8 @@ function tg_settings_page() {
 		<?php if ( $active_tab == 0 ): ?>
 			<form method="POST" action="<?php echo $_SERVER['REQUEST_URI']; ?>">
 			<input type="hidden" name="tag-groups-taxonomy-nonce" id="tag-groups-taxonomy-nonce" value="<?php echo wp_create_nonce('tag-groups-taxonomy') ?>" />
-			<h3>Taxonomy</h3>
-			<p><?php _e('Choose the taxonomy for which you want to use tag groups. Default is <b>post_tag</b>. Please note that the tag cloud might not work with all taxonomies and that some taxonomies listed here may not be accessible in the admin backend. If you don\'t understand what is going on here, just leave the default.', 'tag-groups') ?></p>
+			<h3>Taxonomies</h3>
+			<p><?php _e('Choose the taxonomies for which you want to use tag groups. Default is <b>post_tag</b>. Please note that the tag cloud might not work with all taxonomies and that some taxonomies listed here may not be accessible in the admin backend. If you don\'t understand what is going on here, just leave the default.', 'tag-groups') ?></p>
 			<?php
 			$args=array(
 				'public'   => true
@@ -1000,7 +1030,7 @@ function tg_settings_page() {
 		
 				<?php foreach( $taxonomies as $taxonomy ) : ?>
 		
-					<li><input type="radio" name="taxonomy" id="<?php echo $taxonomy ?>" value="<?php echo $taxonomy ?>" <?php if ($tag_group_taxonomy == $taxonomy) echo 'checked'; ?> />&nbsp;<label for="<?php echo $taxonomy ?>"><?php echo $taxonomy ?></label></li>
+					<li><input type="checkbox" name="taxonomies[]" id="<?php echo $taxonomy ?>" value="<?php echo $taxonomy ?>" <?php if ( in_array( $taxonomy, $tag_group_taxonomy ) ) echo 'checked'; ?> />&nbsp;<label for="<?php echo $taxonomy ?>"><?php echo $taxonomy ?></label></li>
 		
 				<?php endforeach; ?>
 		
@@ -1015,13 +1045,43 @@ function tg_settings_page() {
 			<input type="hidden" name="tag-groups-backend-nonce" id="tag-groups-backend-nonce" value="<?php echo wp_create_nonce('tag-groups-backend') ?>" />
 			
 			<h3>Back End Settings</h3>
-			<p><?php _e('You can add a pull-down menu to the filters above the list of posts. If you filter posts by tag groups, then only items will be shown that have tags (terms) in that particular group. This feature can be turned off so that the menu won\'t obstruct your screen if you use a high number of groups. (May not work with all custom taxonomies.)', 'tag-groups') ?></p>
+			<p><?php _e('You can add a pull-down menu to the filters above the list of posts. If you filter posts by tag groups, then only items will be shown that have tags (terms) in that particular group. This feature can be turned off so that the menu won\'t obstruct your screen if you use a high number of groups. May not work with all custom taxonomies. Doesn\'t work with more than <b>one</b> taxonomy or with <b>category</b> as taxonomy.', 'tag-groups') ?></p>
 			<ul>
 				<li><input type="checkbox" id="tg_filter" name="filter" value="1" <?php if ( $show_filter ) echo 'checked'; ?> />&nbsp;<label for="tg_filter"><?php _e('Display filter menu', 'tag-groups') ?></label></li>
 			</ul>			
 			<input type="hidden" name="action" value="backend">
 			<input class='button-primary' type='submit' name='Save' value='<?php _e('Save Back End Settings', 'tag-groups'); ?>' id='submitbutton' />
 			</form>
+<script>
+	jQuery(document).ready(function(){
+		
+		tgTaxonomyToFilter();
+		tgCategoryKillsFilter();
+		
+		jQuery("input[name='taxonomies[]']:checkbox").click(function(){
+			tgTaxonomyToFilter();
+			tgCategoryKillsFilter();
+		});
+
+		function tgTaxonomyToFilter() {
+			var n = jQuery("input[name='taxonomies[]']:checkbox:checked").length;
+			if (n > 1) {
+				jQuery('#tg_filter').attr('disabled','disabled');
+			} else {
+				jQuery('#tg_filter').removeAttr('disabled');
+			}
+		}
+
+		function tgCategoryKillsFilter() {
+			if (jQuery('#category:checkbox').is(':checked')) {
+				jQuery('#tg_filter').attr('disabled','disabled');
+			} else {
+				jQuery('#tg_filter').removeAttr('disabled');
+			}
+		}
+
+	});
+</script>
 
 		<?php endif; ?>
 
@@ -1054,7 +1114,6 @@ function tg_settings_page() {
 	
 			<td>
 			<h4>Further options</h4>
-			<p><?php _e('These will not work if you change the parameter div_id for the cloud.', 'tag-groups') ?></p>
 			<ul>
 				<li><input type="checkbox" name="mouseover" id="mouseover" value="1" <?php if ($tag_group_mouseover) echo 'checked'; ?> >&nbsp;<label for="mouseover"><?php _e('Tabs triggered by hovering mouse pointer (without clicking).', 'tag-groups' ) ?></label></li>
 				<li><input type="checkbox" name="collapsible" id="collapsible" value="1" <?php if ($tag_group_collapsible) echo 'checked'; ?> >&nbsp;<label for="collapsible"><?php _e('Collapsible tabs (toggle open/close).', 'tag-groups' ) ?></label></li>
@@ -1109,17 +1168,22 @@ function tg_settings_page() {
 			<li><b>separator="•"</b> A separator between the tags. Default: empty</li>
 			<li><b>separator_size=12</b> The size of the separator. Default: 12</li>
 			<li><b>adjust_separator_size=1 or =0</b> Whether to adjust the separator\'s size to the size of the following tag. Default: 0</li>
+			<li><b>prepend="#"</b> Prepend to each tag label. Default: empty</li>
+			<li><b>append="something"</b> Append to each tag label. Default: empty</li>
+			<li><b>taxonomy="x,y,..."</b> Restrict the tags only to these taxonomies. Default: empty (= no restriction)</li>
 			
 			<li>&nbsp;</li>
 			<li><b>Groups and Tabs:</b></li>
-			<li><b>include=x,y,...</b> IDs of tag groups (left column in list of groups) that will be considered in the tag cloud. Empty or not used means that all tag groups will be used. Default: empty</li>
+			<li><b>include="x,y,..."</b> IDs of tag groups (left column in list of groups) that will be considered in the tag cloud. Empty or not used means that all tag groups will be used. Default: empty</li>
 			<li><b>groups_post_id=x</b> Display only groups of which at least one assigned tag is also assigned to the post (or page) with the ID x. If set to 0, it will try to retrieve the current post ID. Default: -1 (all groups displayed). Matching groups will be added to the list specified by the parameter <b>include</b>.</li>
 			<li><b>show_tabs=1 or =0</b> Whether to show the tabs. Default: 1</li>
 			<li><b>hide_empty_tabs=1 or =0</b> Whether to hide tabs without tags. Default: 0 (Not implemented for PHP function with second parameter set to \'true\'. Not effective with <b>groups_post_id</b>.)</li>
+			<li><b>collapsible=1 or =0</b> Whether tabs are collapsible (toggle open/close). Default: general settings in the back end</li>
+			<li><b>mouseover=1 or =0</b> Whether tabs can be selected by hovering over with the mouse pointer (without clicking). Default: general settings in the back end</li>
 
 			<li>&nbsp;</li>
 			<li><b>Advanced Styling:</b></li>
-			<li><b>div_id=abc</b> Define an id for the enclosing '.htmlentities('<div>').' Default: tag-groups-cloud-tabs</li>
+			<li><b>div_id=abc</b> Define an id for the enclosing '.htmlentities('<div>').'. You need to define different values if you use more than one cloud on one page. Make sure this id has not yet been used - including the active theme and other plugins. Recommended are non-standard values to avoid collisions of names, replace spaces by underscores or hyphens, or use "camelCase". Default: tag-groups-cloud-tabs</li>
 			<li><b>div_class=abc</b> Define a class for the enclosing '.htmlentities('<div>').'. Default: tag-groups-cloud-tabs</li>
 			<li><b>ul_class=abc</b> Define a class for the '.htmlentities('<ul>').' that generates the tabs with the group labels. Default: empty</li>
 			</ul>', 'tag-groups') ?></p>
@@ -1153,9 +1217,10 @@ function tg_settings_page() {
 	<p>Or support his work by a nice link to one of these websites:
 <ul>
 	<li><a href="http://www.burma-center.org" target="_blank">www.burma-center.org</a></li>
+	<li><a href="http://mycitizen.net" target="_blank">mycitizen.net</a></li>
 	<li><a href="http://www.ecoburma.com" target="_blank">www.ecoburma.com</a></li>
 	<li><a href="http://www.weirdthingsinprague.com" target="_blank">www.weirdthingsinprague.com</a></li>
-	<li><a href="http://digitalmyanmar.net" target="_blank">digitalmyanmar.net</a></li>
+	<li><a href="http://www.myanmar-dictionary.org" target="_blank">www.myanmar-dictionary.org</a></li>
 </ul>
 	Thanks!</p>
 		<?php endif; ?>
@@ -1177,12 +1242,16 @@ function tag_groups_cloud( $atts = array(), $return_array = false ) {
 	$html_tabs = array();
 	
 	$html_tags = array();
+	
+	$posttags = array();
+	
+	$post_id_terms = array();
 
 	$tag_group_labels = get_option( 'tag_group_labels', array() );
 
 	$tag_group_ids = get_option( 'tag_group_ids', array() );
 
-	$tag_group_taxonomy = get_option( 'tag_group_taxonomy', 'post_tag' );
+	$tag_group_taxonomy = get_option( 'tag_group_taxonomy', array('post_tag') );
 	
 	$number_of_tag_groups = count($tag_group_labels) - 1;
 	
@@ -1203,7 +1272,12 @@ function tag_groups_cloud( $atts = array(), $return_array = false ) {
 		'adjust_separator_size' => false,
 		'tags_post_id' => -1,
 		'groups_post_id' => -1,
-		'hide_empty_tabs' => false
+		'hide_empty_tabs' => false,
+		'mouseover' => null,
+		'collapsible' => null,
+		'prepend' => '',
+		'append' => '',
+		'taxonomy' => null
 		), $atts ) );
 
 	if ($smallest < 1) $smallest = 1;
@@ -1211,19 +1285,42 @@ function tag_groups_cloud( $atts = array(), $return_array = false ) {
 	if ($largest < $smallest) $largest = $smallest;
 	
 	if ($amount < 1) $amount = 1;
+	
+	if (isset($taxonomy)) {
+	
+		if (empty($taxonomy)) {
+		
+			unset($taxonomy);
+			
+		} else {
+	
+			$taxonomy_array = explode(',', $taxonomy);
+			
+			$taxonomy_array = array_filter(array_map('trim', $taxonomy_array));
 
-	$posttags = get_terms($tag_group_taxonomy, array('hide_empty' => $hide_empty, 'orderby' => $orderby, 'order' => $order));
+		}
+		
+	}
 
-	$div_id_output = ($div_id) ? ' id="'.$div_id.'"' : '';
+	foreach( $tag_group_taxonomy as $taxonomy_item ) {
+	
+		if (isset($taxonomy) && !in_array($taxonomy_item, $taxonomy_array)) continue;
 
-	$div_class_output = ($div_class) ? ' class="'.$div_class.'"' : '';
+		$terms = get_terms($taxonomy_item, array('hide_empty' => $hide_empty, 'orderby' => $orderby, 'order' => $order));
+		
+		if (!empty($terms) && is_array($terms)) $posttags = array_merge( $posttags, $terms);
+		
+	}
 
-	$ul_class_output = ($ul_class) ? ' class="'.$ul_class.'"' : '';
+	$div_id_output = $div_id ? ' id="'.sanitize_html_class($div_id).'"' : '';
+
+	$div_class_output = $div_class ? ' class="'.sanitize_html_class($div_class).'"' : '';
+
+	$ul_class_output = $ul_class ? ' class="'.sanitize_html_class($ul_class).'"' : '';
 	
 	if ($include != '') $include_array = explode(',', $include);
 
-	if ($separator_size < 1) $separator_size = 12; else $separator_size = (int) $separator_size;
-	
+	if ($separator_size < 1) $separator_size = 12; else $separator_size = (int) $separator_size;	
 	
 	// applying parameter tags_post_id
 	
@@ -1234,7 +1331,16 @@ function tag_groups_cloud( $atts = array(), $return_array = false ) {
 	if ($tags_post_id) {
 	
 		// get all tags of this post
-		$post_id_terms = get_the_terms( (int) $tags_post_id, $tag_group_taxonomy );
+		
+		foreach( $tag_group_taxonomy as $taxonomy_item ) {
+	
+			if (isset($taxonomy) && !in_array($taxonomy_item, $taxonomy_array)) continue;
+			
+			$terms = get_the_terms( (int) $tags_post_id, $taxonomy_item );
+
+			if (!empty($terms) && is_array($terms)) $post_id_terms = array_merge( $post_id_terms, $terms);
+			
+		}
 		
 		if ($post_id_terms) {
 
@@ -1273,7 +1379,14 @@ function tag_groups_cloud( $atts = array(), $return_array = false ) {
 	if ($groups_post_id) {
 	
 		// get all tags of this post
-		$post_id_terms = get_the_terms( (int) $groups_post_id, $tag_group_taxonomy );
+		foreach( $tag_group_taxonomy as $taxonomy_item ) {
+	
+			if (isset($taxonomy) && !in_array($taxonomy_item, $taxonomy_array)) continue;
+
+			$terms = get_the_terms( (int) $groups_post_id, $taxonomy_item );
+			
+			if (!empty($terms) && is_array($terms)) $post_id_terms = array_merge( $post_id_terms, $terms );
+		}
 		
 		// get all involved groups, append them to $include
 		if ($post_id_terms) {
@@ -1338,7 +1451,7 @@ function tag_groups_cloud( $atts = array(), $return_array = false ) {
 							
 							$output[$i]['tags'][$count_amount]['term_id'] = $tag->term_id;
 							
-							$output[$i]['tags'][$count_amount]['link'] = get_term_link($tag->slug, $tag_group_taxonomy);
+							$output[$i]['tags'][$count_amount]['link'] = get_term_link($tag->slug, $tag->taxonomy);
 
 							$output[$i]['tags'][$count_amount]['description'] = $tag->description;
 							
@@ -1429,7 +1542,7 @@ function tag_groups_cloud( $atts = array(), $return_array = false ) {
 	
 							if ($tag->term_group == $tag_group_ids[$i]) {
 	
-								$tag_link = get_term_link($tag->slug, $tag_group_taxonomy);
+								$tag_link = get_term_link($tag->slug, $tag->taxonomy);
 								
 								$font_size = tg_font_size($tag->count,$min,$max,$smallest,$largest);
 								
@@ -1437,7 +1550,7 @@ function tag_groups_cloud( $atts = array(), $return_array = false ) {
 								
 								if ($count_amount > 0) $html_tags[$i] .= '<span style="font-size:'. $font_size_tag .'px">'.$separator.'</span> ';
 								
-								$html_tags[$i] .= '<a href="'.$tag_link.'" title="'.htmlentities($tag->description).' ('.$tag->count.')"  class="'.$tag->slug.'"><span style="font-size:'.$font_size.'px">'.$tag->name.'</span></a>&nbsp; ';
+								$html_tags[$i] .= '<a href="'.$tag_link.'" title="'.htmlentities($tag->description).' ('.$tag->count.')"  class="'.$tag->slug.'"><span style="font-size:'.$font_size.'px">'.sanitize_text_field($prepend).$tag->name.sanitize_text_field($append).'</span></a>&nbsp; ';
 								
 								$count_amount++;
 							
@@ -1469,6 +1582,8 @@ function tag_groups_cloud( $atts = array(), $return_array = false ) {
 	
 		$html .= '</div>';
 		
+		$html .= tg_custom_js( $div_id, $mouseover, $collapsible );
+		
 		return $html;
 
 	}
@@ -1480,9 +1595,10 @@ function tg_unassign($id) {
 	After deleting a tag group, this function removes its ID from the previously assigned tags.
 */
 
-	$tag_group_taxonomy = get_option( 'tag_group_taxonomy', 'post_tag' );
-
+	$tag_group_taxonomy = get_option( 'tag_group_taxonomy', array('post_tag') );
+	
 	$posttags = get_terms($tag_group_taxonomy, array('hide_empty' => false));
+
 	
 	foreach($posttags as $tag) {
 
@@ -1490,7 +1606,7 @@ function tg_unassign($id) {
 
 			$tag->term_group = 0;
 
-			$ret = wp_update_term( $tag->term_id, $tag_group_taxonomy, array( 'term_group' => $tag->term_group ) );
+			$ret = wp_update_term( $tag->term_id, $tag->taxonomy, array( 'term_group' => $tag->term_group ) );
 		}
 		
 	}
@@ -1503,7 +1619,7 @@ function tg_number_assigned($id) {
 	Returns number of tags that are assigned to a given tag group. Needed for the table.
 */
 
-	$tag_group_taxonomy = get_option( 'tag_group_taxonomy', 'post_tag' );
+	$tag_group_taxonomy = get_option( 'tag_group_taxonomy', array('post_tag') );
 
 	$posttags = get_terms($tag_group_taxonomy, array('hide_empty' => false));
 	
@@ -1520,15 +1636,31 @@ function tg_number_assigned($id) {
 }
 
 
-function tg_custom_js() {
+function tg_custom_js( $id = null, $option_mouseover = null, $option_collapsible = null ) {
 /*
-	jquery needs some script in the html for the tabs to work - opportunity to facilitate some options
+	A piece of script for the tabs to work, including options, for each individual cloud
 */
 
-	if ( get_option( 'tag_group_mouseover', '' ) ) $mouseover = 'event: "mouseover"'; else $mouseover = '';
+	if ( isset( $option_mouseover ) ) {
+	
+		$mouseover = $option_mouseover ? 'event: "mouseover"' : '';
+	
+	} else {
+	
+		$mouseover = get_option( 'tag_group_mouseover', '' ) ? 'event: "mouseover"' : '';
+		
+	}
 
-	if ( get_option( 'tag_group_collapsible', '' ) ) $collapsible = 'collapsible: true'; else $collapsible = '';
-
+	if ( isset( $option_collapsible ) ) {
+	
+		$collapsible = $option_collapsible ? 'collapsible: true' : '';
+	
+	} else {
+	
+		$collapsible = get_option( 'tag_group_collapsible', '' ) ? 'collapsible: true' : '';
+	
+	}
+	
 	if ( !$mouseover && !$collapsible ) {
 
 		$options = '';
@@ -1542,20 +1674,20 @@ function tg_custom_js() {
 		$options = "{\n" . $options . "\n}";
 
 	}
-
-	// Not necessarily in HEAD section, but can't do no harm to have it there.
-	echo '
-	<!-- begin Tag Groups plugin -->
-	<script type="text/javascript">
-		jQuery(function() {
 	
-			jQuery( "#tag-groups-cloud-tabs" ).tabs(' . $options . ');
+	if ( !isset( $id ) ) $id = 'tag-groups-cloud-tabs'; else $id = sanitize_html_class($id);
 
-		});
-	</script>
-	<!-- end Tag Groups plugin -->
-	';
-
+	$html = '
+<!-- begin Tag Groups plugin -->
+<script type="text/javascript">
+	jQuery(function() {
+		jQuery( "#'.$id.'" ).tabs(' . $options . ');
+	});
+</script>
+<!-- end Tag Groups plugin -->
+';
+	
+	return $html;
 }
 
 
@@ -1564,9 +1696,9 @@ function post_in_tag_group($post_id, $tag_group_id) {
 	Checks if the post with $post_id has a tag that is in the tag group with $tag_group_id.
 */
 
-	$tag_group_taxonomy = get_option( 'tag_group_taxonomy', 'post_tag' );
+	$tag_group_taxonomy = get_option( 'tag_group_taxonomy', array('post_tag') );
 
-	$tags = get_the_tags( $post_id, $tag_group_taxonomy );
+	$tags = get_the_terms( $post_id, $tag_group_taxonomy );
 	
 	if ( $tags ) {
 
@@ -1640,11 +1772,11 @@ function tg_swap(&$ary,$element1,$element2) {
 	swaps the position of two elements in an array - needed for changing the order of list items
 */
 
-	$temp=$ary[$element1];
+	$temp = $ary[$element1];
 
-	$ary[$element1]=$ary[$element2];
+	$ary[$element1] = $ary[$element2];
 
-	$ary[$element2]=$temp;
+	$ary[$element2] = $temp;
 
 }
 
@@ -1672,14 +1804,14 @@ function tg_add_filter(){
 */
 
 	$show_filter = get_option( 'tag_group_show_filter', true );
-	
-	if ( !$show_filter ) return;
 
-	$tg_type = get_option( 'tag_group_taxonomy', 'post_tag' );
+	$tg_type = get_option( 'tag_group_taxonomy', array('post_tag') );
+	
+	if ( !$show_filter || (count($tg_type)>1)) return;
 	
     $type = ( isset( $_GET['post_type'] ) ) ? $_GET['post_type'] : 'post';
 
-    if ( in_array( $tg_type, get_object_taxonomies( $type ) ) ) {
+    if ( count( array_intersect( $tg_type, get_object_taxonomies( $type ) ) ) ) {
     
     	$tag_group_labels = get_option( 'tag_group_labels', array() );
 
@@ -1728,15 +1860,13 @@ function tg_apply_filter( $query ) {
     
     $show_filter = get_option( 'tag_group_show_filter', true );
 	
-	if ( !$show_filter ) return;
+	$tg_type = get_option( 'tag_group_taxonomy', array('post_tag') );
 	
-	$tg_type = get_option( 'tag_group_taxonomy', 'post_tag' );
+	if ( !$show_filter || (count($tg_type)>1)) return;
 	
-	$tg_prefix = ($tg_type == 'post_tag') ? 'tag' : $tg_type;
-
     $type = ( isset( $_GET['post_type'] ) ) ? $_GET['post_type'] : 'post';
     
-    if ( in_array( $tg_type, get_object_taxonomies( $type ) ) && is_admin() && $pagenow == 'edit.php' && isset( $_GET['tg_filter_value']) && $_GET['tg_filter_value'] != '' ) {
+    if ( count( array_intersect( $tg_type, get_object_taxonomies( $type ) ) ) && is_admin() && $pagenow == 'edit.php' && isset( $_GET['tg_filter_value']) && $_GET['tg_filter_value'] != '' ) {
     
 		$terms = get_terms( $tg_type );
 		
@@ -1745,20 +1875,26 @@ function tg_apply_filter( $query ) {
 		$tg_selected = (int) $_GET['tg_filter_value'];
 
 		if ( $terms ) {
-		
+
 	    	if ( $tg_selected == '0' ) {
     	
     			foreach( $terms as $term ) {
 
     				if ( $term->term_group != 0 && in_array( $term->term_group, $tag_group_ids ) ) {
     				
-    					$filter_terms[] = $term->term_id;
+    					$filter_terms[$term->taxonomy][] = $term->term_id;
     					
     				}
     			
     			}
     			
-    			$query->query_vars[$tg_prefix.'__not_in'] = $filter_terms;
+    			foreach	($filter_terms as $taxonomy => $filter_terms_item) {
+	
+					$tg_prefix = ($taxonomy == 'post_tag') ? 'tag' : $taxonomy;
+	
+    				$query->query_vars[$tg_prefix.'__not_in'] = $filter_terms_item;
+    			
+    			}
     	
     		} else {
 
@@ -1768,13 +1904,19 @@ function tg_apply_filter( $query ) {
 
 					if ( $term->term_group == $tg_selected ) {
 			
-						$filter_terms[] = $term->term_id;
+						$filter_terms[$term->taxonomy][] = $term->term_id;
 			
 					}
-					
+
 				}
-				
-				$query->query_vars[$tg_prefix.'__in'] = $filter_terms;
+
+    			foreach	($filter_terms as $taxonomy => $filter_terms_item) {
+	
+					$tg_prefix = ($taxonomy == 'post_tag') ? 'tag' : $taxonomy;
+	
+    				$query->query_vars[$tg_prefix.'__in'] = $filter_terms_item;
+    			
+    			}
 			
 			}
 			
@@ -1787,4 +1929,3 @@ function tg_apply_filter( $query ) {
 /*
 	guess what - the end
 */
-?>
