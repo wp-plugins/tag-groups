@@ -57,7 +57,7 @@ FEATURES
 
 BUG FIXES
 
-* function post_in_tag_group was wrong for other taxonomies that tags
+* function post_in_tag_group was wrong for other taxonomies than tags
 
 = 0.11 =
 
