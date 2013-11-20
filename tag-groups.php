@@ -4,12 +4,12 @@ Plugin Name: Tag Groups
 Plugin URI: http://www.christoph-amthor.de/software/tag-groups/
 Description: Assign tags to groups and display them in a tabbed tag cloud
 Author: Christoph Amthor
-Version: 0.12
+Version: 0.12.1
 Author URI: http://www.christoph-amthor.de
 License: GNU GENERAL PUBLIC LICENSE, Version 3
 */
 
-define("TAG_GROUPS_VERSION", "0.12");
+define("TAG_GROUPS_VERSION", "0.12.1");
 
 define("TAG_GROUPS_BUILT_IN_THEMES", "ui-gray,ui-lightness,ui-darkness");
 
@@ -278,9 +278,13 @@ function tg_update_edit_term_group($term_id) {
 
 		if ( isset($_POST['description']) && ($_POST['description'] != '') ) $term['description'] = stripslashes($_POST['description']);
 
-		if ( isset($_POST['tag-groups-taxonomy']) ) $category = stripslashes($_POST['tag-groups-taxonomy']);
+		if ( isset($_POST['tag-groups-taxonomy']) ) {
 		
-		wp_update_term( $term_id, $category, $term );
+			$category = stripslashes($_POST['tag-groups-taxonomy']);
+		
+			wp_update_term( $term_id, $category, $term );
+			
+		}
 		
 	} else wp_die( __( 'Cheatin&#8217; uh?' ) );
 
@@ -371,30 +375,30 @@ function tg_quick_edit_tag() {
 
 	?>
 
-		<fieldset><div class="inline-edit-col">
+	<fieldset><div class="inline-edit-col">
+	
+	<label><span class="title"><?php _e( 'Group' , 'tag-groups') ?></span><span class="input-text-wrap">
+	
+	<select id="term-group-option" name="term-group-option" class="ptitle">
+	
+		<option value="0" ><?php _e('not assigned', 'tag-groups') ?></option>
+
+		<?php for ($i = 1; $i <= $number_of_tag_groups; $i++) :?>
+
+		<option value="<?php echo $tag_group_ids[$i]; ?>" ><?php echo $tag_group_labels[$i]; ?></option>
+
+	<?php endfor; ?>
+
+	</select>
+
+	<input type="hidden" name="tag-groups-option-nonce" id="tag-groups-option-nonce" value="" />
 		
-		<label><span class="title"><?php _e( 'Group' , 'tag-groups') ?></span><span class="input-text-wrap">
+	<input type="hidden" name="tag-groups-taxonomy" id="tag-groups-taxonomy" value="<?php echo $screen->taxonomy; ?>" />
+
+	</span></label>
 		
-		<select id="term-group-option" name="term-group-option" class="ptitle">
-		
-			<option value="0" ><?php _e('not assigned', 'tag-groups') ?></option>
-
-			<?php for ($i = 1; $i <= $number_of_tag_groups; $i++) :?>
-
-			<option value="<?php echo $tag_group_ids[$i]; ?>" ><?php echo $tag_group_labels[$i]; ?></option>
-
-		<?php endfor; ?>
-
-		</select>
-
-		<input type="hidden" name="tag-groups-option-nonce" id="tag-groups-option-nonce" value="" />
-		
-		<input type="hidden" name="tag-groups-taxonomy" id="tag-groups-taxonomy" value="<?php echo $screen->taxonomy; ?>" />
-
-		</span></label>
-		
-		</div></fieldset>
-	<?php
+	</div></fieldset>
+<?php
 	
 }
 
@@ -440,6 +444,8 @@ function tg_tag_input_metabox($tag) {
 	assigning tags to tag groups on single tag view (after clicking tag for editing)
 */
 
+	$screen = get_current_screen();
+
  	$tag_group_labels = get_option( 'tag_group_labels', array() );
 
 	$tag_group_ids = get_option( 'tag_group_ids', array() );
@@ -462,6 +468,7 @@ function tg_tag_input_metabox($tag) {
 
 		</select>
 		<input type="hidden" name="tag-groups-nonce" id="tag-groups-nonce" value="<?php echo wp_create_nonce('tag-groups') ?>" />
+		<input type="hidden" name="tag-groups-taxonomy" id="tag-groups-taxonomy" value="<?php echo $screen->taxonomy; ?>" />
 		<p><a href="edit.php?page=tag-groups"><?php _e('Edit tag groups' , 'tag-groups') ?></a>. (<?php _e('Clicking will leave this page without saving.', 'tag-groups') ?>)</p>
 		</td>
 	</tr>
@@ -1210,10 +1217,10 @@ function tg_settings_page() {
 	<p>Or support his work by a nice link to one of these websites:
 <ul>
 	<li><a href="http://www.burma-center.org" target="_blank">www.burma-center.org</a></li>
+	<li><a href="http://mycitizen.net" target="_blank">mycitizen.net</a></li>
 	<li><a href="http://www.ecoburma.com" target="_blank">www.ecoburma.com</a></li>
 	<li><a href="http://www.weirdthingsinprague.com" target="_blank">www.weirdthingsinprague.com</a></li>
 	<li><a href="http://www.myanmar-dictionary.org" target="_blank">www.myanmar-dictionary.org</a></li>
-	<li><a href="http://digitalmyanmar.net" target="_blank">digitalmyanmar.net</a></li>
 </ul>
 	Thanks!</p>
 		<?php endif; ?>
