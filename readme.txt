@@ -3,7 +3,7 @@ Contributors: camthor
 Donate link: http://www.burma-center.org/donate/
 Tags: tag, tags, term_group, tag cloud, tag-cloud, WPML, category, categories, category cloud
 Requires at least: 3.1
-Tested up to: 3.7.1
+Tested up to: 3.8
 Stable tag: 0.12.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
