@@ -7,6 +7,7 @@ Author: Christoph Amthor
 Version: 0.12.1
 Author URI: http://www.christoph-amthor.de
 License: GNU GENERAL PUBLIC LICENSE, Version 3
+Text Domain: tag-groups
 */
 
 define("TAG_GROUPS_VERSION", "0.12.1");
@@ -29,6 +30,19 @@ add_action( 'wp_enqueue_scripts', 'tg_add_js_css' );
 
 add_action( 'admin_enqueue_scripts', 'tg_add_admin_js_css' );
 
+add_action('plugins_loaded', 'tg_plugin_init');
+
+
+function tg_plugin_init() {
+/*
+	Loading text domain for internationalization
+*/
+
+	$plugin_dir = basename(dirname(__FILE__));
+
+	load_plugin_textdomain( 'tag-groups', false, $plugin_dir . '/languages/' );
+
+}
 
 function tg_widget_hook() {
 /*
@@ -286,7 +300,7 @@ function tg_update_edit_term_group($term_id) {
 			
 		}
 		
-	} else wp_die( __( 'Cheatin&#8217; uh?' ) );
+	} else wp_die( __( 'Cheatin&#8217; uh?' , 'tag-groups') );
 
 }
 
@@ -344,11 +358,11 @@ function tg_expand_quick_edit_link($actions, $tag) {
 	
 	$actions['inline hide-if-no-js'] = '<a href="#" class="editinline" title="';
 
-	$actions['inline hide-if-no-js'] .= esc_attr( __( 'Edit this item inline' ) ) . '" ';
+	$actions['inline hide-if-no-js'] .= esc_attr( __( 'Edit this item inline' , 'tag-groups') ) . '" ';
 
 	$actions['inline hide-if-no-js'] .= " onclick=\"set_inline_tag_group_selected('{$tag_group_id}', '{$nonce}')\">"; 
 
-	$actions['inline hide-if-no-js'] .= __( 'Quick&nbsp;Edit' );
+	$actions['inline hide-if-no-js'] .= __( 'Quick&nbsp;Edit' , 'tag-groups');
 
 	$actions['inline hide-if-no-js'] .= '</a>';
 
@@ -658,7 +672,7 @@ function tg_group_administration() {
 			<input id="label" maxlength="100" size="70" name="label" value="<?php echo $label ?>" /></li>   
 		</ul>
 		<input class='button-primary' type='submit' name='Save' value='<?php _e('Create Group', 'tag-groups'); ?>' id='submitbutton' />
-		<input class='button-primary' type='button' name='Cancel' value='<?php _e('Cancel'); ?>' id='cancel' onclick="location.href='edit.php?page=tag-groups'"/>
+		<input class='button-primary' type='button' name='Cancel' value='<?php _e('Cancel', 'tag-groups'); ?>' id='cancel' onclick="location.href='edit.php?page=tag-groups'"/>
 		</form>
 	<?php break;
 	
@@ -672,7 +686,7 @@ function tg_group_administration() {
 			<input id="label" maxlength="100" size="70" name="label" value="<?php echo $tag_group_labels[$tag_groups_id] ?>" /></li>   
 		</ul>
 		<input class='button-primary' type='submit' name='Save' value='<?php _e('Save Group', 'tag-groups' ); ?>' id='submitbutton' />
-		<input class='button-primary' type='button' name='Cancel' value='<?php _e('Cancel'); ?>' id='cancel' onclick="location.href='edit.php?page=tag-groups'"/>
+		<input class='button-primary' type='button' name='Cancel' value='<?php _e('Cancel', 'tag-groups'); ?>' id='cancel' onclick="location.href='edit.php?page=tag-groups'"/>
 		</form>
 
 	<?php break;
@@ -714,7 +728,7 @@ function tg_group_administration() {
 		<div class="updated fade"><p>
 			<?php printf(__('A tag group with the id %s and the label \'%s\' has been deleted.', 'tag-groups'), $id, $label); ?>
 		</p></div><br clear="all" />
-		<input class='button-primary' type='button' name='ok' value='<?php _e('OK'); ?>' id='ok' onclick="location.href='edit.php?page=tag-groups'"/>
+		<input class='button-primary' type='button' name='ok' value='<?php _e('OK', 'tag-groups'); ?>' id='ok' onclick="location.href='edit.php?page=tag-groups'"/>
 	<?php break;
 
 	default:
@@ -748,7 +762,7 @@ function tg_group_administration() {
 			 <td><?php echo $tag_group_ids[$i]; ?></td>
 			 <td><?php echo $tag_group_labels[$i] ?></td>
 			 <td><?php echo tg_number_assigned($tag_group_ids[$i]) ?></td>
-			 <td><a href="edit.php?page=tag-groups&action=edit&id=<?php echo $i; ?>"><?php _e('Edit') ?></a>, <a href="#" onclick="var answer = confirm('<?PHP _e('Do you really want to delete the tag group', 'tag-groups') ?> \'<?php echo esc_js($tag_group_labels[$i]) ?>\'?'); if( answer ) {window.location ='edit.php?page=tag-groups&action=delete&id=<?php echo $i ?>&tag-groups-delete-nonce=<?php echo wp_create_nonce('tag-groups-delete-'.$i) ?>'}"><?php _e('Delete') ?></a></td>
+			 <td><a href="edit.php?page=tag-groups&action=edit&id=<?php echo $i; ?>"><?php _e('Edit', 'tag-groups') ?></a>, <a href="#" onclick="var answer = confirm('<?PHP _e('Do you really want to delete the tag group', 'tag-groups') ?> \'<?php echo esc_js($tag_group_labels[$i]) ?>\'?'); if( answer ) {window.location ='edit.php?page=tag-groups&action=delete&id=<?php echo $i ?>&tag-groups-delete-nonce=<?php echo wp_create_nonce('tag-groups-delete-'.$i) ?>'}"><?php _e('Delete', 'tag-groups') ?></a></td>
 			 <td>
 				 <div style="overflow:hidden; position:relative;height:15px;width:27px;clear:both;">
 				 <?php if ($i > 1) :?>
@@ -771,10 +785,10 @@ function tg_group_administration() {
 		<?php endfor; ?>
 
 		<tr>
-		 <td><?php _e('new') ?></td>
+		 <td><?php _e('new', 'tag-groups') ?></td>
 		 <td></td>
 		 <td></td>
-		 <td><a href="edit.php?page=tag-groups&action=new"><?php _e('Create') ?></a></td>
+		 <td><a href="edit.php?page=tag-groups&action=new"><?php _e('Create', 'tag-groups') ?></a></td>
 		 <td></td>
 		</tr>
 		</tbody>
@@ -877,7 +891,7 @@ function tg_settings_page() {
 		<div class="updated fade"><p>
 			<?php _e('Settings saved.', 'tag-groups'); ?>
 		</p></div><br clear="all" />
-		<input class='button-primary' type='button' name='ok' value='<?php _e('OK'); ?>' id='ok' onclick="location.href='edit.php?page=tag-groups-settings&active-tab=3'"/>
+		<input class='button-primary' type='button' name='ok' value='<?php _e('OK', 'tag-groups'); ?>' id='ok' onclick="location.href='edit.php?page=tag-groups-settings&active-tab=3'"/>
 		<?php
 		
 	break;
@@ -904,7 +918,7 @@ function tg_settings_page() {
 		<div class="updated fade"><p>
 			<?php _e('All groups are deleted and assignments reset.', 'tag-groups'); ?>
 		</p></div><br clear="all" />
-		<input class='button-primary' type='button' name='ok' value='<?php _e('OK'); ?>' id='ok' onclick="location.href='edit.php?page=tag-groups-settings&active-tab=4'"/>
+		<input class='button-primary' type='button' name='ok' value='<?php _e('OK', 'tag-groups'); ?>' id='ok' onclick="location.href='edit.php?page=tag-groups-settings&active-tab=4'"/>
 		<?php
 	break;
 	
@@ -919,7 +933,7 @@ function tg_settings_page() {
 		<div class="updated fade"><p>
 			<?php _e('All labels were registered.', 'tag-groups' ); ?>
 		</p></div><br clear="all" />
-		<input class='button-primary' type='button' name='ok' value='<?php _e('OK'); ?>' id='ok' onclick="location.href='edit.php?page=tag-groups-settings&active-tab=2'"/>
+		<input class='button-primary' type='button' name='ok' value='<?php _e('OK', 'tag-groups'); ?>' id='ok' onclick="location.href='edit.php?page=tag-groups-settings&active-tab=2'"/>
 
 	<?php break;
 
@@ -948,7 +962,7 @@ function tg_settings_page() {
 		?> <div class="updated fade"><p>
 		<?php _e('Your tag cloud theme settings have been saved.', 'tag-groups' ); ?>
 		</p></div><br clear="all" />
-		<input class='button-primary' type='button' name='ok' value='<?php _e('OK'); ?>' id='ok' onclick="location.href='edit.php?page=tag-groups-settings&active-tab=1'"/>
+		<input class='button-primary' type='button' name='ok' value='<?php _e('OK', 'tag-groups'); ?>' id='ok' onclick="location.href='edit.php?page=tag-groups-settings&active-tab=1'"/>
 		<?php
 		
 	break;
@@ -978,7 +992,7 @@ function tg_settings_page() {
 		?> <div class="updated fade"><p>
 		<?php _e('Your tag taxonomy settings have been saved.', 'tag-groups' ); ?>
 		</p></div><br clear="all" />
-		<input class='button-primary' type='button' name='ok' value='<?php _e('OK'); ?>' id='ok' onclick="location.href='edit.php?page=tag-groups-settings&active-tab=0'"/>
+		<input class='button-primary' type='button' name='ok' value='<?php _e('OK', 'tag-groups'); ?>' id='ok' onclick="location.href='edit.php?page=tag-groups-settings&active-tab=0'"/>
 		<?php
 		
 	break;
@@ -994,7 +1008,7 @@ function tg_settings_page() {
 		?> <div class="updated fade"><p>
 		<?php _e('Your back end settings have been saved.', 'tag-groups' ); ?>
 		</p></div><br clear="all" />
-		<input class='button-primary' type='button' name='ok' value='<?php _e('OK'); ?>' id='ok' onclick="location.href='edit.php?page=tag-groups-settings&active-tab=0'"/>
+		<input class='button-primary' type='button' name='ok' value='<?php _e('OK', 'tag-groups'); ?>' id='ok' onclick="location.href='edit.php?page=tag-groups-settings&active-tab=0'"/>
 		<?php
 		
 	break;
@@ -1140,7 +1154,7 @@ function tg_settings_page() {
 
 		
 		<?php if ( $active_tab == 3 ): ?>
-			<p><?php _e('You can use a shortcode to embed the tag cloud directly in a post, page or widget or you call the function in the PHP code of your theme.') ?></p>
+			<p><?php _e('You can use a shortcode to embed the tag cloud directly in a post, page or widget or you call the function in the PHP code of your theme.', 'tag-groups') ?></p>
 			<form method="POST" action="<?php echo $_SERVER['REQUEST_URI']; ?>">
 			<input type="hidden" name="tag-groups-widget-nonce" id="tag-groups-widget-nonce" value="<?php echo wp_create_nonce('tag-groups-widget') ?>" />
 			<ul>
@@ -1151,8 +1165,8 @@ function tg_settings_page() {
 			</form>
 
 			<p>&nbsp;</p>
-			<h3><?php _e('Further Instructions') ?></h3>
-			<h4>a) <?php _e('Shortcode') ?></h4>
+			<h3><?php _e('Further Instructions', 'tag-groups') ?></h3>
+			<h4>a) <?php _e('Shortcode', 'tag-groups') ?></h4>
 			<p>[tag_groups_cloud]</p>
 			<p><b><?php _e('Parameters', 'tag-groups') ?></b><br /><?php _e('example', 'tag-groups') ?>: [tag_groups_cloud smallest=9 largest=30 include=1,2,10]
 			<?php _e('<ul>
