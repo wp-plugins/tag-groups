@@ -1,194 +1,194 @@
-# Copyright (C) 2013 Tag Groups
+# Copyright (C) 2014 Tag Groups
 # This file is distributed under the same license as the Tag Groups package.
 msgid ""
 msgstr ""
-"Project-Id-Version: Tag Groups 0.12.1\n"
+"Project-Id-Version: Tag Groups 0.12.2\n"
 "Report-Msgid-Bugs-To: http://wordpress.org/tag/tag-groups\n"
-"POT-Creation-Date: 2013-12-15 17:39:39+00:00\n"
+"POT-Creation-Date: 2014-01-06 11:21:05+00:00\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"PO-Revision-Date: 2013-MO-DA HO:MI+ZONE\n"
+"PO-Revision-Date: 2014-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 
-#: tag-groups.php:205 tag-groups.php:421
+#: tag-groups.php:219 tag-groups.php:435
 msgid "Tag Group"
 msgstr ""
 
-#: tag-groups.php:289
+#: tag-groups.php:303
 msgid "Cheatin&#8217; uh?"
 msgstr ""
 
-#: tag-groups.php:347
+#: tag-groups.php:361
 msgid "Edit this item inline"
 msgstr ""
 
-#: tag-groups.php:351
+#: tag-groups.php:365
 msgid "Quick&nbsp;Edit"
 msgstr ""
 
-#: tag-groups.php:380
+#: tag-groups.php:394
 msgid "Group"
 msgstr ""
 
-#: tag-groups.php:384 tag-groups.php:424 tag-groups.php:459
-#: tag-groups.php:1824
+#: tag-groups.php:398 tag-groups.php:438 tag-groups.php:473
+#: tag-groups.php:1839
 msgid "not assigned"
 msgstr ""
 
-#: tag-groups.php:456
+#: tag-groups.php:470
 msgid "Tag group"
 msgstr ""
 
-#: tag-groups.php:472
+#: tag-groups.php:486
 msgid "Edit tag groups"
 msgstr ""
 
-#: tag-groups.php:472
+#: tag-groups.php:486
 msgid "Clicking will leave this page without saving."
 msgstr ""
 
-#: tag-groups.php:554
+#: tag-groups.php:568
 msgid "The label cannot be empty. Please correct it or go back."
 msgstr ""
 
-#: tag-groups.php:653
+#: tag-groups.php:667
 msgid "Create a new tag group"
 msgstr ""
 
-#: tag-groups.php:657 tag-groups.php:671
+#: tag-groups.php:671 tag-groups.php:685
 msgid "Label"
 msgstr ""
 
-#: tag-groups.php:660
+#: tag-groups.php:674
 msgid "Create Group"
 msgstr ""
 
-#: tag-groups.php:661 tag-groups.php:675
+#: tag-groups.php:675 tag-groups.php:689
 msgid "Cancel"
 msgstr ""
 
-#: tag-groups.php:667
+#: tag-groups.php:681
 msgid "Edit the label of an existing tag group"
 msgstr ""
 
-#: tag-groups.php:674
+#: tag-groups.php:688
 msgid "Save Group"
 msgstr ""
 
-#: tag-groups.php:715
+#: tag-groups.php:729
 msgid "A tag group with the id %s and the label '%s' has been deleted."
 msgstr ""
 
-#: tag-groups.php:717 tag-groups.php:880 tag-groups.php:907 tag-groups.php:922
-#: tag-groups.php:951 tag-groups.php:981 tag-groups.php:997
+#: tag-groups.php:731 tag-groups.php:894 tag-groups.php:921 tag-groups.php:936
+#: tag-groups.php:965 tag-groups.php:995 tag-groups.php:1011
 msgid "OK"
 msgstr ""
 
-#: tag-groups.php:722
+#: tag-groups.php:736
 msgid ""
 "On this page you can define tag groups. Tags (or terms) can be assigned to "
 "these groups on the page where you edit the tags (terms)."
 msgstr ""
 
-#: tag-groups.php:723
+#: tag-groups.php:737
 msgid "List"
 msgstr ""
 
-#: tag-groups.php:727 tag-groups.php:736
+#: tag-groups.php:741 tag-groups.php:750
 msgid "ID"
 msgstr ""
 
-#: tag-groups.php:728 tag-groups.php:737
+#: tag-groups.php:742 tag-groups.php:751
 msgid "Label displayed on the frontend"
 msgstr ""
 
-#: tag-groups.php:729 tag-groups.php:738
+#: tag-groups.php:743 tag-groups.php:752
 msgid "Number of assigned tags"
 msgstr ""
 
-#: tag-groups.php:730 tag-groups.php:739
+#: tag-groups.php:744 tag-groups.php:753
 msgid "Action"
 msgstr ""
 
-#: tag-groups.php:731 tag-groups.php:740
+#: tag-groups.php:745 tag-groups.php:754
 msgid "Change sort order"
 msgstr ""
 
-#: tag-groups.php:751
+#: tag-groups.php:765
 msgid "Edit"
 msgstr ""
 
-#: tag-groups.php:751
+#: tag-groups.php:765
 msgid "Do you really want to delete the tag group"
 msgstr ""
 
-#: tag-groups.php:751
+#: tag-groups.php:765
 msgid "Delete"
 msgstr ""
 
-#: tag-groups.php:774
+#: tag-groups.php:788
 msgid "new"
 msgstr ""
 
-#: tag-groups.php:777
+#: tag-groups.php:791
 msgid "Create"
 msgstr ""
 
-#: tag-groups.php:785
+#: tag-groups.php:799
 msgid "Go to the settings."
 msgstr ""
 
-#: tag-groups.php:878
+#: tag-groups.php:892
 msgid "Settings saved."
 msgstr ""
 
-#: tag-groups.php:905
+#: tag-groups.php:919
 msgid "All groups are deleted and assignments reset."
 msgstr ""
 
-#: tag-groups.php:920
+#: tag-groups.php:934
 msgid "All labels were registered."
 msgstr ""
 
-#: tag-groups.php:949
+#: tag-groups.php:963
 msgid "Your tag cloud theme settings have been saved."
 msgstr ""
 
-#: tag-groups.php:979
+#: tag-groups.php:993
 msgid "Your tag taxonomy settings have been saved."
 msgstr ""
 
-#: tag-groups.php:995
+#: tag-groups.php:1009
 msgid "Your back end settings have been saved."
 msgstr ""
 
-#: tag-groups.php:1005
+#: tag-groups.php:1019
 msgid "Basics"
 msgstr ""
 
-#: tag-groups.php:1006
+#: tag-groups.php:1020
 msgid "Theme"
 msgstr ""
 
-#: tag-groups.php:1008
+#: tag-groups.php:1022
 msgid "WPML"
 msgstr ""
 
-#: tag-groups.php:1010
+#: tag-groups.php:1024
 msgid "Tag Cloud"
 msgstr ""
 
-#: tag-groups.php:1011 tag-groups.php:1206
+#: tag-groups.php:1025 tag-groups.php:1221
 msgid "Delete Groups"
 msgstr ""
 
-#: tag-groups.php:1012
+#: tag-groups.php:1026
 msgid "About"
 msgstr ""
 
-#: tag-groups.php:1020
+#: tag-groups.php:1034
 msgid ""
 "Choose the taxonomies for which you want to use tag groups. Default is "
 "<b>post_tag</b>. Please note that the tag cloud might not work with all "
@@ -197,11 +197,11 @@ msgid ""
 "default."
 msgstr ""
 
-#: tag-groups.php:1040
+#: tag-groups.php:1054
 msgid "Save Taxonomy"
 msgstr ""
 
-#: tag-groups.php:1048
+#: tag-groups.php:1062
 msgid ""
 "You can add a pull-down menu to the filters above the list of posts. If you "
 "filter posts by tag groups, then only items will be shown that have tags "
@@ -211,15 +211,15 @@ msgid ""
 "taxonomy or with <b>category</b> as taxonomy."
 msgstr ""
 
-#: tag-groups.php:1050
+#: tag-groups.php:1064
 msgid "Display filter menu"
 msgstr ""
 
-#: tag-groups.php:1053
+#: tag-groups.php:1067
 msgid "Save Back End Settings"
 msgstr ""
 
-#: tag-groups.php:1091
+#: tag-groups.php:1105
 msgid ""
 "Here you can choose a theme for the tag cloud. The path to own themes is "
 "relative to the <i>uploads</i> folder of your Wordpress installation. Leave "
@@ -244,95 +244,212 @@ msgid ""
 "\t\t\t</ol>"
 msgstr ""
 
-#: tag-groups.php:1111
+#: tag-groups.php:1125
 msgid ""
 "Use jQuery.  (Default is on. Other plugins might override this setting.)"
 msgstr ""
 
-#: tag-groups.php:1118
+#: tag-groups.php:1132
 msgid "Tabs triggered by hovering mouse pointer (without clicking)."
 msgstr ""
 
-#: tag-groups.php:1119
+#: tag-groups.php:1133
 msgid "Collapsible tabs (toggle open/close)."
 msgstr ""
 
-#: tag-groups.php:1126
+#: tag-groups.php:1140
 msgid "Save Theme Options"
 msgstr ""
 
-#: tag-groups.php:1133
+#: tag-groups.php:1147
 msgid "Register group labels with WPML"
 msgstr ""
 
-#: tag-groups.php:1134
+#: tag-groups.php:1148
 msgid ""
 "Use this button to register all existing group labels with WPML for string "
 "translation. This is only necessary if labels have existed before you "
 "installed WPML."
 msgstr ""
 
-#: tag-groups.php:1136
+#: tag-groups.php:1150
 msgid "Register Labels"
 msgstr ""
 
-#: tag-groups.php:1143
+#: tag-groups.php:1157
 msgid ""
 "You can use a shortcode to embed the tag cloud directly in a post, page or "
 "widget or you call the function in the PHP code of your theme."
 msgstr ""
 
-#: tag-groups.php:1147
+#: tag-groups.php:1161
 msgid "Enable shortcode in sidebar widgets (if not visible anyway)."
 msgstr ""
 
-#: tag-groups.php:1150
+#: tag-groups.php:1164
 msgid "Save"
 msgstr ""
 
-#: tag-groups.php:1154
+#: tag-groups.php:1168
 msgid "Further Instructions"
 msgstr ""
 
-#: tag-groups.php:1155
+#: tag-groups.php:1169
 msgid "Shortcode"
 msgstr ""
 
-#: tag-groups.php:1157
+#: tag-groups.php:1171
 msgid "Parameters"
 msgstr ""
 
-#: tag-groups.php:1157
+#: tag-groups.php:1171
 msgid "example"
 msgstr ""
 
+#: tag-groups.php:1174
+msgid "<b>Tags or Terms:</b>"
+msgstr ""
+
+#: tag-groups.php:1175
+msgid "<b>smallest=x</b> Font-size in pt of the smallest tags. Default: 12"
+msgstr ""
+
+#: tag-groups.php:1176
+msgid "<b>largest=x</b> Font-size in pt of the largest tags. Default: 22"
+msgstr ""
+
+#: tag-groups.php:1177
+msgid ""
+"<b>orderby=abc</b> Which field to use for sorting, e.g. count. Default: name"
+msgstr ""
+
+#: tag-groups.php:1178
+msgid ""
+"<b>order=ASC or =DESC</b> Whether to sort the tags in ascending or "
+"descending order. Default: ASC"
+msgstr ""
+
+#: tag-groups.php:1179
+msgid ""
+"<b>amount=x</b> Maximum amount of tags in one cloud (per group). Default: 40"
+msgstr ""
+
+#: tag-groups.php:1180
+msgid ""
+"<b>hide_empty=1 or =0</b> Whether to hide or show also tags that are not "
+"assigned to any post. Default: 1 (hide empty)"
+msgstr ""
+
+#: tag-groups.php:1181
+msgid ""
+"<b>tags_post_id=x</b> Display only tags that are assigned to the post (or "
+"page) with the ID x. If set to 0, it will try to retrieve the current post "
+"ID. Default: -1 (all tags displayed)"
+msgstr ""
+
+#: tag-groups.php:1182
+msgid "<b>separator=\"•\"</b> A separator between the tags. Default: empty"
+msgstr ""
+
+#: tag-groups.php:1183
+msgid "<b>separator_size=12</b> The size of the separator. Default: 12"
+msgstr ""
+
+#: tag-groups.php:1184
+msgid ""
+"<b>adjust_separator_size=1 or =0</b> Whether to adjust the separator's size "
+"to the size of the following tag. Default: 0"
+msgstr ""
+
+#: tag-groups.php:1185
+msgid "<b>prepend=\"#\"</b> Prepend to each tag label. Default: empty"
+msgstr ""
+
+#: tag-groups.php:1186
+msgid "<b>append=\"something\"</b> Append to each tag label. Default: empty"
+msgstr ""
+
+#: tag-groups.php:1187
+msgid ""
+"<b>taxonomy=\"x,y,...\"</b> Restrict the tags only to these taxonomies. "
+"Default: empty (= no restriction)"
+msgstr ""
+
+#: tag-groups.php:1190
+msgid "<b>Groups and Tabs:</b>"
+msgstr ""
+
+#: tag-groups.php:1191
+msgid ""
+"<b>include=\"x,y,...\"</b> IDs of tag groups (left column in list of groups) "
+"that will be considered in the tag cloud. Empty or not used means that all "
+"tag groups will be used. Default: empty"
+msgstr ""
+
 #: tag-groups.php:1192
+msgid ""
+"<b>groups_post_id=x</b> Display only groups of which at least one assigned "
+"tag is also assigned to the post (or page) with the ID x. If set to 0, it "
+"will try to retrieve the current post ID. Default: -1 (all groups "
+"displayed). Matching groups will be added to the list specified by the "
+"parameter <b>include</b>."
+msgstr ""
+
+#: tag-groups.php:1193
+msgid "<b>show_tabs=1 or =0</b> Whether to show the tabs. Default: 1"
+msgstr ""
+
+#: tag-groups.php:1194
+msgid ""
+"<b>hide_empty_tabs=1 or =0</b> Whether to hide tabs without tags. Default: 0 "
+"(Not implemented for PHP function with second parameter set to 'true'. Not "
+"effective with <b>groups_post_id</b>.)"
+msgstr ""
+
+#: tag-groups.php:1195
+msgid ""
+"<b>collapsible=1 or =0</b> Whether tabs are collapsible (toggle open/close). "
+"Default: general settings in the back end"
+msgstr ""
+
+#: tag-groups.php:1196
+msgid ""
+"<b>mouseover=1 or =0</b> Whether tabs can be selected by hovering over with "
+"the mouse pointer (without clicking). Default: general settings in the back "
+"end"
+msgstr ""
+
+#: tag-groups.php:1199
+msgid "<b>Advanced Styling:</b>"
+msgstr ""
+
+#: tag-groups.php:1207
 msgid ""
 "By default the function <b>tag_groups_cloud</b> returns the html for a "
 "tabbed tag cloud."
 msgstr ""
 
-#: tag-groups.php:1193 tag-groups.php:1195
+#: tag-groups.php:1208 tag-groups.php:1210
 msgid "Example: "
 msgstr ""
 
-#: tag-groups.php:1194
+#: tag-groups.php:1209
 msgid ""
 "If the optional second parameter is set to 'true', the function returns a "
 "multidimensional array containing tag groups and tags."
 msgstr ""
 
-#: tag-groups.php:1202
+#: tag-groups.php:1217
 msgid ""
 "Use this button to delete all tag groups and assignments. Your tags will not "
 "be changed. Check the checkbox to confirm."
 msgstr ""
 
-#: tag-groups.php:1204
+#: tag-groups.php:1219
 msgid "I know what I am doing."
 msgstr ""
 
-#: tag-groups.php:1833
+#: tag-groups.php:1848
 msgid "Filter by tag group "
 msgstr ""
 

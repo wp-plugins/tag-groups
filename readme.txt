@@ -4,7 +4,7 @@ Donate link: http://www.burma-center.org/donate/
 Tags: tag, tags, term_group, tag cloud, tag-cloud, WPML, category, categories, category cloud
 Requires at least: 3.1
 Tested up to: 3.8
-Stable tag: 0.12.2
+Stable tag: 0.12.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -43,10 +43,19 @@ Make sure you have "Use jQuery" checked on the settings page. If you use a plugi
 == Screenshots ==
 
 1. The edit screen
-2. Tag cloud (custom theme)
+2. Settings
 3. Tag cloud (custom theme)
+4. Tag cloud (custom theme)
+
 
 == Changelog ==
+
+= 0.13 =
+
+FEATURES
+
+* localizations enabled
+* Spanish translation (es_ES) by Andrew Kurtis - muchas gracias!
 
 = 0.12.1 =
 

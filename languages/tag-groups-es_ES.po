@@ -1,0 +1,418 @@
+# Copyright (C) 2013 Tag Groups
+# This file is distributed under the same license as the Tag Groups package.
+msgid ""
+msgstr ""
+"Project-Id-Version: Tag Groups 0.12.1\n"
+"Report-Msgid-Bugs-To: http://wordpress.org/tag/tag-groups\n"
+"POT-Creation-Date: 2013-12-15 17:39:39+00:00\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"PO-Revision-Date: 2013-12-18 16:48+0100\n"
+"Last-Translator: jelena kovacevic <jecajeca260@gmail.com>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"X-Generator: Poedit 1.5.5\n"
+
+#: tag-groups.php:205 tag-groups.php:421
+msgid "Tag Group"
+msgstr "Grupo de Etiquetas"
+
+#: tag-groups.php:289
+msgid "Cheatin&#8217; uh?"
+msgstr "¿Haciendo trampa &#8217; eh?"
+
+#: tag-groups.php:347
+msgid "Edit this item inline"
+msgstr "Editar este artículo en línea"
+
+#: tag-groups.php:351
+msgid "Quick&nbsp;Edit"
+msgstr "Búsqueda Rápida &nbsp;Editar"
+
+#: tag-groups.php:380
+msgid "Group"
+msgstr "Grupo"
+
+#: tag-groups.php:384 tag-groups.php:424 tag-groups.php:459
+#: tag-groups.php:1824
+msgid "not assigned"
+msgstr "No asignados"
+
+#: tag-groups.php:456
+msgid "Tag group"
+msgstr "Etiquetar Grupo"
+
+#: tag-groups.php:472
+msgid "Edit tag groups"
+msgstr "Editar grupos de etiquetas"
+
+#: tag-groups.php:472
+msgid "Clicking will leave this page without saving."
+msgstr "Al hacer clic dejará esta página sin guardar."
+
+#: tag-groups.php:554
+msgid "The label cannot be empty. Please correct it or go back."
+msgstr "La etiqueta no puede estar vacía. Por favor corrija o regrese."
+
+#: tag-groups.php:653
+msgid "Create a new tag group"
+msgstr "Crear un nuevo grupo de etiquetas"
+
+#: tag-groups.php:657 tag-groups.php:671
+msgid "Label"
+msgstr "Etiqueta"
+
+#: tag-groups.php:660
+msgid "Create Group"
+msgstr "Crear grupo"
+
+#: tag-groups.php:661 tag-groups.php:675
+msgid "Cancel"
+msgstr "Cancelar"
+
+#: tag-groups.php:667
+msgid "Edit the label of an existing tag group"
+msgstr "Editar la etiqueta de un grupo de etiquetas existentes"
+
+#: tag-groups.php:674
+msgid "Save Group"
+msgstr "Guardar grupo"
+
+#: tag-groups.php:715
+msgid "A tag group with the id %s and the label '%s' has been deleted."
+msgstr ""
+"Ha sido eliminado un grupo de etiquetas con el id %s y la etiqueta '%s'"
+
+#: tag-groups.php:717 tag-groups.php:880 tag-groups.php:907 tag-groups.php:922
+#: tag-groups.php:951 tag-groups.php:981 tag-groups.php:997
+msgid "OK"
+msgstr "OK"
+
+#: tag-groups.php:722
+msgid ""
+"On this page you can define tag groups. Tags (or terms) can be assigned to "
+"these groups on the page where you edit the tags (terms)."
+msgstr ""
+"En esta página puede definir grupos de etiquetas. Etiquetas (o términos) "
+"pueden ser asignados a estos grupos en la página donde se editan las "
+"etiquetas (términos)."
+
+#: tag-groups.php:723
+msgid "List"
+msgstr "Lista"
+
+#: tag-groups.php:727 tag-groups.php:736
+msgid "ID"
+msgstr "ID"
+
+#: tag-groups.php:728 tag-groups.php:737
+msgid "Label displayed on the frontend"
+msgstr "Etiqueta que aparece en el frontend"
+
+#: tag-groups.php:729 tag-groups.php:738
+msgid "Number of assigned tags"
+msgstr "Número asignado de etiquetas"
+
+#: tag-groups.php:730 tag-groups.php:739
+msgid "Action"
+msgstr "Acción"
+
+#: tag-groups.php:731 tag-groups.php:740
+msgid "Change sort order"
+msgstr "Cambiar orden"
+
+#: tag-groups.php:751
+msgid "Edit"
+msgstr "Editar"
+
+#: tag-groups.php:751
+msgid "Do you really want to delete the tag group"
+msgstr "¿Realmente quiere eliminar el grupo de etiquetas?"
+
+#: tag-groups.php:751
+msgid "Delete"
+msgstr "Eliminar"
+
+#: tag-groups.php:774
+msgid "new"
+msgstr "Nuevo"
+
+#: tag-groups.php:777
+msgid "Create"
+msgstr "Crear"
+
+#: tag-groups.php:785
+msgid "Go to the settings."
+msgstr "Ir a configuración."
+
+#: tag-groups.php:878
+msgid "Settings saved."
+msgstr "Opciones guardadas."
+
+#: tag-groups.php:905
+msgid "All groups are deleted and assignments reset."
+msgstr "Se eliminan todos los grupos y se restablecen las asignaciones."
+
+#: tag-groups.php:920
+msgid "All labels were registered."
+msgstr "Se registraron todas las etiquetas."
+
+#: tag-groups.php:949
+msgid "Your tag cloud theme settings have been saved."
+msgstr "Su configuración del tema de la nube de etiquetas se ha guardado."
+
+#: tag-groups.php:979
+msgid "Your tag taxonomy settings have been saved."
+msgstr "Su configuración de taxonomía de etiqueta se ha guardado."
+
+#: tag-groups.php:995
+msgid "Your back end settings have been saved."
+msgstr "Su configuración de back-end se ha guardado."
+
+#: tag-groups.php:1005
+msgid "Basics"
+msgstr "Fundamentos"
+
+#: tag-groups.php:1006
+msgid "Theme"
+msgstr "Tema"
+
+#: tag-groups.php:1008
+msgid "WPML"
+msgstr "WPML"
+
+#: tag-groups.php:1010
+msgid "Tag Cloud"
+msgstr "Nube de etiquetas"
+
+#: tag-groups.php:1011 tag-groups.php:1206
+msgid "Delete Groups"
+msgstr "Eliminar Grupos"
+
+#: tag-groups.php:1012
+msgid "About"
+msgstr "Acerca de"
+
+#: tag-groups.php:1020
+msgid ""
+"Choose the taxonomies for which you want to use tag groups. Default is "
+"<b>post_tag</b>. Please note that the tag cloud might not work with all "
+"taxonomies and that some taxonomies listed here may not be accessible in the "
+"admin backend. If you don't understand what is going on here, just leave the "
+"default."
+msgstr ""
+"Elija las taxonomías para la que desea utilizar los grupos de variables. El "
+"valor predeterminado es <b> post_tag </b>. Tenga en cuenta que la nube de "
+"etiquetas podría no funcionar con todas las taxonomías y que algunas "
+"taxonomías enumeradas aquí pueden no ser accesibles en el backend de "
+"administración. Si usted no entiende lo que está pasando aquí, sólo deje el "
+"valor predeterminado."
+
+#: tag-groups.php:1040
+msgid "Save Taxonomy"
+msgstr "Guardar Taxonomía"
+
+#: tag-groups.php:1048
+msgid ""
+"You can add a pull-down menu to the filters above the list of posts. If you "
+"filter posts by tag groups, then only items will be shown that have tags "
+"(terms) in that particular group. This feature can be turned off so that the "
+"menu won't obstruct your screen if you use a high number of groups. May not "
+"work with all custom taxonomies. Doesn't work with more than <b>one</b> "
+"taxonomy or with <b>category</b> as taxonomy."
+msgstr ""
+"Usted puede agregar un menú desplegable para los filtros por encima de la "
+"lista de mensajes. Si filtra los mensajes de los grupos de variables, "
+"entonces sólo los artículos que tienen etiquetas (términos) en ese grupo en "
+"particular serán mostrados. Esta característica se puede desactivar para que "
+"el menú no obstruya la pantalla si utiliza un gran número de grupos. Puede "
+"no funcionar con todas las taxonomías personalizadas. No funciona con más de "
+"<b> una </b> taxonomía o con <b> categoría </b> como la taxonomía."
+
+#: tag-groups.php:1050
+msgid "Display filter menu"
+msgstr "Mostrar Menú de Filtro"
+
+#: tag-groups.php:1053
+msgid "Save Back End Settings"
+msgstr "Guardar Configuración Back End"
+
+#: tag-groups.php:1091
+msgid ""
+"Here you can choose a theme for the tag cloud. The path to own themes is "
+"relative to the <i>uploads</i> folder of your Wordpress installation. Leave "
+"empty if you don't use any.</p><p>New themes can be created with the <a href="
+"\"http://jqueryui.com/themeroller/\" target=\"_blank\">jQuery UI "
+"ThemeRoller</a>:\n"
+"\t\t\t<ol>\n"
+"\t\t\t <li>On the page \"Theme Roller\" you can customize all features or "
+"pick one set from the gallery. Finish with the \"download\" button.</li>\n"
+"\t\t\t <li>On the next page (\"Download Builder\") you will need to select "
+"the components \"Core\", \"Widget\" and \"Tabs\". Make sure that before "
+"download you enter at the bottom as \"CSS Scope\" <b>.tag-groups-cloud-tabs</"
+"b> (including the dot) and as \"Theme Folder Name\" the name that you wish "
+"to enter below (for example \"my-theme\" or the name used in the theme "
+"gallery - avoid spaces and exotic characters).</li>\n"
+"\t\t\t <li>Then you unpack the downloaded zip file and open the css folder. "
+"Inside it you will find a folder with the previously chosen \"Theme Folder "
+"Name\" (containing a folder \"images\" and files named like \"jquery-"
+"ui-1.10.2.custom.(min.)css\").</li>\n"
+"\t\t\t <li>Copy this folder to your <i>wp-content/uploads</i> folder and "
+"enter its name below.</li>\n"
+"\t\t\t</ol>"
+msgstr ""
+"Aquí usted puede elegir un tema para la nube de etiquetas. El camino a los "
+"propios temas es relativo a los <i>archivos</i> de la carpeta de su "
+"instalación de Wordpress. Dejar en blanco si no se usa ninguna.</p><p>Los "
+"nuevos temas se pueden crear con el <a href=\"http://jqueryui.com/"
+"themeroller/\" target=\"_blank\">jQuery UI ThemeRoller</a>:\n"
+"\t\t\t<ol>\n"
+"\t\t\t <li>A página \"Theme Roller\" puede personalizar todas las "
+"características o elegir un conjunto de la galería. Terminar con el botón "
+"\"download\".</li>\n"
+"\t\t\t <li>La página siguiente (\"Download Builder\") tendrá que seleccionar "
+"los componentes \"Core\", \"Widget\" y  \"Tabs\". Asegúrese de que antes de "
+"la descarga se introduce en la parte inferior como \"CSS Scope\" <b>.tag-"
+"groups-cloud-tabs</b> (incluyendo el punto) y que \"Theme Folder Name\" o el "
+"nombre que desea introducir a continuación (por ejemplo, \"my-theme\" o el "
+"nombre utilizado en la galería de temas - evitar espacios y caracteres "
+"exóticos).</li>\n"
+"\t\t\t <li>Luego de desempaquetar el archivo zip descargado y abrir la "
+"carpeta css. En su interior se encuentra una carpeta con el previamente "
+"elegido \"Theme Folder Name\" (que contiene una carpeta \"images\" y "
+"archivos con el nombre como  \"jquery-ui-1.10.2.custom.(min.)css\").</li>\n"
+"\t\t\t <li>Copiar esta carpeta a su <i>wp-content/uploads</i> e introduzca "
+"su nombre a continuación.</li>\n"
+"\t\t\t</ol>"
+
+#: tag-groups.php:1111
+msgid ""
+"Use jQuery.  (Default is on. Other plugins might override this setting.)"
+msgstr ""
+"Usar jQuery. (Por defecto está activado. Otras extensiones pueden modificar "
+"este ajuste.)"
+
+#: tag-groups.php:1118
+msgid "Tabs triggered by hovering mouse pointer (without clicking)."
+msgstr ""
+"Tabs desencadenados por poner encima el puntero del ratón (sin hacer clic)."
+
+#: tag-groups.php:1119
+msgid "Collapsible tabs (toggle open/close)."
+msgstr "Etiquetas plegables (alternar abrir / cerrar)."
+
+#: tag-groups.php:1126
+msgid "Save Theme Options"
+msgstr "Guardar Opciones de Temas"
+
+#: tag-groups.php:1133
+msgid "Register group labels with WPML"
+msgstr "Registro de etiquetas de grupo con WPML"
+
+#: tag-groups.php:1134
+msgid ""
+"Use this button to register all existing group labels with WPML for string "
+"translation. This is only necessary if labels have existed before you "
+"installed WPML."
+msgstr ""
+"Utilice este botón para registrar todas las etiquetas de grupo existentes "
+"con WPML para la traducción de cadenas. Esto sólo es necesario si las "
+"etiquetas han existido antes de instalar WPML."
+
+#: tag-groups.php:1136
+msgid "Register Labels"
+msgstr "Regístrar etiquetas"
+
+#: tag-groups.php:1143
+msgid ""
+"You can use a shortcode to embed the tag cloud directly in a post, page or "
+"widget or you call the function in the PHP code of your theme."
+msgstr ""
+"Puede utilizar un código corto para incrustar la nube de etiquetas "
+"directamente en un post, página o widget o llamar a la función en el código "
+"PHP de su tema."
+
+#: tag-groups.php:1147
+msgid "Enable shortcode in sidebar widgets (if not visible anyway)."
+msgstr ""
+"Habilitar código corto en los widgets de la barra lateral  (si no es visible "
+"de todos modos)"
+
+#: tag-groups.php:1150
+msgid "Save"
+msgstr "Guardar"
+
+#: tag-groups.php:1154
+msgid "Further Instructions"
+msgstr "Más Instrucciones"
+
+#: tag-groups.php:1155
+msgid "Shortcode"
+msgstr "Shortcode"
+
+#: tag-groups.php:1157
+msgid "Parameters"
+msgstr "Parámetros"
+
+#: tag-groups.php:1157
+msgid "example"
+msgstr "Ejemplo"
+
+#: tag-groups.php:1192
+msgid ""
+"By default the function <b>tag_groups_cloud</b> returns the html for a "
+"tabbed tag cloud."
+msgstr ""
+"Por defecto la función <b> tag_groups_cloud </ b> devuelve el HTML para una "
+"nube de etiquetas por pestañas"
+
+#: tag-groups.php:1193 tag-groups.php:1195
+msgid "Example: "
+msgstr "Ejemplo:"
+
+#: tag-groups.php:1194
+msgid ""
+"If the optional second parameter is set to 'true', the function returns a "
+"multidimensional array containing tag groups and tags."
+msgstr ""
+"Si el segundo parámetro opcional tiene el valor 'verdadero', la función "
+"devuelve una matriz multidimensional que contiene grupos de etiquetas y "
+"etiquetas."
+
+#: tag-groups.php:1202
+msgid ""
+"Use this button to delete all tag groups and assignments. Your tags will not "
+"be changed. Check the checkbox to confirm."
+msgstr ""
+"Use este botón para eliminar todos los grupos de variables y asignaciones. "
+"No se cambiarán las etiquetas. Marque la casilla para confirmar."
+
+#: tag-groups.php:1204
+msgid "I know what I am doing."
+msgstr "Sé lo que estoy haciendo."
+
+#: tag-groups.php:1833
+msgid "Filter by tag group "
+msgstr "Filtrar por grupo de etiquetas"
+
+#. Plugin Name of the plugin/theme
+msgid "Tag Groups"
+msgstr "Grupos de Etiquetas"
+
+#. Plugin URI of the plugin/theme
+msgid "http://www.christoph-amthor.de/software/tag-groups/"
+msgstr "http://www.christoph-amthor.de/software/tag-groups/"
+
+#. Description of the plugin/theme
+msgid "Assign tags to groups and display them in a tabbed tag cloud"
+msgstr ""
+"Asignar etiquetas a los grupos y mostrar en una nube de etiquetas por "
+"pestañas"
+
+#. Author of the plugin/theme
+msgid "Christoph Amthor"
+msgstr "Christoph Amthor"
+
+#. Author URI of the plugin/theme
+msgid "http://www.christoph-amthor.de"
+msgstr "http://www.christoph-amthor.de"
