@@ -4,13 +4,13 @@ Plugin Name: Tag Groups
 Plugin URI: http://www.christoph-amthor.de/software/tag-groups/
 Description: Assign tags to groups and display them in a tabbed tag cloud
 Author: Christoph Amthor
-Version: 0.12.1
+Version: 0.12.2
 Author URI: http://www.christoph-amthor.de
 License: GNU GENERAL PUBLIC LICENSE, Version 3
 Text Domain: tag-groups
 */
 
-define("TAG_GROUPS_VERSION", "0.12.1");
+define("TAG_GROUPS_VERSION", "0.12.2");
 
 define("TAG_GROUPS_BUILT_IN_THEMES", "ui-gray,ui-lightness,ui-darkness");
 
@@ -1169,38 +1169,39 @@ function tg_settings_page() {
 			<h4>a) <?php _e('Shortcode', 'tag-groups') ?></h4>
 			<p>[tag_groups_cloud]</p>
 			<p><b><?php _e('Parameters', 'tag-groups') ?></b><br /><?php _e('example', 'tag-groups') ?>: [tag_groups_cloud smallest=9 largest=30 include=1,2,10]
-			<?php _e('<ul>
+			<ul>
 			<li>&nbsp;</li>
-			<li><b>Tags or Terms:</b></li>
-			<li><b>smallest=x</b> Font-size in pt of the smallest tags. Default: 12</li>
-			<li><b>largest=x</b> Font-size in pt of the largest tags. Default: 22</li>
-			<li><b>orderby=abc</b> Which field to use for sorting, e.g. count. Default: name</li>
-			<li><b>order=ASC or =DESC</b> Whether to sort the tags in ascending or descending order. Default: ASC</li>
-			<li><b>amount=x</b> Maximum amount of tags in one cloud (per group). Default: 40</li>
-			<li><b>hide_empty=1 or =0</b> Whether to hide or show also tags that are not assigned to any post. Default: 1 (hide empty)</li>
-			<li><b>tags_post_id=x</b> Display only tags that are assigned to the post (or page) with the ID x. If set to 0, it will try to retrieve the current post ID. Default: -1 (all tags displayed)</li>
-			<li><b>separator="•"</b> A separator between the tags. Default: empty</li>
-			<li><b>separator_size=12</b> The size of the separator. Default: 12</li>
-			<li><b>adjust_separator_size=1 or =0</b> Whether to adjust the separator\'s size to the size of the following tag. Default: 0</li>
-			<li><b>prepend="#"</b> Prepend to each tag label. Default: empty</li>
-			<li><b>append="something"</b> Append to each tag label. Default: empty</li>
-			<li><b>taxonomy="x,y,..."</b> Restrict the tags only to these taxonomies. Default: empty (= no restriction)</li>
+			<li><?php _e('<b>Tags or Terms:</b>', 'tag-groups') ?></li>
+			<li><?php _e('<b>smallest=x</b> Font-size in pt of the smallest tags. Default: 12', 'tag-groups') ?></li>
+			<li><?php _e('<b>largest=x</b> Font-size in pt of the largest tags. Default: 22', 'tag-groups') ?></li>
+			<li><?php _e('<b>orderby=abc</b> Which field to use for sorting, e.g. count. Default: name', 'tag-groups') ?></li>
+			<li><?php _e('<b>order=ASC or =DESC</b> Whether to sort the tags in ascending or descending order. Default: ASC', 'tag-groups') ?></li>
+			<li><?php _e('<b>amount=x</b> Maximum amount of tags in one cloud (per group). Default: 40', 'tag-groups') ?></li>
+			<li><?php _e('<b>hide_empty=1 or =0</b> Whether to hide or show also tags that are not assigned to any post. Default: 1 (hide empty)', 'tag-groups') ?></li>
+			<li><?php _e('<b>tags_post_id=x</b> Display only tags that are assigned to the post (or page) with the ID x. If set to 0, it will try to retrieve the current post ID. Default: -1 (all tags displayed)', 'tag-groups') ?></li>
+			<li><?php _e('<b>separator="•"</b> A separator between the tags. Default: empty', 'tag-groups') ?></li>
+			<li><?php _e('<b>separator_size=12</b> The size of the separator. Default: 12', 'tag-groups') ?></li>
+			<li><?php _e('<b>adjust_separator_size=1 or =0</b> Whether to adjust the separator\'s size to the size of the following tag. Default: 0', 'tag-groups') ?></li>
+			<li><?php _e('<b>prepend="#"</b> Prepend to each tag label. Default: empty', 'tag-groups') ?></li>
+			<li><?php _e('<b>append="something"</b> Append to each tag label. Default: empty', 'tag-groups') ?></li>
+			<li><?php _e('<b>taxonomy="x,y,..."</b> Restrict the tags only to these taxonomies. Default: empty (= no restriction)', 'tag-groups') ?></li>
 			
 			<li>&nbsp;</li>
-			<li><b>Groups and Tabs:</b></li>
-			<li><b>include="x,y,..."</b> IDs of tag groups (left column in list of groups) that will be considered in the tag cloud. Empty or not used means that all tag groups will be used. Default: empty</li>
-			<li><b>groups_post_id=x</b> Display only groups of which at least one assigned tag is also assigned to the post (or page) with the ID x. If set to 0, it will try to retrieve the current post ID. Default: -1 (all groups displayed). Matching groups will be added to the list specified by the parameter <b>include</b>.</li>
-			<li><b>show_tabs=1 or =0</b> Whether to show the tabs. Default: 1</li>
-			<li><b>hide_empty_tabs=1 or =0</b> Whether to hide tabs without tags. Default: 0 (Not implemented for PHP function with second parameter set to \'true\'. Not effective with <b>groups_post_id</b>.)</li>
-			<li><b>collapsible=1 or =0</b> Whether tabs are collapsible (toggle open/close). Default: general settings in the back end</li>
-			<li><b>mouseover=1 or =0</b> Whether tabs can be selected by hovering over with the mouse pointer (without clicking). Default: general settings in the back end</li>
+			<li><?php _e('<b>Groups and Tabs:</b>', 'tag-groups') ?></li>
+			<li><?php _e('<b>include="x,y,..."</b> IDs of tag groups (left column in list of groups) that will be considered in the tag cloud. Empty or not used means that all tag groups will be used. Default: empty', 'tag-groups') ?></li>
+			<li><?php _e('<b>groups_post_id=x</b> Display only groups of which at least one assigned tag is also assigned to the post (or page) with the ID x. If set to 0, it will try to retrieve the current post ID. Default: -1 (all groups displayed). Matching groups will be added to the list specified by the parameter <b>include</b>.', 'tag-groups') ?></li>
+			<li><?php _e('<b>show_tabs=1 or =0</b> Whether to show the tabs. Default: 1', 'tag-groups') ?></li>
+			<li><?php _e('<b>hide_empty_tabs=1 or =0</b> Whether to hide tabs without tags. Default: 0 (Not implemented for PHP function with second parameter set to \'true\'. Not effective with <b>groups_post_id</b>.)', 'tag-groups') ?></li>
+			<li><?php _e('<b>collapsible=1 or =0</b> Whether tabs are collapsible (toggle open/close). Default: general settings in the back end', 'tag-groups') ?></li>
+			<li><?php _e('<b>mouseover=1 or =0</b> Whether tabs can be selected by hovering over with the mouse pointer (without clicking). Default: general settings in the back end', 'tag-groups') ?></li>
 
 			<li>&nbsp;</li>
-			<li><b>Advanced Styling:</b></li>
-			<li><b>div_id=abc</b> Define an id for the enclosing '.htmlentities('<div>').'. You need to define different values if you use more than one cloud on one page. Make sure this id has not yet been used - including the active theme and other plugins. Recommended are non-standard values to avoid collisions of names, replace spaces by underscores or hyphens, or use "camelCase". Default: tag-groups-cloud-tabs</li>
-			<li><b>div_class=abc</b> Define a class for the enclosing '.htmlentities('<div>').'. Default: tag-groups-cloud-tabs</li>
-			<li><b>ul_class=abc</b> Define a class for the '.htmlentities('<ul>').' that generates the tabs with the group labels. Default: empty</li>
-			</ul>', 'tag-groups') ?></p>
+			<li><?php _e('<b>Advanced Styling:</b>', 'tag-groups') ?></li>
+			<li><?php _e('<b>div_id=abc</b> Define an id for the enclosing '.htmlentities('<div>').'. You need to define different values if you use more than one cloud on one page. Make sure this id has not yet been used - including the active theme and other plugins. Recommended are non-standard values to avoid collisions of names, replace spaces by underscores or hyphens, or use "camelCase". Default: tag-groups-cloud-tabs', 'tag-groups') ?></li>
+			<li><?php _e('<b>div_class=abc</b> Define a class for the enclosing '.htmlentities('<div>').'. Default: tag-groups-cloud-tabs', 'tag-groups') ?></li>
+			<li><?php _e('<b>ul_class=abc</b> Define a class for the '.htmlentities('<ul>').' that generates the tabs with the group labels. Default: empty', 'tag-groups') ?></li>
+			</ul>
+			</p>
 			<p>&nbsp;</p>
 			<h4>b) PHP</h4>
 			<p><?php _e('By default the function <b>tag_groups_cloud</b> returns the html for a tabbed tag cloud.', 'tag-groups') ?></p>
