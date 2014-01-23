@@ -58,7 +58,7 @@ Use the shortcode as often as needed, but make sure that starting from the secon
 FEATURES
 
 * localizations enabled
-* Spanish translation (es_ES) by Andrew Kurtis - muchas gracias!
+* Spanish translation (es_ES) by [Andrew Kurtis](http://www.webhostinghub.com "WebHostingHub") - muchas gracias!
 
 = 0.12.1 =
 
