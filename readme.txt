@@ -4,7 +4,7 @@ Donate link: http://www.burma-center.org/donate/
 Tags: tag, tags, term_group, tag cloud, tag-cloud, WPML, category, categories, category cloud
 Requires at least: 3.1
 Tested up to: 3.8
-Stable tag: 0.12.1
+Stable tag: 0.13
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -39,6 +39,9 @@ The tabbed tag cloud can be inserted with a shortcode. Options are listed on the
 
 Make sure you have "Use jQuery" checked on the settings page. If you use a plugin for caching pages, purge their caches and see if that helps. If you use plugins for minifying scripts or style sheets, turn them off and purge their caches.
 
+= How do I create multiple tag clouds on one page? =
+
+Use the shortcode as often as needed, but make sure that starting from the second you use the parameter div_id with different values.
 
 == Screenshots ==
 

@@ -1197,17 +1197,17 @@ function tg_settings_page() {
 
 			<li>&nbsp;</li>
 			<li><?php _e('<b>Advanced Styling:</b>', 'tag-groups') ?></li>
-			<li><?php _e('<b>div_id=abc</b> Define an id for the enclosing '.htmlentities('<div>').'. You need to define different values if you use more than one cloud on one page. Make sure this id has not yet been used - including the active theme and other plugins. Recommended are non-standard values to avoid collisions of names, replace spaces by underscores or hyphens, or use "camelCase". Default: tag-groups-cloud-tabs', 'tag-groups') ?></li>
-			<li><?php _e('<b>div_class=abc</b> Define a class for the enclosing '.htmlentities('<div>').'. Default: tag-groups-cloud-tabs', 'tag-groups') ?></li>
-			<li><?php _e('<b>ul_class=abc</b> Define a class for the '.htmlentities('<ul>').' that generates the tabs with the group labels. Default: empty', 'tag-groups') ?></li>
+			<li><?php _e('<b>div_id=abc</b> Define an id for the enclosing &lt;div&gt;. You need to define different values if you use more than one cloud on one page. Make sure this id has not yet been used - including the active theme and other plugins. Recommended are non-standard values to avoid collisions of names, replace spaces by underscores or hyphens, or use "camelCase". Default: tag-groups-cloud-tabs', 'tag-groups') ?></li>
+			<li><?php _e('<b>div_class=abc</b> Define a class for the enclosing &lt;div&gt;. Default: tag-groups-cloud-tabs', 'tag-groups') ?></li>
+			<li><?php _e('<b>ul_class=abc</b> Define a class for the &lt;div&gt; that generates the tabs with the group labels. Default: empty', 'tag-groups') ?></li>
 			</ul>
 			</p>
 			<p>&nbsp;</p>
 			<h4>b) PHP</h4>
 			<p><?php _e('By default the function <b>tag_groups_cloud</b> returns the html for a tabbed tag cloud.', 'tag-groups') ?></p>
-			<p><?php _e('Example: ', 'tag-groups'); echo htmlentities("<?php if ( function_exists( 'tag_groups_cloud' ) ) echo tag_groups_cloud( array( 'include' => '1,2,5,6' ) ); ?>") ?></p>
+			<p><?php _e('Example:', 'tag-groups'); echo ' '.htmlentities("<?php if ( function_exists( 'tag_groups_cloud' ) ) echo tag_groups_cloud( array( 'include' => '1,2,5,6' ) ); ?>") ?></p>
 			<p><?php _e('If the optional second parameter is set to \'true\', the function returns a multidimensional array containing tag groups and tags.', 'tag-groups'); ?></p>
-			<p><?php _e('Example: ', 'tag-groups'); echo htmlentities("<?php if ( function_exists( 'tag_groups_cloud' ) ) print_r( tag_groups_cloud( array( 'orderby' => 'count', 'order' => 'DESC' ), true ) ); ?>") ?></p>
+			<p><?php _e('Example:', 'tag-groups'); echo ' '.htmlentities("<?php if ( function_exists( 'tag_groups_cloud' ) ) print_r( tag_groups_cloud( array( 'orderby' => 'count', 'order' => 'DESC' ), true ) ); ?>") ?></p>
 		<?php endif; ?>
 
 
@@ -1225,11 +1225,12 @@ function tg_settings_page() {
 
 		<?php if ( $active_tab == 5 ): ?>
 			<h4>Tag Groups, Version: <?php echo TAG_GROUPS_VERSION ?></h4>
-			<p>If you find a bug or have a question, please visit the official <a href="http://wordpress.org/support/plugin/tag-groups" target="_blank">support forum</a>. There is also a <a href="http://www.christoph-amthor.de/software/tag-groups/" target="_blank">dedicated page</a> with more examples and instructions for particular applications.</p>
-			<h2>Donations</h2>
-			<p>Support the author with a microdonation <a href="http://flattr.com/thing/721303/Tag-Groups-plugin" target="_blank">
-	<img src="<?php echo plugins_url('images/flattr-badge-large.png', __FILE__) ?>" alt="Flattr this" title="Support through micro-donation" border="0" /></a> or <a href="http://www.burma-center.org/donate/" target="_blank">donate to his favourite charity</a>.</p>
-	<p>Or support his work by a nice link to one of these websites:
+			<p><?php printf(__('If you find a bug or have a question, please visit the official <a %s>support forum</a>. There is also a <a %s>dedicated page</a> with more examples and instructions for particular applications.', 'tag-groups'), 'href="http://wordpress.org/support/plugin/tag-groups" target="_blank"', 'href="http://www.christoph-amthor.de/software/tag-groups/" target="_blank"'); ?></p>
+			<h2><?php _e('Donations', 'tag-groups') ?></h2>
+			<p><?php _e('This plugin is the result of many hours of work, adding new features, fixing bugs and answering to support questions.', 'tag-groups') ?></p>
+			<p><?php printf(__('If you find <b>Tag Groups</b> useful, please support the author with a microdonation %s or <a %s>donate to his favourite charity</a>.', 'tag-groups'), '<a href="http://flattr.com/thing/721303/Tag-Groups-plugin" target="_blank">
+	<img src="'. plugins_url('images/flattr-badge-large.png', __FILE__) .'" alt="Flattr this" title="Support through micro-donation" border="0" /></a>', 'href="http://www.burma-center.org/donate/" target="_blank"'); ?></p>
+	<p><?php _e('Or support his work by a friendly link to one of these websites:', 'tag-groups') ?>
 <ul>
 	<li><a href="http://www.burma-center.org" target="_blank">www.burma-center.org</a></li>
 	<li><a href="http://mycitizen.net" target="_blank">mycitizen.net</a></li>
@@ -1237,7 +1238,7 @@ function tg_settings_page() {
 	<li><a href="http://www.weirdthingsinprague.com" target="_blank">www.weirdthingsinprague.com</a></li>
 	<li><a href="http://www.myanmar-dictionary.org" target="_blank">www.myanmar-dictionary.org</a></li>
 </ul>
-	Thanks!</p>
+	<?php _e('Thanks!', 'tag-groups') ?></p>
 		<?php endif; ?>
 	
 	<?php }	?>
