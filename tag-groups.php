@@ -4,13 +4,13 @@ Plugin Name: Tag Groups
 Plugin URI: http://www.christoph-amthor.de/software/tag-groups/
 Description: Assign tags to groups and display them in a tabbed tag cloud
 Author: Christoph Amthor
-Version: 0.13
+Version: 0.14
 Author URI: http://www.christoph-amthor.de
 License: GNU GENERAL PUBLIC LICENSE, Version 3
 Text Domain: tag-groups
 */
 
-define("TAG_GROUPS_VERSION", "0.13");
+define("TAG_GROUPS_VERSION", "0.14");
 
 define("TAG_GROUPS_BUILT_IN_THEMES", "ui-gray,ui-lightness,ui-darkness");
 
@@ -81,6 +81,8 @@ function tg_register_settings() {
 		add_filter( "manage_{$taxonomy}_custom_column", 'tg_add_taxonomy_column_content', 10, 3 );
 		
 	}
+	
+	add_action( 'admin_notices', 'tg_bulk_admin_notices' );
 
 	add_action( 'quick_edit_custom_box', 'tg_quick_edit_tag', 10, 3 );
 	
@@ -88,11 +90,15 @@ function tg_register_settings() {
 		
 	add_action( 'edit_term', 'tg_update_edit_term_group' );
 	
+	add_action( 'load-edit-tags.php', 'tg_bulk_action' );
+	
 	$plugin = plugin_basename(__FILE__);
 
 	add_filter( "plugin_action_links_$plugin", 'tg_plugin_settings_link' );
 	
-	add_action( 'admin_footer', 'tg_quick_edit_javascript' );
+	add_action( 'admin_footer-edit-tags.php', 'tg_quick_edit_javascript' );
+	
+	add_action( 'admin_footer-edit-tags.php', 'tg_bulk_admin_footer' );
 
 	add_filter( 'tag_row_actions', 'tg_expand_quick_edit_link', 10, 2);
 	
@@ -102,6 +108,193 @@ function tg_register_settings() {
 
 	tg_init();
 
+}
+
+
+function tg_init() {
+/*
+	If it doesn't exist: create the default group with ID 0 that will only show up on tag pages as "unassigned".
+*/
+
+	$tag_group_labels = get_option( 'tag_group_labels', array() );
+
+	$number_of_tag_groups = count($tag_group_labels) - 1;
+
+	if ((!isset($tag_group_labels)) || (!isset($tag_group_labels[0])) || ($tag_group_labels[0] == '')) {
+
+		$tag_group_labels[0] = 'not assigned';
+
+		$tag_group_ids[0] = 0;
+
+		$number_of_tag_groups = 0;
+
+		$max_tag_group_id = 0;
+		
+		$tag_group_taxonomy = array('post_tag');
+
+		update_option( 'tag_group_labels', $tag_group_labels );
+
+		update_option( 'tag_group_ids', $tag_group_ids );
+
+		update_option( 'max_tag_group_id', $max_tag_group_id );
+		
+		update_option( 'tag_group_taxonomy', $tag_group_taxonomy );
+
+		$tag_group_theme = get_option( 'tag_group_theme', TAG_GROUPS_STANDARD_THEME );
+
+		if ($tag_group_theme == '') $tag_group_theme = TAG_GROUPS_STANDARD_THEME;
+
+	}
+}
+
+
+function tg_bulk_admin_footer() {
+/*
+	credits http://www.foxrunsoftware.net
+*/
+
+	$tag_group_taxonomy = get_option( 'tag_group_taxonomy', array('post_tag') );
+	
+	$screen = get_current_screen();
+
+	if ( is_object($screen) && ( !in_array($screen->taxonomy, $tag_group_taxonomy) )) return;
+	
+	$tag_group_ids = get_option( 'tag_group_ids', array() );
+	
+	$tag_group_labels = get_option( 'tag_group_labels', array() );
+	
+	?>
+	<script type="text/javascript">
+		jQuery(document).ready(function() {
+			jQuery('<option>').val('assign').text('<?php _e('Assign to')?>').appendTo("select[name='action']");
+			var sel = jQuery("<select name='term-group'>").insertAfter("select[name='action']");
+			<?php foreach ($tag_group_ids as $tag_group_id) : ?>
+			sel.append(jQuery("<option>").attr("value", "<?php echo $tag_group_id ?>").text("<?php echo $tag_group_labels[$tag_group_id] ?>"));
+			<?php endforeach;?>
+		});
+	</script>
+	<?php
+
+}
+
+function tg_bulk_action() {
+/*
+	credits http://www.foxrunsoftware.net
+*/
+
+	global $tg_update_edit_term_group_called; 
+		
+	$tag_group_taxonomy = get_option( 'tag_group_taxonomy', array('post_tag') );
+	
+	$screen = get_current_screen();
+	
+	$taxonomy = $screen->taxonomy;
+	
+	if ( is_object($screen) && ( !in_array($taxonomy, $tag_group_taxonomy) )) return;
+
+	$wp_list_table = _get_list_table('WP_Terms_List_Table');
+	
+	$action = $wp_list_table->current_action();
+
+	$allowed_actions = array("assign");
+	if(!in_array($action, $allowed_actions)) return;
+
+//	check_admin_referer('_wpnonce');
+
+	if(isset($_REQUEST['delete_tags'])) {
+		$term_ids = $_REQUEST['delete_tags'];
+	}
+	if(isset($_REQUEST['term-group'])) {
+		$term_group = $_REQUEST['term-group'];
+	} else {
+		return;
+	}
+
+	// this is based on wp-admin/edit.php
+	$sendback = remove_query_arg( array('assigned', 'deleted'), wp_get_referer() );
+	if ( ! $sendback ) {
+		$sendback = admin_url( "edit-tags.php?taxonomy=$taxonomy" );
+	}
+
+	if(empty($term_ids)) {
+	
+		$sendback = add_query_arg( array('number_assigned' => 0, 'group_id' => $term_group), $sendback );
+		
+		$sendback = remove_query_arg( array('action', 'action2', 'tags_input', 'post_author', 'comment_status', 'ping_status', '_status',  'post', 'bulk_edit', 'post_view'), $sendback );
+
+		wp_redirect($sendback);
+
+		exit();
+	
+	}
+	
+	$pagenum = $wp_list_table->get_pagenum();
+	
+	$sendback = add_query_arg( 'paged', $pagenum, $sendback );
+	
+	$tg_update_edit_term_group_called = 1; // skip tg_update_edit_term_group()
+
+	switch($action) {
+		case 'assign':
+
+			$assigned = 0;
+
+			foreach( $term_ids as $term_id ) {
+
+				wp_update_term( $term_id, $taxonomy, array( 'term_group' => $term_group ) );
+
+				$assigned++;
+
+			}
+			
+			$sendback = add_query_arg( array('number_assigned' => $assigned, 'group_id' => $term_group), $sendback );
+
+		break;
+		
+		default:
+		
+			$sendback = add_query_arg( array('number_assigned' => 0, 'group_id' => $term_group), $sendback );
+
+		break;
+	}
+	
+	$sendback = remove_query_arg( array('action', 'action2', 'tags_input', 'post_author', 'comment_status', 'ping_status', '_status',  'post', 'bulk_edit', 'post_view'), $sendback );
+
+	wp_redirect($sendback);
+
+	exit();
+
+}
+
+function tg_bulk_admin_notices() {
+
+	$tag_group_taxonomy = get_option( 'tag_group_taxonomy', array('post_tag') );
+	
+	$tag_group_labels = get_option( 'tag_group_labels', array() );
+	
+	$screen = get_current_screen();
+	
+	$taxonomy = $screen->taxonomy;
+
+	if ( is_object($screen) && ( !in_array($taxonomy, $tag_group_taxonomy) ) ) return;
+
+	if ( isset($_REQUEST['number_assigned']) && (int) $_REQUEST['number_assigned'] && isset($_REQUEST['group_id'])) {
+		
+		if ($_REQUEST['group_id'] == 0) {
+		
+			$message = _n( 'The term has been removed from all groups.', sprintf('%d terms have been removed from all groups.', number_format_i18n( $_REQUEST['number_assigned'] )), $_REQUEST['number_assigned']);
+		
+		} else {
+
+			$group_name = $tag_group_labels[$_REQUEST['group_id']];
+
+			$message = _n( sprintf( 'The term has been assigned to the group %s.', '<i>'.$group_name.'</i>'), sprintf('%d terms have been assigned to the group %s.', number_format_i18n( $_REQUEST['number_assigned'] ), '<i>'.$group_name.'</i>'), $_REQUEST['number_assigned']);
+
+		}
+
+			echo "<div class=\"updated\"><p>{$message}</p></div>";
+			
+	}
 }
 
 
@@ -280,7 +473,7 @@ function tg_update_edit_term_group($term_id) {
 
 		} elseif ( isset($_POST['term-group']) ) {
 
-			if ( !isset($_POST['tag-groups-nonce']) || ! wp_verify_nonce($_POST['tag-groups-nonce'], 'tag-groups') ) die("Security check");
+			if ( !isset($_POST['assigned']) && (!isset($_POST['tag-groups-nonce']) || ! wp_verify_nonce($_POST['tag-groups-nonce'], 'tag-groups')) ) die("Security check");
 
 			$term['term_group'] = (int) $_POST['term-group'];
 
@@ -488,43 +681,6 @@ function tg_tag_input_metabox($tag) {
 	</tr>
 
 <?php
-}
-
-
-function tg_init() {
-/*
-	If it doesn't exist: create the default group with ID 0 that will only show up on tag pages as "unassigned".
-*/
-
-	$tag_group_labels = get_option( 'tag_group_labels', array() );
-
-	$number_of_tag_groups = count($tag_group_labels) - 1;
-
-	if ((!isset($tag_group_labels)) || (!isset($tag_group_labels[0])) || ($tag_group_labels[0] == '')) {
-
-		$tag_group_labels[0] = 'not assigned';
-
-		$tag_group_ids[0] = 0;
-
-		$number_of_tag_groups = 0;
-
-		$max_tag_group_id = 0;
-		
-		$tag_group_taxonomy = array('post_tag');
-
-		update_option( 'tag_group_labels', $tag_group_labels );
-
-		update_option( 'tag_group_ids', $tag_group_ids );
-
-		update_option( 'max_tag_group_id', $max_tag_group_id );
-		
-		update_option( 'tag_group_taxonomy', $tag_group_taxonomy );
-
-		$tag_group_theme = get_option( 'tag_group_theme', TAG_GROUPS_STANDARD_THEME );
-
-		if ($tag_group_theme == '') $tag_group_theme = TAG_GROUPS_STANDARD_THEME;
-
-	}
 }
 
 

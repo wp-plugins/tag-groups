@@ -4,7 +4,7 @@ Donate link: http://www.burma-center.org/donate/
 Tags: tag, tags, term_group, tag cloud, tag-cloud, WPML, category, categories, category cloud
 Requires at least: 3.1
 Tested up to: 3.9
-Stable tag: 0.13
+Stable tag: 0.14
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -52,6 +52,12 @@ Use the shortcode as often as needed, but make sure that starting from the secon
 
 
 == Changelog ==
+
+= 0.14 =
+
+FEATURES
+
+* bulk assigning of terms
 
 = 0.13 =
 
