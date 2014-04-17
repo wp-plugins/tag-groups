@@ -1,10 +1,10 @@
 === Tag Groups ===
 Contributors: camthor
-Donate link: https://flattr.com/thing/721303/Tag-Groups-plugin
+Donate link: http://www.burma-center.org/donate/
 Tags: tag, tags, term_group, tag cloud, tag-cloud, WPML, category, categories, category cloud
 Requires at least: 3.1
-Tested up to: 3.6
-Stable tag: 0.10
+Tested up to: 3.9
+Stable tag: 0.14
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -17,6 +17,7 @@ Possible applications are:
 * Display your tags grouped by language or by topic.
 * Display your tags in any order, independently from their names or slugs.
 * Choose which tags to display in different sections of your blog.
+* Link from you posts and pages to other ones that have the same tags.
 
 Please find more information [here](http://www.christoph-amthor.de/software/tag-groups/ "plugin website").
 
@@ -29,6 +30,8 @@ The plugin will create two new submenus in the Post section where you find the t
 
 Other taxonomies than post tags and categories may need further customization beyond this plugin.
 
+The tabbed tag cloud can be inserted with a shortcode. Options are listed on the Settings page.
+
 
 == Frequently Asked Questions ==
 
@@ -36,15 +39,57 @@ Other taxonomies than post tags and categories may need further customization be
 
 Make sure you have "Use jQuery" checked on the settings page. If you use a plugin for caching pages, purge their caches and see if that helps. If you use plugins for minifying scripts or style sheets, turn them off and purge their caches.
 
+= How do I create multiple tag clouds on one page? =
+
+Use the shortcode as often as needed, but make sure that starting from the second you use the parameter div_id with different values.
 
 == Screenshots ==
 
 1. The edit screen
-2. Tag cloud (custom theme)
+2. Settings
 3. Tag cloud (custom theme)
+4. Tag cloud (custom theme)
+
 
 == Changelog ==
 
+= 0.14 =
+
+FEATURES
+
+* bulk assigning of terms
+
+= 0.13 =
+
+FEATURES
+
+* localizations enabled
+* Spanish translation (es_ES) by [Andrew Kurtis](http://www.webhostinghub.com "WebHostingHub") - muchas gracias!
+
+= 0.12.1 =
+
+BUG FIXES
+
+* tag group not saved on Edit Tag screen
+
+= 0.12 =
+
+FEATURES
+
+* multiple taxonomies (please check settings after update)
+* new parameter to select taxonomies for tag cloud
+
+BUG FIXES
+
+* function post_in_tag_group was wrong for other taxonomies than tags
+
+= 0.11 =
+
+FEATURES
+
+* multiple shortcodes/clouds per page by using 'div_id' with own values
+* general settings for 'collapsible' and 'mouseover' can be overridden per cloud
+* new parameters to prepend and append text to tags
 
 = 0.10 =
 
