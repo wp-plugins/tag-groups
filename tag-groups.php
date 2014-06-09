@@ -4,13 +4,13 @@ Plugin Name: Tag Groups
 Plugin URI: http://www.christoph-amthor.de/software/tag-groups/
 Description: Assign tags to groups and display them in a tabbed tag cloud
 Author: Christoph Amthor
-Version: 0.14
+Version: 0.15
 Author URI: http://www.christoph-amthor.de
 License: GNU GENERAL PUBLIC LICENSE, Version 3
 Text Domain: tag-groups
 */
 
-define("TAG_GROUPS_VERSION", "0.14");
+define("TAG_GROUPS_VERSION", "0.15");
 
 define("TAG_GROUPS_BUILT_IN_THEMES", "ui-gray,ui-lightness,ui-darkness");
 
@@ -44,6 +44,7 @@ function tg_plugin_init() {
 
 }
 
+
 function tg_widget_hook() {
 /*
 	Hooks for frontend
@@ -54,6 +55,7 @@ function tg_widget_hook() {
 	if ( $tag_group_shortcode_widget ) add_filter('widget_text', 'do_shortcode');
 
 }
+
 
 function tg_register_settings() {
 /*
@@ -171,11 +173,24 @@ function tg_bulk_admin_footer() {
 			<?php foreach ($tag_group_ids as $tag_group_id) : ?>
 			sel.append(jQuery("<option>").attr("value", "<?php echo $tag_group_id ?>").text("<?php echo $tag_group_labels[$tag_group_id] ?>"));
 			<?php endforeach;?>
+	
+<?php	if (isset($_GET['orderby']) && $_GET['orderby']=='term_group') : ?>
+			jQuery('th#term_group').addClass('sorted');
+<?php 	else: ?>
+			jQuery('th#term_group').addClass('sortable');
+<?php 	endif; ?>
+<?php	if (isset($_GET['order']) && $_GET['order']=='asc') : ?>
+			jQuery('th#term_group').addClass('asc');
+<?php 	else: ?>
+			jQuery('th#term_group').addClass('desc');
+<?php 	endif; ?>
+
 		});
 	</script>
 	<?php
 
 }
+
 
 function tg_bulk_action() {
 /*
@@ -265,6 +280,7 @@ function tg_bulk_action() {
 	exit();
 
 }
+
 
 function tg_bulk_admin_notices() {
 
@@ -408,8 +424,14 @@ function tg_add_taxonomy_columns($columns) {
 	adds a custom column to the table of tags/terms
 	thanks to http://coderrr.com/add-columns-to-a-taxonomy-terms-table/
 */
+	$new_order = (isset($_GET['order']) && $_GET['order']=='asc' && isset($_GET['orderby']) && $_GET['orderby']=='term_group') ? 'desc' : 'asc';
 
-	$columns['term_group'] = __('Tag Group', 'tag-groups');
+	$screen = get_current_screen();
+	$taxonomy = $screen->taxonomy;
+
+	$link = add_query_arg( array('orderby' => 'term_group', 'order' => $new_order, 'taxonomy' => $taxonomy), admin_url( "edit-tags.php".$wp->request ));
+	
+	$columns['term_group'] = '<a href="'.$link.'"><span>'.__('Tag Group', 'tag-groups').'</span><span class="sorting-indicator"></span></a>';
 	
 	return $columns;
  		
@@ -493,7 +515,7 @@ function tg_update_edit_term_group($term_id) {
 			
 		}
 		
-	} else wp_die( __( 'Cheatin&#8217; uh?' , 'tag-groups') );
+	} else die("Security check");
 
 }
 
@@ -1395,6 +1417,12 @@ function tg_settings_page() {
 	<li><a href="http://www.myanmar-dictionary.org" target="_blank">www.myanmar-dictionary.org</a></li>
 </ul>
 	<?php _e('Thanks!', 'tag-groups') ?></p>
+	<p>Christoph</p>
+	
+	<h2><?php _e('Credits', 'tag-groups') ?></h2>
+<ul>
+	<li>Spanish translation (es_ES) by <a href="http://www.webhostinghub.com/" target="_blank">Andrew Kurtis</a></li>
+</ul>
 		<?php endif; ?>
 	
 	<?php }	?>

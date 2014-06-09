@@ -3,8 +3,8 @@ Contributors: camthor
 Donate link: http://www.burma-center.org/donate/
 Tags: tag, tags, term_group, tag cloud, tag-cloud, WPML, category, categories, category cloud
 Requires at least: 3.1
-Tested up to: 3.9
-Stable tag: 0.14
+Tested up to: 3.9.1
+Stable tag: 0.15
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -35,13 +35,21 @@ The tabbed tag cloud can be inserted with a shortcode. Options are listed on the
 
 == Frequently Asked Questions ==
 
-= When I use the shortcode I can see the content but they are not displayed in tabs. =
+= When I use the shortcode I can see the content but the tags are not displayed in tabs. =
 
-Make sure you have "Use jQuery" checked on the settings page. If you use a plugin for caching pages, purge their caches and see if that helps. If you use plugins for minifying scripts or style sheets, turn them off and purge their caches.
+Make sure you have "Use jQuery" checked on the settings page. If you use a plugin for caching pages, purge the cache and see if that helps. If you use plugins for minifying scripts or style sheets, turn them off and purge their caches.
 
 = How do I create multiple tag clouds on one page? =
 
-Use the shortcode as often as needed, but make sure that starting from the second you use the parameter div_id with different values.
+Use the shortcode as often as needed, but make sure that starting from the second shortcode you always use the parameter div_id with different values.
+
+= I need the plugin for a very special purpose - can you help? =
+
+Please check first [the solutions to previous requests](http://www.christoph-amthor.de/software/tag-groups/examples-applications/ "Examples of Applications") for similar cases. If you are not successful, you can ask for [support here](http://wordpress.org/support/plugin/tag-groups).
+
+= I am desparately missing my language. But, wait.. is this actually a "frequently asked question"? =
+
+No, unfortunately it isn't. But, nevertheless, I'm glad you asked! You are warmly invited to create a translation from the .pot file that is part of the package.
 
 == Screenshots ==
 
@@ -52,6 +60,12 @@ Use the shortcode as often as needed, but make sure that starting from the secon
 
 
 == Changelog ==
+
+= 0.15 =
+
+FEATURES
+
+* sorting by tag groups on tag/category page
 
 = 0.14 =
 
