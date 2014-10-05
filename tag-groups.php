@@ -4,7 +4,7 @@ Plugin Name: Tag Groups
 Plugin URI: http://www.christoph-amthor.de/software/tag-groups/
 Description: Assign tags to groups and display them in a tabbed tag cloud
 Author: Christoph Amthor
-Version: 0.15
+Version: 0.15.1
 Author URI: http://www.christoph-amthor.de
 License: GNU GENERAL PUBLIC LICENSE, Version 3
 Text Domain: tag-groups
@@ -1502,15 +1502,7 @@ function tag_groups_cloud( $atts = array(), $return_array = false ) {
 		
 	}
 
-	foreach( $tag_group_taxonomy as $taxonomy_item ) {
-	
-		if (isset($taxonomy) && !in_array($taxonomy_item, $taxonomy_array)) continue;
-
-		$terms = get_terms($taxonomy_item, array('hide_empty' => $hide_empty, 'orderby' => $orderby, 'order' => $order));
-		
-		if (!empty($terms) && is_array($terms)) $posttags = array_merge( $posttags, $terms);
-		
-	}
+	$posttags = get_terms($tag_group_taxonomy, array('hide_empty' => $hide_empty, 'orderby' => $orderby, 'order' => $order));
 
 	$div_id_output = $div_id ? ' id="'.sanitize_html_class($div_id).'"' : '';
 
