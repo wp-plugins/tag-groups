@@ -3,7 +3,7 @@ Contributors: camthor
 Donate link: http://www.burma-center.org/donate/
 Tags: tag, tags, term_group, tag cloud, tag-cloud, WPML, category, categories, category cloud
 Requires at least: 3.1
-Tested up to: 4.0
+Tested up to: 4.1
 Stable tag: 0.15.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -17,7 +17,7 @@ Possible applications are:
 * Display your tags grouped by language or by topic.
 * Display your tags in any order, independently from their names or slugs.
 * Choose which tags to display in different sections of your blog.
-* Link from you posts and pages to other ones that have the same tags.
+* Link from posts and pages to other ones that have the same tags.
 
 Please find more information [here](http://www.christoph-amthor.de/software/tag-groups/ "plugin website").
 
