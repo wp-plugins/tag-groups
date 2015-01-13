@@ -4,7 +4,7 @@ Donate link: http://www.burma-center.org/donate/
 Tags: tag, tags, term_group, tag cloud, tag-cloud, WPML, category, categories, category cloud
 Requires at least: 3.1
 Tested up to: 4.1
-Stable tag: 0.15.1
+Stable tag: 0.16
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -60,6 +60,13 @@ No, unfortunately it isn't. But, nevertheless, I'm glad you asked! You are warml
 
 
 == Changelog ==
+
+= 0.16 =
+
+FEATURES
+
+* different styling of tags according to whether they are assigned to the post or page (assigned_class)
+* force displaying all groups (show_all_groups)
 
 = 0.15.1 =
 
