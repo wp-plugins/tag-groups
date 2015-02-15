@@ -4,13 +4,13 @@ Plugin Name: Tag Groups
 Plugin URI: http://www.christoph-amthor.de/software/tag-groups/
 Description: Assign tags to groups and display them in a tabbed tag cloud
 Author: Christoph Amthor
-Version: 0.16
+Version: 0.17
 Author URI: http://www.christoph-amthor.de
 License: GNU GENERAL PUBLIC LICENSE, Version 3
 Text Domain: tag-groups
 */
 
-define("TAG_GROUPS_VERSION", "0.16");
+define("TAG_GROUPS_VERSION", "0.17");
 
 define("TAG_GROUPS_BUILT_IN_THEMES", "ui-gray,ui-lightness,ui-darkness");
 
@@ -1364,7 +1364,8 @@ function tg_settings_page() {
 			<li><?php _e('<b>prepend="#"</b> Prepend to each tag label. Default: empty', 'tag-groups') ?></li>
 			<li><?php _e('<b>append="something"</b> Append to each tag label. Default: empty', 'tag-groups') ?></li>
 			<li><?php _e('<b>taxonomy="x,y,..."</b> Restrict the tags only to these taxonomies. Default: empty (= no restriction)', 'tag-groups') ?></li>
-			
+			<li><?php _e('<b>link_target="_blank"</b> Set the "target" attribute for the links of the tags. Possible values: _blank, _self, _parent, _top, or the name of a frame. Default: empty (= opens in the same window, same as using _self)', 'tag-groups') ?></li>
+			<li><?php _e('<b>show_tag_count=1 or =0</b> Whether to show the number of posts as tooltip (behind the tag description) when hovering the mouse over the tag. Default: 1 (show)', 'tag-groups') ?></li>
 			<li>&nbsp;</li>
 			<li><?php _e('<b>Groups and Tabs:</b>', 'tag-groups') ?></li>
 			<li><?php _e('<b>include="x,y,..."</b> IDs of tag groups (left column in list of groups) that will be considered in the tag cloud. Empty or not used means that all tag groups will be used. Default: empty', 'tag-groups') ?></li>
@@ -1460,30 +1461,32 @@ function tag_groups_cloud( $atts = array(), $return_array = false ) {
 	$number_of_tag_groups = count($tag_group_labels) - 1;
 	
 	extract( shortcode_atts( array(
-		'smallest' => 12,
-		'largest' => 22,
-		'amount' => 40,
-		'hide_empty' => true,
-		'include' => '',
-		'div_id' => 'tag-groups-cloud-tabs',
-		'div_class' => 'tag-groups-cloud-tabs',
-		'ul_class' => '',
-		'show_tabs' => '1',
-		'orderby' => 'name',
-		'order' => 'ASC',
-		'separator' => '',
-		'separator_size' => 12,
 		'adjust_separator_size' => false,
-		'tags_post_id' => -1,
+		'amount' => 40,
+		'append' => '',
 		'assigned_class' => null,
+		'collapsible' => null,
+		'div_class' => 'tag-groups-cloud-tabs',
+		'div_id' => 'tag-groups-cloud-tabs',
 		'groups_post_id' => -1,
 		'hide_empty_tabs' => false,
+		'hide_empty' => true,
+		'include' => '',
+		'largest' => 22,
+		'link_target' => '',
 		'mouseover' => null,
-		'collapsible' => null,
+		'order' => 'ASC',
+		'orderby' => 'name',
 		'prepend' => '',
-		'append' => '',
+		'separator_size' => 12,
+		'separator' => '',
+		'show_all_groups' => false,
+		'show_tabs' => '1',
+		'show_tag_count' => true,
+		'smallest' => 12,
+		'tags_post_id' => -1,
 		'taxonomy' => null,
-		'show_all_groups' => false
+		'ul_class' => ''
 		), $atts ) );
 
 	if ($smallest < 1) $smallest = 1;
@@ -1790,8 +1793,10 @@ function tag_groups_cloud( $atts = array(), $return_array = false ) {
 								}
 								
 								$description = !empty($tag->description) ? htmlentities($tag->description).' ' : '';
+								$tag_count = $show_tag_count ? '('.$tag->count.')' : '';
+								$link_target_html = !empty($link_target) ? 'target="'.$link_target.'"' : '';
 								
-								$html_tags[$i] .= '<a href="'.$tag_link.'" title="'.$description.'('.$tag->count.')"  class="'.$tag->slug.$other_tag_classes.'"><span style="font-size:'.$font_size.'px">'.sanitize_text_field($prepend).$tag->name.sanitize_text_field($append).'</span></a>&nbsp; ';
+								$html_tags[$i] .= '<a href="'.$tag_link.'" '.$link_target_html.' title="'.$description.$tag_count.'"  class="'.$tag->slug.$other_tag_classes.'"><span style="font-size:'.$font_size.'px">'.sanitize_text_field($prepend).$tag->name.sanitize_text_field($append).'</span></a>&nbsp; ';
 								
 								$count_amount++;
 							
