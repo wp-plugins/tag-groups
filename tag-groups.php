@@ -4,13 +4,13 @@ Plugin Name: Tag Groups
 Plugin URI: http://www.christoph-amthor.de/software/tag-groups/
 Description: Assign tags to groups and display them in a tabbed tag cloud
 Author: Christoph Amthor
-Version: 0.17
+Version: 0.17.1
 Author URI: http://www.christoph-amthor.de
 License: GNU GENERAL PUBLIC LICENSE, Version 3
 Text Domain: tag-groups
 */
 
-define("TAG_GROUPS_VERSION", "0.17");
+define("TAG_GROUPS_VERSION", "0.17.1");
 
 define("TAG_GROUPS_BUILT_IN_THEMES", "ui-gray,ui-lightness,ui-darkness");
 
@@ -1372,7 +1372,7 @@ function tg_settings_page() {
 			<li><?php _e('<b>groups_post_id=x</b> Display only groups of which at least one assigned tag is also assigned to the post (or page) with the ID x. If set to 0, it will try to retrieve the current post ID. Default: -1 (all groups displayed). Matching groups will be added to the list specified by the parameter <b>include</b>.', 'tag-groups') ?></li>
 			<li><?php _e('<b>show_tabs=1 or =0</b> Whether to show the tabs. Default: 1', 'tag-groups') ?></li>
 			<li><?php _e('<b>hide_empty_tabs=1 or =0</b> Whether to hide tabs without tags. Default: 0 (Not implemented for PHP function with second parameter set to \'true\'. Not effective with <b>groups_post_id</b>.)', 'tag-groups') ?></li>
-			<li><?php _e('<b>show_all_groups=1 or =0</b> Whether to force showing all groups. Useful with the parameters tags_post_id and assigned_class. Default: 0', 'tag-groups') ?></li>
+			<li><?php _e('<b>show_all_groups=1 or =0</b> Whether to force showing all groups. Useful with the parameters <b>tags_post_id</b> and <b>assigned_class</b>. Default: 0', 'tag-groups') ?></li>
 			<li><?php _e('<b>collapsible=1 or =0</b> Whether tabs are collapsible (toggle open/close). Default: general settings in the back end', 'tag-groups') ?></li>
 			<li><?php _e('<b>mouseover=1 or =0</b> Whether tabs can be selected by hovering over with the mouse pointer (without clicking). Default: general settings in the back end', 'tag-groups') ?></li>
 
@@ -1792,8 +1792,10 @@ function tag_groups_cloud( $atts = array(), $return_array = false ) {
 							
 								}
 								
-								$description = !empty($tag->description) ? htmlentities($tag->description).' ' : '';
+								$description = !empty($tag->description) ? htmlentities($tag->description, ENT_COMPAT | ENT_HTML401, "UTF-8").' ' : '';
+
 								$tag_count = $show_tag_count ? '('.$tag->count.')' : '';
+
 								$link_target_html = !empty($link_target) ? 'target="'.$link_target.'"' : '';
 								
 								$html_tags[$i] .= '<a href="'.$tag_link.'" '.$link_target_html.' title="'.$description.$tag_count.'"  class="'.$tag->slug.$other_tag_classes.'"><span style="font-size:'.$font_size.'px">'.sanitize_text_field($prepend).$tag->name.sanitize_text_field($append).'</span></a>&nbsp; ';
