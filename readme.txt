@@ -3,8 +3,8 @@ Contributors: camthor
 Donate link: http://www.burma-center.org/donate/
 Tags: tag, tags, term_group, tag cloud, tag-cloud, WPML, category, categories, category cloud
 Requires at least: 3.1
-Tested up to: 4.1
-Stable tag: 0.17.1
+Tested up to: 4.2-beta1
+Stable tag: 0.17.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -61,6 +61,12 @@ No, unfortunately it isn't. But, nevertheless, I'm glad you asked! You are warml
 
 == Changelog ==
 
+= 0.17.2 =
+
+BUG FIXES
+
+* dropdown menu didn't respect correct order of groups
+
 = 0.17.1 =
 
 BUG FIXES
@@ -78,8 +84,8 @@ FEATURES
 
 FEATURES
 
-* different styling of tags according to whether they are assigned to the post or page (assigned_class)
-* force displaying all groups (show_all_groups)
+* option for different styling of tags according to whether they are assigned to the post or page (assigned_class)
+* option to force displaying all groups (show_all_groups)
 
 = 0.15.1 =
 

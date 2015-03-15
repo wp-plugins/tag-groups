@@ -4,13 +4,13 @@ Plugin Name: Tag Groups
 Plugin URI: http://www.christoph-amthor.de/software/tag-groups/
 Description: Assign tags to groups and display them in a tabbed tag cloud
 Author: Christoph Amthor
-Version: 0.17.1
+Version: 0.17.2
 Author URI: http://www.christoph-amthor.de
 License: GNU GENERAL PUBLIC LICENSE, Version 3
 Text Domain: tag-groups
 */
 
-define("TAG_GROUPS_VERSION", "0.17.1");
+define("TAG_GROUPS_VERSION", "0.17.2");
 
 define("TAG_GROUPS_BUILT_IN_THEMES", "ui-gray,ui-lightness,ui-darkness");
 
@@ -170,9 +170,9 @@ function tg_bulk_admin_footer() {
 		jQuery(document).ready(function() {
 			jQuery('<option>').val('assign').text('<?php _e('Assign to')?>').appendTo("select[name='action']");
 			var sel = jQuery("<select name='term-group'>").insertAfter("select[name='action']");
-			<?php foreach ($tag_group_ids as $tag_group_id) : ?>
-			sel.append(jQuery("<option>").attr("value", "<?php echo $tag_group_id ?>").text("<?php echo $tag_group_labels[$tag_group_id] ?>"));
-			<?php endforeach;?>
+			<?php for ($i = 1; $i < count($tag_group_labels); $i++) :?>
+			sel.append(jQuery("<option>").attr("value", "<?php echo $tag_group_ids[$i] ?>").text("<?php echo $tag_group_labels[$i] ?>"));
+			<?php endfor;?>
 	
 <?php	if (isset($_GET['orderby']) && $_GET['orderby']=='term_group') : ?>
 			jQuery('th#term_group').addClass('sorted');
