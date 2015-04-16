@@ -3,7 +3,7 @@ Contributors: camthor
 Donate link: http://www.burma-center.org/donate/
 Tags: tag, tags, term_group, tag cloud, tag-cloud, WPML, category, categories, category cloud
 Requires at least: 3.1
-Tested up to: 4.2-beta1
+Tested up to: 4.2
 Stable tag: 0.17.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -65,7 +65,7 @@ No, unfortunately it isn't. But, nevertheless, I'm glad you asked! You are warml
 
 BUG FIXES
 
-* dropdown menu didn't respect correct order of groups
+* dropdown menu for bulk action didn't respect correct order of groups
 
 = 0.17.1 =
 
