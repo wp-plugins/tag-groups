@@ -3,8 +3,8 @@ Contributors: camthor
 Donate link: http://www.burma-center.org/donate/
 Tags: tag, tags, term_group, tag cloud, tag-cloud, WPML, category, categories, category cloud
 Requires at least: 3.1
-Tested up to: 4.0
-Stable tag: 0.15
+Tested up to: 4.2
+Stable tag: 0.18
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -17,7 +17,7 @@ Possible applications are:
 * Display your tags grouped by language or by topic.
 * Display your tags in any order, independently from their names or slugs.
 * Choose which tags to display in different sections of your blog.
-* Link from you posts and pages to other ones that have the same tags.
+* Link from posts and pages to other ones that have the same tags.
 
 Please find more information [here](http://www.christoph-amthor.de/software/tag-groups/ "plugin website").
 
@@ -60,6 +60,51 @@ No, unfortunately it isn't. But, nevertheless, I'm glad you asked! You are warml
 
 
 == Changelog ==
+
+= 0.18 =
+
+BUG FIXES
+
+* hardening security (escaping url before its use in menu)
+* adding back lost option to bulk action menu to unassign
+* added missing bulk action menu under the table (menu changes are synchronized)
+* wrong group label in confirmation message after bulk change
+
+FEATURES
+
+* selecting group for bulk change automatically selects action "assign to"
+
+= 0.17.2 =
+
+BUG FIXES
+
+* dropdown menu for bulk action didn't respect correct order of groups
+
+= 0.17.1 =
+
+BUG FIXES
+
+* wrong encoding of characters in the tag descriptions
+
+= 0.17 =
+
+FEATURES
+
+* option to set the target attribute for links (link_target)
+* option to hide the tag count in the tooltip when hovering your mouse over a tag (show_tag_count)
+
+= 0.16 =
+
+FEATURES
+
+* option for different styling of tags according to whether they are assigned to the post or page (assigned_class)
+* option to force displaying all groups (show_all_groups)
+
+= 0.15.1 =
+
+BUG FIXES
+
+* parameter "order" not working correctly under certain conditions (multiple taxonomies)
 
 = 0.15 =
 

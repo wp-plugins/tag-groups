@@ -4,13 +4,13 @@ Plugin Name: Tag Groups
 Plugin URI: http://www.christoph-amthor.de/software/tag-groups/
 Description: Assign tags to groups and display them in a tabbed tag cloud
 Author: Christoph Amthor
-Version: 0.15
+Version: 0.18
 Author URI: http://www.christoph-amthor.de
 License: GNU GENERAL PUBLIC LICENSE, Version 3
 Text Domain: tag-groups
 */
 
-define("TAG_GROUPS_VERSION", "0.15");
+define("TAG_GROUPS_VERSION", "0.18");
 
 define("TAG_GROUPS_BUILT_IN_THEMES", "ui-gray,ui-lightness,ui-darkness");
 
@@ -169,10 +169,15 @@ function tg_bulk_admin_footer() {
 	<script type="text/javascript">
 		jQuery(document).ready(function() {
 			jQuery('<option>').val('assign').text('<?php _e('Assign to')?>').appendTo("select[name='action']");
-			var sel = jQuery("<select name='term-group'>").insertAfter("select[name='action']");
-			<?php foreach ($tag_group_ids as $tag_group_id) : ?>
-			sel.append(jQuery("<option>").attr("value", "<?php echo $tag_group_id ?>").text("<?php echo $tag_group_labels[$tag_group_id] ?>"));
-			<?php endforeach;?>
+			jQuery('<option>').val('assign').text('<?php _e('Assign to')?>').appendTo("select[name='action2']");
+			
+			var sel_top = jQuery("<select name='term-group-top'>").insertAfter("select[name='action']");
+			var sel_bottom = jQuery("<select name='term-group-bottom'>").insertAfter("select[name='action2']");
+			
+			<?php for ($i = 0; $i < count($tag_group_labels); $i++) :?>
+			sel_top.append(jQuery("<option>").attr("value", "<?php echo $tag_group_ids[$i] ?>").text("<?php echo $tag_group_labels[$i] ?>"));
+			sel_bottom.append(jQuery("<option>").attr("value", "<?php echo $tag_group_ids[$i] ?>").text("<?php echo $tag_group_labels[$i] ?>"));
+			<?php endfor;?>
 	
 <?php	if (isset($_GET['orderby']) && $_GET['orderby']=='term_group') : ?>
 			jQuery('th#term_group').addClass('sorted');
@@ -185,6 +190,19 @@ function tg_bulk_admin_footer() {
 			jQuery('th#term_group').addClass('desc');
 <?php 	endif; ?>
 
+			jQuery('[name="term-group-top"]').change(function(){
+				jQuery('[name="action"]').val('assign');
+				jQuery('[name="action2"]').val('assign');
+				var selected = jQuery(this).val();
+				jQuery('[name="term-group-bottom"]').val(selected);
+			});
+			
+			jQuery('[name="term-group-bottom"]').change(function(){
+				jQuery('[name="action"]').val('assign');
+				jQuery('[name="action2"]').val('assign');
+				var selected = jQuery(this).val();
+				jQuery('[name="term-group-top"]').val(selected);
+			});
 		});
 	</script>
 	<?php
@@ -219,8 +237,8 @@ function tg_bulk_action() {
 	if(isset($_REQUEST['delete_tags'])) {
 		$term_ids = $_REQUEST['delete_tags'];
 	}
-	if(isset($_REQUEST['term-group'])) {
-		$term_group = $_REQUEST['term-group'];
+	if(isset($_REQUEST['term-group-top'])) {
+		$term_group = $_REQUEST['term-group-top'];
 	} else {
 		return;
 	}
@@ -237,7 +255,10 @@ function tg_bulk_action() {
 		
 		$sendback = remove_query_arg( array('action', 'action2', 'tags_input', 'post_author', 'comment_status', 'ping_status', '_status',  'post', 'bulk_edit', 'post_view'), $sendback );
 
-		wp_redirect($sendback);
+		// escaping $sendback
+		$sendback_escaped = esc_url_raw($sendback);
+
+		wp_redirect($sendback_escaped);
 
 		exit();
 	
@@ -275,7 +296,9 @@ function tg_bulk_action() {
 	
 	$sendback = remove_query_arg( array('action', 'action2', 'tags_input', 'post_author', 'comment_status', 'ping_status', '_status',  'post', 'bulk_edit', 'post_view'), $sendback );
 
-	wp_redirect($sendback);
+	$sendback_escaped = esc_url_raw($sendback);
+
+	wp_redirect($sendback_escaped);
 
 	exit();
 
@@ -287,6 +310,8 @@ function tg_bulk_admin_notices() {
 	$tag_group_taxonomy = get_option( 'tag_group_taxonomy', array('post_tag') );
 	
 	$tag_group_labels = get_option( 'tag_group_labels', array() );
+	
+	$tag_group_ids = get_option( 'tag_group_ids', array() );
 	
 	$screen = get_current_screen();
 	
@@ -302,7 +327,9 @@ function tg_bulk_admin_notices() {
 		
 		} else {
 
-			$group_name = $tag_group_labels[$_REQUEST['group_id']];
+			$i = array_search($_REQUEST['group_id'], $tag_group_ids);
+			
+			$group_name = $tag_group_labels[$i];
 
 			$message = _n( sprintf( 'The term has been assigned to the group %s.', '<i>'.$group_name.'</i>'), sprintf('%d terms have been assigned to the group %s.', number_format_i18n( $_REQUEST['number_assigned'] ), '<i>'.$group_name.'</i>'), $_REQUEST['number_assigned']);
 
@@ -431,7 +458,9 @@ function tg_add_taxonomy_columns($columns) {
 
 	$link = add_query_arg( array('orderby' => 'term_group', 'order' => $new_order, 'taxonomy' => $taxonomy), admin_url( "edit-tags.php".$wp->request ));
 	
-	$columns['term_group'] = '<a href="'.$link.'"><span>'.__('Tag Group', 'tag-groups').'</span><span class="sorting-indicator"></span></a>';
+	$link_escaped = esc_url($link);
+
+	$columns['term_group'] = '<a href="'.$link_escaped.'"><span>'.__('Tag Group', 'tag-groups').'</span><span class="sorting-indicator"></span></a>';
 	
 	return $columns;
  		
@@ -1357,19 +1386,22 @@ function tg_settings_page() {
 			<li><?php _e('<b>amount=x</b> Maximum amount of tags in one cloud (per group). Default: 40', 'tag-groups') ?></li>
 			<li><?php _e('<b>hide_empty=1 or =0</b> Whether to hide or show also tags that are not assigned to any post. Default: 1 (hide empty)', 'tag-groups') ?></li>
 			<li><?php _e('<b>tags_post_id=x</b> Display only tags that are assigned to the post (or page) with the ID x. If set to 0, it will try to retrieve the current post ID. Default: -1 (all tags displayed)', 'tag-groups') ?></li>
+			<li><?php _e('<b>assigned_class="something"</b> A modification of the tags_post_id parameter: Rather than hiding tags that are not assigned to the post (or page), they can be styled differently. Tags will receive this class name with appended _1 or _0. (If you output the tags as an array, a new element with the key "assigned" will be true or false.)', 'tag-groups') ?></li>
 			<li><?php _e('<b>separator="•"</b> A separator between the tags. Default: empty', 'tag-groups') ?></li>
 			<li><?php _e('<b>separator_size=12</b> The size of the separator. Default: 12', 'tag-groups') ?></li>
 			<li><?php _e('<b>adjust_separator_size=1 or =0</b> Whether to adjust the separator\'s size to the size of the following tag. Default: 0', 'tag-groups') ?></li>
 			<li><?php _e('<b>prepend="#"</b> Prepend to each tag label. Default: empty', 'tag-groups') ?></li>
 			<li><?php _e('<b>append="something"</b> Append to each tag label. Default: empty', 'tag-groups') ?></li>
 			<li><?php _e('<b>taxonomy="x,y,..."</b> Restrict the tags only to these taxonomies. Default: empty (= no restriction)', 'tag-groups') ?></li>
-			
+			<li><?php _e('<b>link_target="_blank"</b> Set the "target" attribute for the links of the tags. Possible values: _blank, _self, _parent, _top, or the name of a frame. Default: empty (= opens in the same window, same as using _self)', 'tag-groups') ?></li>
+			<li><?php _e('<b>show_tag_count=1 or =0</b> Whether to show the number of posts as tooltip (behind the tag description) when hovering the mouse over the tag. Default: 1 (show)', 'tag-groups') ?></li>
 			<li>&nbsp;</li>
 			<li><?php _e('<b>Groups and Tabs:</b>', 'tag-groups') ?></li>
 			<li><?php _e('<b>include="x,y,..."</b> IDs of tag groups (left column in list of groups) that will be considered in the tag cloud. Empty or not used means that all tag groups will be used. Default: empty', 'tag-groups') ?></li>
 			<li><?php _e('<b>groups_post_id=x</b> Display only groups of which at least one assigned tag is also assigned to the post (or page) with the ID x. If set to 0, it will try to retrieve the current post ID. Default: -1 (all groups displayed). Matching groups will be added to the list specified by the parameter <b>include</b>.', 'tag-groups') ?></li>
 			<li><?php _e('<b>show_tabs=1 or =0</b> Whether to show the tabs. Default: 1', 'tag-groups') ?></li>
 			<li><?php _e('<b>hide_empty_tabs=1 or =0</b> Whether to hide tabs without tags. Default: 0 (Not implemented for PHP function with second parameter set to \'true\'. Not effective with <b>groups_post_id</b>.)', 'tag-groups') ?></li>
+			<li><?php _e('<b>show_all_groups=1 or =0</b> Whether to force showing all groups. Useful with the parameters <b>tags_post_id</b> and <b>assigned_class</b>. Default: 0', 'tag-groups') ?></li>
 			<li><?php _e('<b>collapsible=1 or =0</b> Whether tabs are collapsible (toggle open/close). Default: general settings in the back end', 'tag-groups') ?></li>
 			<li><?php _e('<b>mouseover=1 or =0</b> Whether tabs can be selected by hovering over with the mouse pointer (without clicking). Default: general settings in the back end', 'tag-groups') ?></li>
 
@@ -1446,6 +1478,8 @@ function tag_groups_cloud( $atts = array(), $return_array = false ) {
 	$posttags = array();
 	
 	$post_id_terms = array();
+	
+	$assigned_terms = array();
 
 	$tag_group_labels = get_option( 'tag_group_labels', array() );
 
@@ -1456,28 +1490,32 @@ function tag_groups_cloud( $atts = array(), $return_array = false ) {
 	$number_of_tag_groups = count($tag_group_labels) - 1;
 	
 	extract( shortcode_atts( array(
-		'smallest' => 12,
-		'largest' => 22,
-		'amount' => 40,
-		'hide_empty' => true,
-		'include' => '',
-		'div_id' => 'tag-groups-cloud-tabs',
-		'div_class' => 'tag-groups-cloud-tabs',
-		'ul_class' => '',
-		'show_tabs' => '1',
-		'orderby' => 'name',
-		'order' => 'ASC',
-		'separator' => '',
-		'separator_size' => 12,
 		'adjust_separator_size' => false,
-		'tags_post_id' => -1,
+		'amount' => 40,
+		'append' => '',
+		'assigned_class' => null,
+		'collapsible' => null,
+		'div_class' => 'tag-groups-cloud-tabs',
+		'div_id' => 'tag-groups-cloud-tabs',
 		'groups_post_id' => -1,
 		'hide_empty_tabs' => false,
+		'hide_empty' => true,
+		'include' => '',
+		'largest' => 22,
+		'link_target' => '',
 		'mouseover' => null,
-		'collapsible' => null,
+		'order' => 'ASC',
+		'orderby' => 'name',
 		'prepend' => '',
-		'append' => '',
-		'taxonomy' => null
+		'separator_size' => 12,
+		'separator' => '',
+		'show_all_groups' => false,
+		'show_tabs' => '1',
+		'show_tag_count' => true,
+		'smallest' => 12,
+		'tags_post_id' => -1,
+		'taxonomy' => null,
+		'ul_class' => ''
 		), $atts ) );
 
 	if ($smallest < 1) $smallest = 1;
@@ -1502,15 +1540,7 @@ function tag_groups_cloud( $atts = array(), $return_array = false ) {
 		
 	}
 
-	foreach( $tag_group_taxonomy as $taxonomy_item ) {
-	
-		if (isset($taxonomy) && !in_array($taxonomy_item, $taxonomy_array)) continue;
-
-		$terms = get_terms($taxonomy_item, array('hide_empty' => $hide_empty, 'orderby' => $orderby, 'order' => $order));
-		
-		if (!empty($terms) && is_array($terms)) $posttags = array_merge( $posttags, $terms);
-		
-	}
+	$posttags = get_terms($tag_group_taxonomy, array('hide_empty' => $hide_empty, 'orderby' => $orderby, 'order' => $order));
 
 	$div_id_output = $div_id ? ' id="'.sanitize_html_class($div_id).'"' : '';
 
@@ -1518,7 +1548,7 @@ function tag_groups_cloud( $atts = array(), $return_array = false ) {
 
 	$ul_class_output = $ul_class ? ' class="'.sanitize_html_class($ul_class).'"' : '';
 	
-	if ($include != '') $include_array = explode(',', $include);
+	if (!empty($include)) $include_array = explode(',', str_replace(' ', '', $include));
 
 	if ($separator_size < 1) $separator_size = 12; else $separator_size = (int) $separator_size;	
 	
@@ -1537,6 +1567,8 @@ function tag_groups_cloud( $atts = array(), $return_array = false ) {
 			if (isset($taxonomy) && !in_array($taxonomy_item, $taxonomy_array)) continue;
 			
 			$terms = get_the_terms( (int) $tags_post_id, $taxonomy_item );
+
+			// merging the results of selected taxonomies
 
 			if (!empty($terms) && is_array($terms)) $post_id_terms = array_merge( $post_id_terms, $terms);
 			
@@ -1561,8 +1593,19 @@ function tag_groups_cloud( $atts = array(), $return_array = false ) {
 					
 				}
 				
-				if (!$found) unset( $posttags[$key] );
-			
+				if (!empty($assigned_class)) {
+				
+					// Keep all terms but mark for different styling
+					
+					if ($found) $assigned_terms[$tag->term_id] = true;
+				
+				} else {
+				
+					// Remove unused terms.
+					
+					if (!$found) unset( $posttags[$key] );
+				
+				}
 			}
 		
 		}
@@ -1610,7 +1653,7 @@ function tag_groups_cloud( $atts = array(), $return_array = false ) {
 	
 		for ($i = 1; $i <= $number_of_tag_groups; $i++) {
 
-			if ((!$include_array) || (in_array( $tag_group_ids[$i], $include_array ))) {
+			if ($show_all_groups || empty($include_array) || in_array( $tag_group_ids[$i], $include_array )) {
 			
 				$output[$i]['name'] = tg_translate_string_wpml( 'Group Label ID '.$tag_group_ids[$i], $tag_group_labels[$i] );
 
@@ -1662,7 +1705,13 @@ function tag_groups_cloud( $atts = array(), $return_array = false ) {
 							$output[$i]['tags'][$count_amount]['name'] = $tag->name;
 
 							$output[$i]['tags'][$count_amount]['tg_font_size'] = tg_font_size($tag->count,$min,$max,$smallest,$largest);
-															
+
+							if (!empty($assigned_class)) {
+							
+								$output[$i]['tags'][$count_amount]['assigned'] = $assigned_terms[$tag->term_id];
+							
+							}
+
 							$count_amount++;
 						
 						}
@@ -1681,9 +1730,11 @@ function tag_groups_cloud( $atts = array(), $return_array = false ) {
 	
 	} else {
 
-	// return as html (in shape of a tabbed cloud)
+	// return as html (in the shape of a tabbed cloud)
 	
 		$html = '<div'.$div_id_output.$div_class_output.'>';
+
+		// render the tabs
 
 		if ($show_tabs == '1') {
 	
@@ -1691,7 +1742,7 @@ function tag_groups_cloud( $atts = array(), $return_array = false ) {
 		
 			for ($i = 1; $i <= $number_of_tag_groups; $i++) {
 		
-				if ((!$include_array) || (in_array($tag_group_ids[$i],$include_array))) {
+				if ($show_all_groups || empty($include_array) || in_array($tag_group_ids[$i],$include_array)) {
 		
 					$html_tabs[$i] = '<li><a href="#tabs-'.$i.'" >'.tg_translate_string_wpml('Group Label ID '.$tag_group_ids[$i], $tag_group_labels[$i]).'</a></li>';
 		
@@ -1703,9 +1754,11 @@ function tag_groups_cloud( $atts = array(), $return_array = false ) {
 	
 		}
 	
+		// render the tab content
+		
 		for ($i = 1; $i <= $number_of_tag_groups; $i++) {
 		
-			if ((!$include_array) || (in_array($tag_group_ids[$i],$include_array))) {
+			if ($show_all_groups || empty($include_array) || in_array($tag_group_ids[$i],$include_array)) {
 			
 				$html_tags[$i] = '<div id="tabs-'.$i.'">';
 	
@@ -1737,6 +1790,10 @@ function tag_groups_cloud( $atts = array(), $return_array = false ) {
 						$count_amount = 0;
 	
 						foreach($posttags as $tag) {
+							
+							$other_tag_classes = '';
+							
+							$description = '';
 	
 							if ($count_amount >= $amount) break;
 	
@@ -1750,7 +1807,27 @@ function tag_groups_cloud( $atts = array(), $return_array = false ) {
 								
 								if ($count_amount > 0) $html_tags[$i] .= '<span style="font-size:'. $font_size_tag .'px">'.$separator.'</span> ';
 								
-								$html_tags[$i] .= '<a href="'.$tag_link.'" title="'.htmlentities($tag->description).' ('.$tag->count.')"  class="'.$tag->slug.'"><span style="font-size:'.$font_size.'px">'.sanitize_text_field($prepend).$tag->name.sanitize_text_field($append).'</span></a>&nbsp; ';
+								if (!empty($assigned_class)) {
+							
+									if ($assigned_terms[$tag->term_id]) {
+									
+										$other_tag_classes = ' '.$assigned_class.'_1';
+										
+									} else {
+									
+										$other_tag_classes = ' '.$assigned_class.'_0';
+									
+									}
+							
+								}
+								
+								$description = !empty($tag->description) ? htmlentities($tag->description, ENT_COMPAT | ENT_HTML401, "UTF-8").' ' : '';
+
+								$tag_count = $show_tag_count ? '('.$tag->count.')' : '';
+
+								$link_target_html = !empty($link_target) ? 'target="'.$link_target.'"' : '';
+								
+								$html_tags[$i] .= '<a href="'.$tag_link.'" '.$link_target_html.' title="'.$description.$tag_count.'"  class="'.$tag->slug.$other_tag_classes.'"><span style="font-size:'.$font_size.'px">'.sanitize_text_field($prepend).$tag->name.sanitize_text_field($append).'</span></a>&nbsp; ';
 								
 								$count_amount++;
 							
