@@ -4,13 +4,13 @@ Plugin Name: Tag Groups
 Plugin URI: http://www.christoph-amthor.de/software/tag-groups/
 Description: Assign tags to groups and display them in a tabbed tag cloud
 Author: Christoph Amthor
-Version: 0.17.2
+Version: 0.18
 Author URI: http://www.christoph-amthor.de
 License: GNU GENERAL PUBLIC LICENSE, Version 3
 Text Domain: tag-groups
 */
 
-define("TAG_GROUPS_VERSION", "0.17.2");
+define("TAG_GROUPS_VERSION", "0.18");
 
 define("TAG_GROUPS_BUILT_IN_THEMES", "ui-gray,ui-lightness,ui-darkness");
 
@@ -169,9 +169,14 @@ function tg_bulk_admin_footer() {
 	<script type="text/javascript">
 		jQuery(document).ready(function() {
 			jQuery('<option>').val('assign').text('<?php _e('Assign to')?>').appendTo("select[name='action']");
-			var sel = jQuery("<select name='term-group'>").insertAfter("select[name='action']");
-			<?php for ($i = 1; $i < count($tag_group_labels); $i++) :?>
-			sel.append(jQuery("<option>").attr("value", "<?php echo $tag_group_ids[$i] ?>").text("<?php echo $tag_group_labels[$i] ?>"));
+			jQuery('<option>').val('assign').text('<?php _e('Assign to')?>').appendTo("select[name='action2']");
+			
+			var sel_top = jQuery("<select name='term-group-top'>").insertAfter("select[name='action']");
+			var sel_bottom = jQuery("<select name='term-group-bottom'>").insertAfter("select[name='action2']");
+			
+			<?php for ($i = 0; $i < count($tag_group_labels); $i++) :?>
+			sel_top.append(jQuery("<option>").attr("value", "<?php echo $tag_group_ids[$i] ?>").text("<?php echo $tag_group_labels[$i] ?>"));
+			sel_bottom.append(jQuery("<option>").attr("value", "<?php echo $tag_group_ids[$i] ?>").text("<?php echo $tag_group_labels[$i] ?>"));
 			<?php endfor;?>
 	
 <?php	if (isset($_GET['orderby']) && $_GET['orderby']=='term_group') : ?>
@@ -185,6 +190,19 @@ function tg_bulk_admin_footer() {
 			jQuery('th#term_group').addClass('desc');
 <?php 	endif; ?>
 
+			jQuery('[name="term-group-top"]').change(function(){
+				jQuery('[name="action"]').val('assign');
+				jQuery('[name="action2"]').val('assign');
+				var selected = jQuery(this).val();
+				jQuery('[name="term-group-bottom"]').val(selected);
+			});
+			
+			jQuery('[name="term-group-bottom"]').change(function(){
+				jQuery('[name="action"]').val('assign');
+				jQuery('[name="action2"]').val('assign');
+				var selected = jQuery(this).val();
+				jQuery('[name="term-group-top"]').val(selected);
+			});
 		});
 	</script>
 	<?php
@@ -219,8 +237,8 @@ function tg_bulk_action() {
 	if(isset($_REQUEST['delete_tags'])) {
 		$term_ids = $_REQUEST['delete_tags'];
 	}
-	if(isset($_REQUEST['term-group'])) {
-		$term_group = $_REQUEST['term-group'];
+	if(isset($_REQUEST['term-group-top'])) {
+		$term_group = $_REQUEST['term-group-top'];
 	} else {
 		return;
 	}
@@ -237,7 +255,10 @@ function tg_bulk_action() {
 		
 		$sendback = remove_query_arg( array('action', 'action2', 'tags_input', 'post_author', 'comment_status', 'ping_status', '_status',  'post', 'bulk_edit', 'post_view'), $sendback );
 
-		wp_redirect($sendback);
+		// escaping $sendback
+		$sendback_escaped = esc_url_raw($sendback);
+
+		wp_redirect($sendback_escaped);
 
 		exit();
 	
@@ -275,7 +296,9 @@ function tg_bulk_action() {
 	
 	$sendback = remove_query_arg( array('action', 'action2', 'tags_input', 'post_author', 'comment_status', 'ping_status', '_status',  'post', 'bulk_edit', 'post_view'), $sendback );
 
-	wp_redirect($sendback);
+	$sendback_escaped = esc_url_raw($sendback);
+
+	wp_redirect($sendback_escaped);
 
 	exit();
 
@@ -287,6 +310,8 @@ function tg_bulk_admin_notices() {
 	$tag_group_taxonomy = get_option( 'tag_group_taxonomy', array('post_tag') );
 	
 	$tag_group_labels = get_option( 'tag_group_labels', array() );
+	
+	$tag_group_ids = get_option( 'tag_group_ids', array() );
 	
 	$screen = get_current_screen();
 	
@@ -302,7 +327,9 @@ function tg_bulk_admin_notices() {
 		
 		} else {
 
-			$group_name = $tag_group_labels[$_REQUEST['group_id']];
+			$i = array_search($_REQUEST['group_id'], $tag_group_ids);
+			
+			$group_name = $tag_group_labels[$i];
 
 			$message = _n( sprintf( 'The term has been assigned to the group %s.', '<i>'.$group_name.'</i>'), sprintf('%d terms have been assigned to the group %s.', number_format_i18n( $_REQUEST['number_assigned'] ), '<i>'.$group_name.'</i>'), $_REQUEST['number_assigned']);
 
@@ -431,7 +458,9 @@ function tg_add_taxonomy_columns($columns) {
 
 	$link = add_query_arg( array('orderby' => 'term_group', 'order' => $new_order, 'taxonomy' => $taxonomy), admin_url( "edit-tags.php".$wp->request ));
 	
-	$columns['term_group'] = '<a href="'.$link.'"><span>'.__('Tag Group', 'tag-groups').'</span><span class="sorting-indicator"></span></a>';
+	$link_escaped = esc_url($link);
+
+	$columns['term_group'] = '<a href="'.$link_escaped.'"><span>'.__('Tag Group', 'tag-groups').'</span><span class="sorting-indicator"></span></a>';
 	
 	return $columns;
  		

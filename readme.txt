@@ -4,7 +4,7 @@ Donate link: http://www.burma-center.org/donate/
 Tags: tag, tags, term_group, tag cloud, tag-cloud, WPML, category, categories, category cloud
 Requires at least: 3.1
 Tested up to: 4.2
-Stable tag: 0.17.2
+Stable tag: 0.18
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -60,6 +60,19 @@ No, unfortunately it isn't. But, nevertheless, I'm glad you asked! You are warml
 
 
 == Changelog ==
+
+= 0.18 =
+
+BUG FIXES
+
+* hardening security (escaping url before its use in menu)
+* adding back lost option to bulk action menu to unassign
+* added missing bulk action menu under the table (menu changes are synchronized)
+* wrong group label in confirmation message after bulk change
+
+FEATURES
+
+* selecting group for bulk change automatically selects action "assign to"
 
 = 0.17.2 =
 
