@@ -1443,7 +1443,6 @@ function tg_settings_page() {
 	<p><?php _e('Or support his work by a friendly link to one of these websites:', 'tag-groups') ?>
 <ul>
 	<li><a href="http://www.burma-center.org" target="_blank">www.burma-center.org</a></li>
-	<li><a href="http://mycitizen.net" target="_blank">mycitizen.net</a></li>
 	<li><a href="http://www.ecoburma.com" target="_blank">www.ecoburma.com</a></li>
 	<li><a href="http://www.weirdthingsinprague.com" target="_blank">www.weirdthingsinprague.com</a></li>
 	<li><a href="http://www.myanmar-dictionary.org" target="_blank">www.myanmar-dictionary.org</a></li>
