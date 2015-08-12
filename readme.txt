@@ -61,6 +61,13 @@ No, unfortunately it isn't. But, nevertheless, I'm glad you asked! You are warml
 
 == Changelog ==
 
+
+= 0.19.2 =
+
+BUG FIXES
+
+* problems with multilingual tags (WPML)
+
 = 0.19.1 =
 
 BUG FIXES

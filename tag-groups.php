@@ -4,13 +4,13 @@
   Plugin URI: http://www.christoph-amthor.de/software/tag-groups/
   Description: Assign tags to groups and display them in a tabbed tag cloud
   Author: Christoph Amthor
-  Version: 0.19.1
+  Version: 0.19.2
   Author URI: http://www.christoph-amthor.de
   License: GNU GENERAL PUBLIC LICENSE, Version 3
   Text Domain: tag-groups
  */
 
-define( "TAG_GROUPS_VERSION", "0.19.1" );
+define( "TAG_GROUPS_VERSION", "0.19.2" );
 
 define( "TAG_GROUPS_BUILT_IN_THEMES", "ui-gray,ui-lightness,ui-darkness" );
 
@@ -131,15 +131,19 @@ function tg_terms_clauses( $pieces, $taxonomies, $args )
 
     $group_id = $_SESSION['term-filter'];
 
+    
     if ( $group_id > -1 ) {
 
-        $pieces['where'] = sprintf( "tt.taxonomy IN ('%s') AND t.term_group = %d AND t.term_id > 1", $taxonomies[0], $group_id );
+        if (!empty($pieces['where'])) {
 
-        if ( !empty( $args['search'] ) ) {
-            
-            $pieces['where'] .= sprintf( " AND ((t.name LIKE '%%%s%%') OR (t.slug LIKE '%%%s%%'))", $args['search'], $args['search'] );
+            $pieces['where'] .= sprintf( " AND t.term_group = %d AND t.term_id > 1", $group_id );
         
+        } else {
+            
+            $pieces['where'] = sprintf( "t.term_group = %d AND t.term_id > 1", $group_id );
+            
         }
+
     }
 
     return $pieces;
