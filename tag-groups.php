@@ -4,13 +4,13 @@
   Plugin URI: http://www.christoph-amthor.de/software/tag-groups/
   Description: Assign tags to groups and display them in a tabbed tag cloud
   Author: Christoph Amthor
-  Version: 0.19
+  Version: 0.19.1
   Author URI: http://www.christoph-amthor.de
   License: GNU GENERAL PUBLIC LICENSE, Version 3
   Text Domain: tag-groups
  */
 
-define( "TAG_GROUPS_VERSION", "0.19" );
+define( "TAG_GROUPS_VERSION", "0.19.1" );
 
 define( "TAG_GROUPS_BUILT_IN_THEMES", "ui-gray,ui-lightness,ui-darkness" );
 
@@ -128,15 +128,18 @@ function tg_admin_init()
  */
 function tg_terms_clauses( $pieces, $taxonomies, $args )
 {
-//var_dump($pieces);
-//var_dump($taxonomies);
-//var_dump($args);
-//die();
+
     $group_id = $_SESSION['term-filter'];
 
     if ( $group_id > -1 ) {
 
         $pieces['where'] = sprintf( "tt.taxonomy IN ('%s') AND t.term_group = %d AND t.term_id > 1", $taxonomies[0], $group_id );
+
+        if ( !empty( $args['search'] ) ) {
+            
+            $pieces['where'] .= sprintf( " AND ((t.name LIKE '%%%s%%') OR (t.slug LIKE '%%%s%%'))", $args['search'], $args['search'] );
+        
+        }
     }
 
     return $pieces;
@@ -803,11 +806,11 @@ function tg_quick_edit_tag()
 
                         <option value="0" ><?php _e( 'not assigned', 'tag-groups' ) ?></option>
 
-    <?php for ( $i = 1; $i <= $number_of_tag_groups; $i++ ) : ?>
+                        <?php for ( $i = 1; $i <= $number_of_tag_groups; $i++ ) : ?>
 
                             <option value="<?php echo $tag_group_ids[$i]; ?>" ><?php echo $tag_group_labels[$i]; ?></option>
 
-    <?php endfor; ?>
+                        <?php endfor; ?>
 
                     </select>
 
@@ -844,11 +847,11 @@ function tg_create_new_tag( $tag )
         <select id="term-group" name="term-group">
             <option value="0" selected ><?php _e( 'not assigned', 'tag-groups' ) ?></option>
 
-    <?php for ( $i = 1; $i <= $number_of_tag_groups; $i++ ) : ?>
+            <?php for ( $i = 1; $i <= $number_of_tag_groups; $i++ ) : ?>
 
                 <option value="<?php echo $tag_group_ids[$i]; ?>"><?php echo $tag_group_labels[$i]; ?></option>
 
-    <?php endfor; ?>
+            <?php endfor; ?>
 
         </select>		
         <input type="hidden" name="tag-groups-nonce" id="tag-groups-nonce" value="<?php echo wp_create_nonce( 'tag-groups' ) ?>" />
@@ -882,13 +885,13 @@ function tg_tag_input_metabox( $tag )
             <select id="term-group" name="term-group">
                 <option value="0" <?php if ( $tag->term_group == 0 ) echo 'selected'; ?> ><?php _e( 'not assigned', 'tag-groups' ) ?></option>
 
-    <?php for ( $i = 1; $i <= $number_of_tag_groups; $i++ ) : ?>
+                <?php for ( $i = 1; $i <= $number_of_tag_groups; $i++ ) : ?>
 
                     <option value="<?php echo $tag_group_ids[$i]; ?>"
 
-        <?php if ( $tag->term_group == $tag_group_ids[$i] ) echo 'selected'; ?> ><?php echo $tag_group_labels[$i]; ?></option>
+                            <?php if ( $tag->term_group == $tag_group_ids[$i] ) echo 'selected'; ?> ><?php echo $tag_group_labels[$i]; ?></option>
 
-    <?php endfor; ?>
+                <?php endfor; ?>
 
             </select>
             <input type="hidden" name="tag-groups-nonce" id="tag-groups-nonce" value="<?php echo wp_create_nonce( 'tag-groups' ) ?>" />
@@ -942,24 +945,24 @@ function tg_group_administration()
     <div class='wrap'>
         <h2>Tag Groups</h2>
 
-    <?php
-    /*
-     *  save a new label
-     */
-    if ( isset( $_POST['label'] ) ) {
+        <?php
+        /*
+         *  save a new label
+         */
+        if ( isset( $_POST['label'] ) ) {
 
-        $label = stripslashes( sanitize_text_field( $_POST['label'] ) );
+            $label = stripslashes( sanitize_text_field( $_POST['label'] ) );
 
-        if ( $label == '' ) :
-            ?>
-
-                <div class="updated fade"><p>
-                <?php _e( 'The label cannot be empty. Please correct it or go back.', 'tag-groups' ) ?>
-                    </p></div><br clear="all" /><?php elseif ( (is_array( $tag_group_labels )) && (in_array( $label, $tag_group_labels )) ) :
+            if ( $label == '' ) :
                 ?>
 
                 <div class="updated fade"><p>
-                <?php _e( 'A tag group with the label \'' . $label . '\' already exists, or the label has not changed. Please choose another one or go back.', 'tag-groups' ) ?>
+                        <?php _e( 'The label cannot be empty. Please correct it or go back.', 'tag-groups' ) ?>
+                    </p></div><br clear="all" /><?php elseif ( (is_array( $tag_group_labels )) && (in_array( $label, $tag_group_labels )) ) :
+                        ?>
+
+                <div class="updated fade"><p>
+                        <?php _e( 'A tag group with the label \'' . $label . '\' already exists, or the label has not changed. Please choose another one or go back.', 'tag-groups' ) ?>
                     </p></div><br clear="all" /> <?php
             else:
 
@@ -1003,7 +1006,7 @@ function tg_group_administration()
                 ?>
 
                 <div class="updated fade"><p>
-                <?php _e( 'The tag group with the label \'' . $label . '\' has been saved!', 'tag-groups' ) ?>
+                        <?php _e( 'The tag group with the label \'' . $label . '\' has been saved!', 'tag-groups' ) ?>
                     </p></div><br clear="all" />
 
                 <?php
@@ -1067,11 +1070,11 @@ function tg_group_administration()
                     <input class='button-primary' type='submit' name='Save' value='<?php _e( 'Create Group', 'tag-groups' ); ?>' id='submitbutton' />
                     <input class='button-primary' type='button' name='Cancel' value='<?php _e( 'Cancel', 'tag-groups' ); ?>' id='cancel' onclick="location.href = 'edit.php?page=tag-groups'"/>
                 </form>
-            <?php
-            break;
+                <?php
+                break;
 
-        case 'edit':
-            ?>
+            case 'edit':
+                ?>
 
                 <h3><?php _e( 'Edit the label of an existing tag group', 'tag-groups' ) ?></h3>
                 <form method="POST" action="<?php echo $_SERVER['REQUEST_URI']; ?>">
@@ -1127,14 +1130,14 @@ function tg_group_administration()
                 ?>
 
                 <div class="updated fade"><p>
-            <?php printf( __( 'A tag group with the id %s and the label \'%s\' has been deleted.', 'tag-groups' ), $id, $label ); ?>
+                        <?php printf( __( 'A tag group with the id %s and the label \'%s\' has been deleted.', 'tag-groups' ), $id, $label ); ?>
                     </p></div><br clear="all" />
                 <input class='button-primary' type='button' name='ok' value='<?php _e( 'OK', 'tag-groups' ); ?>' id='ok' onclick="location.href = 'edit.php?page=tag-groups'"/>
-            <?php
-            break;
+                <?php
+                break;
 
-        default:
-            ?>
+            default:
+                ?>
                 <p><?PHP _e( 'On this page you can define tag groups. Tags (or terms) can be assigned to these groups on the page where you edit the tags (terms).', 'tag-groups' ) ?></p>
                 <h3><?php _e( 'List', 'tag-groups' ) ?></h3>
                 <table class="widefat">
@@ -1158,36 +1161,36 @@ function tg_group_administration()
                     </tfoot>
                     <tbody>
 
-            <?php for ( $i = 1; $i <= $number_of_tag_groups; $i++ ) : ?>
+                        <?php for ( $i = 1; $i <= $number_of_tag_groups; $i++ ) : ?>
 
                             <tr>
                                 <td><?php echo $tag_group_ids[$i]; ?></td>
                                 <td><?php echo $tag_group_labels[$i] ?></td>
                                 <td><?php echo tg_number_assigned( $tag_group_ids[$i] ) ?></td>
                                 <td><a href="edit.php?page=tag-groups&action=edit&id=<?php echo $i; ?>"><?php _e( 'Edit', 'tag-groups' ) ?></a>, <a href="#" onclick="var answer = confirm('<?PHP _e( 'Do you really want to delete the tag group', 'tag-groups' ) ?> \'<?php echo esc_js( $tag_group_labels[$i] ) ?>\'?');
-                                                        if (answer) {
-                                                            window.location = 'edit.php?page=tag-groups&action=delete&id=<?php echo $i ?>&tag-groups-delete-nonce=<?php echo wp_create_nonce( 'tag-groups-delete-' . $i ) ?>'
-                                                        }"><?php _e( 'Delete', 'tag-groups' ) ?></a></td>
+                                        if (answer) {
+                                            window.location = 'edit.php?page=tag-groups&action=delete&id=<?php echo $i ?>&tag-groups-delete-nonce=<?php echo wp_create_nonce( 'tag-groups-delete-' . $i ) ?>'
+                                        }"><?php _e( 'Delete', 'tag-groups' ) ?></a></td>
                                 <td>
                                     <div style="overflow:hidden; position:relative;height:15px;width:27px;clear:both;">
-                <?php if ( $i > 1 ) : ?>
+                                        <?php if ( $i > 1 ) : ?>
                                             <a href="edit.php?page=tag-groups&action=up&id=<?php echo $i ?>">
                                                 <div class="tag-groups-up"></div>
                                             </a>
-                <?php endif; ?>
+                                        <?php endif; ?>
                                     </div>
 
                                     <div style="overflow:hidden; position:relative;height:15px;width:27px;clear:both;">
-                <?php if ( $i < $number_of_tag_groups ) : ?>
+                                        <?php if ( $i < $number_of_tag_groups ) : ?>
                                             <a href="edit.php?page=tag-groups&action=down&id=<?php echo $i ?>">
                                                 <div class="tag-groups-down"></div>
                                             </a>
-                <?php endif; ?>
+                                        <?php endif; ?>
                                     </div>
                                 </td>
                             </tr>
 
-            <?php endfor; ?>
+                        <?php endfor; ?>
 
                         <tr>
                             <td><?php _e( 'new', 'tag-groups' ) ?></td>
@@ -1328,7 +1331,7 @@ function tg_settings_page()
                 }
                 ?>
                 <div class="updated fade"><p>
-                <?php _e( 'Settings saved.', 'tag-groups' ); ?>
+                        <?php _e( 'Settings saved.', 'tag-groups' ); ?>
                     </p></div><br clear="all" />
                 <input class='button-primary' type='button' name='ok' value='<?php _e( 'OK', 'tag-groups' ); ?>' id='ok' onclick="location.href = 'options-general.php?page=tag-groups-settings&active-tab=3'"/>
                 <?php
@@ -1355,22 +1358,22 @@ function tg_settings_page()
                 tg_unassign( 0 );
                 ?>
                 <div class="updated fade"><p>
-                <?php _e( 'All groups are deleted and assignments reset.', 'tag-groups' ); ?>
+                        <?php _e( 'All groups are deleted and assignments reset.', 'tag-groups' ); ?>
                     </p></div><br clear="all" />
                 <input class='button-primary' type='button' name='ok' value='<?php _e( 'OK', 'tag-groups' ); ?>' id='ok' onclick="location.href = 'options-general.php?page=tag-groups-settings&active-tab=4'"/>
-                        <?php
-                        break;
+                <?php
+                break;
 
-                    case 'wpml':
+            case 'wpml':
 
-                        for ( $i = 1; $i <= $number_of_tag_groups; $i++ ) {
+                for ( $i = 1; $i <= $number_of_tag_groups; $i++ ) {
 
-                            tg_register_string_wpml( 'Group Label ID ' . $i, $tag_group_labels[$i] );
-                        }
-                        ?>
+                    tg_register_string_wpml( 'Group Label ID ' . $i, $tag_group_labels[$i] );
+                }
+                ?>
 
                 <div class="updated fade"><p>
-                <?php _e( 'All labels were registered.', 'tag-groups' ); ?>
+                        <?php _e( 'All labels were registered.', 'tag-groups' ); ?>
                     </p></div><br clear="all" />
                 <input class='button-primary' type='button' name='ok' value='<?php _e( 'OK', 'tag-groups' ); ?>' id='ok' onclick="location.href = 'options-general.php?page=tag-groups-settings&active-tab=2'"/>
 
@@ -1450,18 +1453,18 @@ function tg_settings_page()
 
                 update_option( 'tag_group_show_filter', $show_filter );
                 ?> <div class="updated fade"><p>
-                    <?php _e( 'Your back end settings have been saved.', 'tag-groups' ); ?>
+                <?php _e( 'Your back end settings have been saved.', 'tag-groups' ); ?>
                     </p></div><br clear="all" />
                 <input class='button-primary' type='button' name='ok' value='<?php _e( 'OK', 'tag-groups' ); ?>' id='ok' onclick="location.href = 'options-general.php?page=tag-groups-settings&active-tab=0'"/>
-            <?php
-            break;
+                <?php
+                break;
 
-        default:
-            ?>
+            default:
+                ?>
                 <h2 class="nav-tab-wrapper">
                     <a href="options-general.php?page=tag-groups-settings&active-tab=0" class="nav-tab <?php if ( $active_tab == 0 ) echo 'nav-tab-active' ?>"><?php _e( 'Basics', 'tag-groups' ) ?></a>
                     <a href="options-general.php?page=tag-groups-settings&active-tab=1" class="nav-tab <?php if ( $active_tab == 1 ) echo 'nav-tab-active' ?>"><?php _e( 'Theme', 'tag-groups' ) ?></a>
-            <?php if ( function_exists( 'icl_register_string' ) ) : ?>
+                    <?php if ( function_exists( 'icl_register_string' ) ) : ?>
                         <a href="options-general.php?page=tag-groups-settings&active-tab=2" class="nav-tab <?php if ( $active_tab == 2 ) echo 'nav-tab-active' ?>"><?php _e( 'WPML', 'tag-groups' ) ?></a>
                     <?php endif; ?>
                     <a href="options-general.php?page=tag-groups-settings&active-tab=3" class="nav-tab <?php if ( $active_tab == 3 ) echo 'nav-tab-active' ?>"><?php _e( 'Tag Cloud', 'tag-groups' ) ?></a>
@@ -1470,26 +1473,26 @@ function tg_settings_page()
                 </h2>
                 <p>&nbsp;</p>
 
-            <?php if ( $active_tab == 0 ): ?>
+                <?php if ( $active_tab == 0 ): ?>
                     <form method="POST" action="<?php echo $_SERVER['REQUEST_URI']; ?>">
                         <input type="hidden" name="tag-groups-taxonomy-nonce" id="tag-groups-taxonomy-nonce" value="<?php echo wp_create_nonce( 'tag-groups-taxonomy' ) ?>" />
                         <h3>Taxonomies</h3>
                         <p><?php _e( 'Choose the taxonomies for which you want to use tag groups. Default is <b>post_tag</b>. Please note that the tag cloud might not work with all taxonomies and that some taxonomies listed here may not be accessible in the admin backend. If you don\'t understand what is going on here, just leave the default.', 'tag-groups' ) ?></p>
-                <?php
-                $args = array(
-                    'public' => true
-                );
+                        <?php
+                        $args = array(
+                            'public' => true
+                        );
 
-                $taxonomies = get_taxonomies( $args, 'names' );
-                ?>
+                        $taxonomies = get_taxonomies( $args, 'names' );
+                        ?>
 
                         <ul>
 
-                <?php foreach ( $taxonomies as $taxonomy ) : ?>
+                            <?php foreach ( $taxonomies as $taxonomy ) : ?>
 
                                 <li><input type="checkbox" name="taxonomies[]" id="<?php echo $taxonomy ?>" value="<?php echo $taxonomy ?>" <?php if ( in_array( $taxonomy, $tag_group_taxonomy ) ) echo 'checked'; ?> />&nbsp;<label for="<?php echo $taxonomy ?>"><?php echo $taxonomy ?></label></li>
 
-                <?php endforeach; ?>
+                            <?php endforeach; ?>
 
                         </ul>
 
@@ -1540,9 +1543,9 @@ function tg_settings_page()
                         });
                     </script>
 
-            <?php endif; ?>
+                <?php endif; ?>
 
-            <?php if ( $active_tab == 1 ): ?>
+                <?php if ( $active_tab == 1 ): ?>
                     <form method="POST" action="<?php echo $_SERVER['REQUEST_URI']; ?>">
                         <input type="hidden" name="tag-groups-settings-nonce" id="tag-groups-settings-nonce" value="<?php echo wp_create_nonce( 'tag-groups-settings' ) ?>" />
                         <p><?php _e( 'Here you can choose a theme for the tag cloud. The path to own themes is relative to the <i>uploads</i> folder of your Wordpress installation. Leave empty if you don\'t use any.</p><p>New themes can be created with the <a href="http://jqueryui.com/themeroller/" target="_blank">jQuery UI ThemeRoller</a>:
@@ -1558,11 +1561,11 @@ function tg_settings_page()
                                 <td style="width:400px; padding-right:50px;">
                                     <ul>
 
-                <?php foreach ( $default_themes as $theme ) : ?>
+                                        <?php foreach ( $default_themes as $theme ) : ?>
 
                                             <li><input type="radio" name="theme" id="tg_<?php echo $theme ?>" value="<?php echo $theme ?>" <?php if ( $tag_group_theme == $theme ) echo 'checked'; ?> />&nbsp;<label for="tg_<?php echo $theme ?>"><?php echo $theme ?></label></li>
 
-                <?php endforeach; ?>
+                                        <?php endforeach; ?>
 
                                         <li><input type="radio" name="theme" value="own" id="tg_own" <?php if ( !in_array( $tag_group_theme, $default_themes ) ) echo 'checked' ?> />&nbsp;<label for="tg_own">own: /wp-content/uploads/</label><input type="text" id="theme-name" name="theme-name" value="<?php if ( !in_array( $tag_group_theme, $default_themes ) ) echo $tag_group_theme ?>" /></li>
                                         <li><input type="checkbox" name="enqueue-jquery" id="tg_enqueue-jquery" value="1" <?php if ( $tag_group_enqueue_jquery ) echo 'checked' ?> />&nbsp;<label for="tg_enqueue-jquery"><?php _e( 'Use jQuery.  (Default is on. Other plugins might override this setting.)', 'tag-groups' ) ?></label></li>
@@ -1582,21 +1585,21 @@ function tg_settings_page()
                         <input type="hidden" id="action" name="action" value="theme">
                         <input class='button-primary' type='submit' name='save' value='<?php _e( 'Save Theme Options', 'tag-groups' ); ?>' id='submitbutton' />
                     </form>
-            <?php endif; ?>
+                <?php endif; ?>
 
                 <?php if ( $active_tab == 2 ): ?>
-                <?php if ( function_exists( 'icl_register_string' ) ) : ?>
+                    <?php if ( function_exists( 'icl_register_string' ) ) : ?>
                         <form method="POST" action="<?php echo $_SERVER['REQUEST_URI']; ?>">
                             <h3><?php _e( 'Register group labels with WPML', 'tag-groups' ) ?></h3>
                             <p><?php _e( 'Use this button to register all existing group labels with WPML for string translation. This is only necessary if labels have existed before you installed WPML.', 'tag-groups' ) ?></p>
                             <input type="hidden" id="action" name="action" value="wpml">
                             <input class='button-primary' type='submit' name='register' value='<?php _e( 'Register Labels', 'tag-groups' ); ?>' id='submitbutton' />
                         </form>
+                    <?php endif; ?>
                 <?php endif; ?>
-            <?php endif; ?>
 
 
-            <?php if ( $active_tab == 3 ): ?>
+                <?php if ( $active_tab == 3 ): ?>
                     <p><?php _e( 'You can use a shortcode to embed the tag cloud directly in a post, page or widget or you call the function in the PHP code of your theme.', 'tag-groups' ) ?></p>
                     <form method="POST" action="<?php echo $_SERVER['REQUEST_URI']; ?>">
                         <input type="hidden" name="tag-groups-widget-nonce" id="tag-groups-widget-nonce" value="<?php echo wp_create_nonce( 'tag-groups-widget' ) ?>" />
@@ -1652,14 +1655,14 @@ function tg_settings_page()
                 <h4>b) PHP</h4>
                 <p><?php _e( 'By default the function <b>tag_groups_cloud</b> returns the html for a tabbed tag cloud.', 'tag-groups' ) ?></p>
                 <p><?php
-                _e( 'Example:', 'tag-groups' );
-                echo ' ' . htmlentities( "<?php if ( function_exists( 'tag_groups_cloud' ) ) echo tag_groups_cloud( array( 'include' => '1,2,5,6' ) ); ?>" )
-                ?></p>
+                    _e( 'Example:', 'tag-groups' );
+                    echo ' ' . htmlentities( "<?php if ( function_exists( 'tag_groups_cloud' ) ) echo tag_groups_cloud( array( 'include' => '1,2,5,6' ) ); ?>" )
+                    ?></p>
                 <p><?php _e( 'If the optional second parameter is set to \'true\', the function returns a multidimensional array containing tag groups and tags.', 'tag-groups' ); ?></p>
                 <p><?php
-                _e( 'Example:', 'tag-groups' );
-                echo ' ' . htmlentities( "<?php if ( function_exists( 'tag_groups_cloud' ) ) print_r( tag_groups_cloud( array( 'orderby' => 'count', 'order' => 'DESC' ), true ) ); ?>" )
-                ?></p>
+                    _e( 'Example:', 'tag-groups' );
+                    echo ' ' . htmlentities( "<?php if ( function_exists( 'tag_groups_cloud' ) ) print_r( tag_groups_cloud( array( 'orderby' => 'count', 'order' => 'DESC' ), true ) ); ?>" )
+                    ?></p>
             <?php endif; ?>
 
 
@@ -1975,14 +1978,14 @@ function tg_add_filter()
         ?>
         <select name="tg_filter_value">
             <option value=""><?php _e( 'Filter by tag group ', 'tag-groups' ); ?></option>
-        <?php
-        $current_v = isset( $_GET['tg_filter_value'] ) ? sanitize_text_field( $_GET['tg_filter_value'] ) : '';
+            <?php
+            $current_v = isset( $_GET['tg_filter_value'] ) ? sanitize_text_field( $_GET['tg_filter_value'] ) : '';
 
-        foreach ( $values as $value => $label ) {
+            foreach ( $values as $value => $label ) {
 
-            printf( '<option value="%s"%s>%s</option>', $value, ( $current_v != '' && $value == $current_v ) ? ' selected="selected"' : '', $label );
-        }
-        ?>
+                printf( '<option value="%s"%s>%s</option>', $value, ( $current_v != '' && $value == $current_v ) ? ' selected="selected"' : '', $label );
+            }
+            ?>
         </select>
         <?php
     }

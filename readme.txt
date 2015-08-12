@@ -4,7 +4,7 @@ Donate link: http://www.burma-center.org/donate/
 Tags: tag, tags, term_group, tag cloud, tag-cloud, WPML, category, categories, category cloud
 Requires at least: 3.1
 Tested up to: 4.3
-Stable tag: 0.19
+Stable tag: 0.19.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -60,6 +60,16 @@ No, unfortunately it isn't. But, nevertheless, I'm glad you asked! You are warml
 
 
 == Changelog ==
+
+= 0.19.1 =
+
+BUG FIXES
+
+ * "Search Tags" was broken
+
+FEATURES
+
+* updated the .pot file for localizations
 
 = 0.19 =
 
